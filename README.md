@@ -1,2 +1,2 @@
 # Struct-Diff.pm
-Simple perl data structires diff module
+Resucrive diff for nested perl structures
