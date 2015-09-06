@@ -6,25 +6,25 @@ use warnings FATAL => 'all';
 use base qw(Exporter);
 
 BEGIN {
-    our @EXPORT = qw(diff);
+    our @EXPORT = qw(diff strip);
 }
 
 =head1 NAME
 
-Struct::Diff -  Resucrive diff for nested perl structures
+Struct::Diff - Resucrive diff tools for nested perl structures
 
 =head1 VERSION
 
-Version 0.01
+Version 0.02
 
 =cut
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 =head1 SYNOPSIS
 
     use Data::Dumper;
-    use Struct::Diff;
+    use Struct::Diff qw(diff strip);
 
     my $diff = diff($ref1, $ref2);
     print Dumper $diff->['added'];
@@ -35,7 +35,7 @@ our $VERSION = '0.01';
 
 =head1 EXPORT
 
-Only diff() exports by default
+Nothing exports by default
 
 =head1 SUBROUTINES
 
@@ -83,6 +83,51 @@ sub diff($$) {
         }
     }
     $diff->{'common'} = $frst unless ($diff); # if passed srtucts are empry
+    return $diff;
+}
+
+sub strip($$);
+sub strip($$) {
+    my ($frst, $scnd) = @_;
+    my $diff;
+    if (ref $frst ne ref $scnd) {
+        $diff->{'changed'} = [$frst, $scnd];
+    } elsif (ref $frst eq 'ARRAY') {
+        my $fa = [@{$frst}]; my $sa = [@{$scnd}]; # copy to new arrays to prevent original arrays corruption
+        for (my $i = 0; @{$fa} and @{$sa}; $i++) {
+            my $fi = shift(@{$fa}); my $si = shift(@{$sa});
+            my $tmp = strip($fi, $si);
+            if (exists $tmp->{'added'} or exists $tmp->{'changed'} or exists $tmp->{'removed'}) {
+                push @{$diff->{'changed'}}, [$fi, $si];
+            } else {
+                splice @{$frst}, $i, 1;
+                splice @{$scnd}, $i, 1;
+                $i--;
+            }
+        }
+        push @{$diff->{'removed'}}, @{$frst} if (@{$frst});
+        push @{$diff->{'added'}}, @{$scnd} if (@{$scnd});
+    } elsif (ref $frst eq 'HASH') {
+        for my $key (keys { map { $_, 1 } (keys %{$frst}, keys %{$scnd}) }) { # go througth united uniq keys
+            if (exists $frst->{$key} and exists $scnd->{$key}) {
+                my $tmp = strip($frst->{$key}, $scnd->{$key});
+                if (exists $tmp->{'added'} or exists $tmp->{'changed'} or exists $tmp->{'removed'}) {
+                    push @{$diff->{'changed'}->{$key}}, $frst->{$key}, $scnd->{$key};
+                } else {
+                    delete $frst->{$key};
+                    delete $scnd->{$key};
+                }
+            } elsif (exists $frst->{$key}) {
+                $diff->{'removed'}->{$key} = $frst->{$key};
+            } else {
+                $diff->{'added'}->{$key} = $scnd->{$key};
+            }
+        }
+    } else { # treat all types as scalars
+        unless ((not defined $frst and not defined $scnd) or ((defined $frst and defined $scnd) and ($frst eq $scnd))) {
+            $diff->{'changed'} = [$frst, $scnd];
+        }
+    }
     return $diff;
 }
 
@@ -141,7 +186,6 @@ under the terms of either: the GNU General Public License as published
 by the Free Software Foundation; or the Artistic License.
 
 See L<http://dev.perl.org/licenses/> for more information.
-
 
 =cut
 
