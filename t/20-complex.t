@@ -10,7 +10,7 @@ use Struct::Diff;
 # recursive struct maker
 sub smk($$;$);
 sub smk($$;$) {
-    my $depth = shift || return (rand(1) > 0.5) ? rand(1000) : int(rand(1000));
+    my $depth = shift || return (rand(1) > 0.5) ? rand(65535) : int(rand(65535));
     my $width = shift;
     my $style = shift;
 
