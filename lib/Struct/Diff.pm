@@ -11,7 +11,7 @@ BEGIN {
 
 =head1 NAME
 
-Struct::Diff - Resucrive diff tools for nested perl structures
+Struct::Diff - Recursive diff tools for nested perl structures
 
 =head1 VERSION
 
@@ -43,17 +43,18 @@ Nothing exports by default
 
 =cut
 
-sub diff($$);
-sub diff($$) {
-    my ($frst, $scnd) = @_;
+sub diff($$;@);
+sub diff($$;@) {
+    my ($frst, $scnd, %opts) = @_;
+    $opts{'depth'}-- if (exists $opts{'depth'});
     my $diff;
     if (ref $frst ne ref $scnd) {
         $diff->{'changed'} = [$frst, $scnd];
-    } elsif (ref $frst eq 'ARRAY') {
+    } elsif (ref $frst eq 'ARRAY' and (not exists $opts{'depth'} or $opts{'depth'} >= 0)) {
         $frst = [@{$frst}]; $scnd = [@{$scnd}]; # copy to new arrays to prevent original arrays corruption
         while (@{$frst} and @{$scnd}) {
             my $fi = shift(@{$frst}); my $si = shift(@{$scnd});
-            my $tmp = diff($fi, $si);
+            my $tmp = diff($fi, $si, %opts);
             if (exists $tmp->{'added'} or exists $tmp->{'changed'} or exists $tmp->{'removed'}) {
                 push @{$diff->{'changed'}}, [$fi, $si];
             } else {
@@ -62,10 +63,10 @@ sub diff($$) {
         }
         push @{$diff->{'removed'}}, @{$frst} if (@{$frst});
         push @{$diff->{'added'}}, @{$scnd} if (@{$scnd});
-    } elsif (ref $frst eq 'HASH') {
+    } elsif (ref $frst eq 'HASH' and (not exists $opts{'depth'} or $opts{'depth'} >= 0)) {
         for my $key (keys { map { $_, 1 } (keys %{$frst}, keys %{$scnd}) }) { # go througth united uniq keys
             if (exists $frst->{$key} and exists $scnd->{$key}) {
-                my $tmp = diff($frst->{$key}, $scnd->{$key});
+                my $tmp = diff($frst->{$key}, $scnd->{$key}, %opts);
                 if (exists $tmp->{'added'} or exists $tmp->{'changed'} or exists $tmp->{'removed'}) {
                     push @{$diff->{'changed'}->{$key}}, $frst->{$key}, $scnd->{$key};
                 } else {
@@ -77,14 +78,18 @@ sub diff($$) {
                 $diff->{'added'}->{$key} = $scnd->{$key};
             }
         }
-    } else { # treat all types as scalars
+    } else { # treat all other types as scalars
         unless ((not defined $frst and not defined $scnd) or ((defined $frst and defined $scnd) and ($frst eq $scnd))) {
             $diff->{'changed'} = [$frst, $scnd];
         }
     }
-    $diff->{'common'} = $frst unless ($diff); # if passed srtucts are empry
+    $diff->{'common'} = $frst unless ($diff); # if passed srtucts are empty
     return $diff;
 }
+
+=head2 strip
+
+=cut
 
 sub strip($$);
 sub strip($$) {
