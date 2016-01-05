@@ -108,7 +108,6 @@ my $struct2 = {
     'h5' => 'added'
 };
 
-
 $diff = diff($struct1, $struct2);
 ok(keys %{$diff} == 4 and
     $diff->{'added'}->{'h5'} eq 'added' and
@@ -116,4 +115,3 @@ ok(keys %{$diff} == 4 and
     $diff->{'common'}->{'h2'}->{'h2hv4'}->{'h2hv4v1'} eq 'h2hv4v1_test' and
     $diff->{'removed'}->{'h4'} eq '111'
 );
-
