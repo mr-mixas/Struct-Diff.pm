@@ -56,7 +56,12 @@ sub diff($$;@) {
             my $fi = shift(@{$frst}); my $si = shift(@{$scnd});
             my $tmp = diff($fi, $si, %opts);
             if (exists $tmp->{'added'} or exists $tmp->{'changed'} or exists $tmp->{'removed'}) {
-                push @{$diff->{'changed'}}, [$fi, $si];
+                if ($opts{'separate-changed'}) {
+                    push @{$diff->{'removed'}}, $fi;
+                    push @{$diff->{'added'}}, $si;
+                } else {
+                    push @{$diff->{'changed'}}, [$fi, $si];
+                }
             } else {
                 push @{$diff->{'common'}}, $fi;
             }
@@ -68,7 +73,12 @@ sub diff($$;@) {
             if (exists $frst->{$key} and exists $scnd->{$key}) {
                 my $tmp = diff($frst->{$key}, $scnd->{$key}, %opts);
                 if (exists $tmp->{'added'} or exists $tmp->{'changed'} or exists $tmp->{'removed'}) {
-                    push @{$diff->{'changed'}->{$key}}, $frst->{$key}, $scnd->{$key};
+                    if ($opts{'separate-changed'}) {
+                        $diff->{'removed'}->{$key} = $frst->{$key};
+                        $diff->{'added'}->{$key} = $scnd->{$key};
+                    } else {
+                        push @{$diff->{'changed'}->{$key}}, $frst->{$key}, $scnd->{$key};
+                    }
                 } else {
                     $diff->{'common'}->{$key} = $frst->{$key};
                 }
