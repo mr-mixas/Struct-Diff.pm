@@ -148,7 +148,7 @@ sub strip($$) {
 
 =head1 AUTHOR
 
-Michael Samoglyadov, C<< <mixas.sr at gmail.com> >>
+Michael Samoglyadov, C<< <mixas at cpan.org> >>
 
 =head1 BUGS
 
