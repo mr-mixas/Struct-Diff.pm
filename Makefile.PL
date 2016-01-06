@@ -15,6 +15,7 @@ WriteMakefile(
         'ExtUtils::MakeMaker' => 0,
     },
     BUILD_REQUIRES => {
+        'Storable'   => 0,
         'Test::More' => 0,
     },
     PREREQ_PM => {
