@@ -5,7 +5,7 @@ use ExtUtils::MakeMaker;
 
 WriteMakefile(
     NAME             => 'Struct::Diff',
-    AUTHOR           => q{Michael Samoglyadov <mixas.sr@gmail.com>},
+    AUTHOR           => q{Michael Samoglyadov <mixas@cpan.org>},
     VERSION_FROM     => 'lib/Struct/Diff.pm',
     ABSTRACT_FROM    => 'lib/Struct/Diff.pm',
     LICENSE          => 'Perl_5',
