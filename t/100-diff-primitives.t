@@ -2,7 +2,7 @@
 
 use strict;
 use warnings FATAL => 'all';
-use Test::More tests => 17;
+use Test::More tests => 20;
 
 use Struct::Diff qw(diff);
 
@@ -129,8 +129,36 @@ ok($diff = diff([],[]) and
 ok($diff = diff([],{}) and
     keys %{$diff} == 1 and
     exists $diff->{'changed'} and
-    ref $diff->{'changed'}->[0] eq 'ARRAY' and
+    @{$diff->{'changed'}} == 2 and
     @{$diff->{'changed'}->[0]} == 0 and
     ref $diff->{'changed'}->[1] eq 'HASH' and
     keys %{$diff->{'changed'}->[1]} == 0
+);
+
+ok($diff = diff({},[]) and
+    keys %{$diff} == 1 and
+    exists $diff->{'changed'} and
+    @{$diff->{'changed'}} == 2 and
+    ref $diff->{'changed'}->[0] eq 'HASH' and
+    keys %{$diff->{'changed'}->[0]} == 0 and
+    @{$diff->{'changed'}->[1]} == 0
+);
+
+my $coderef1 = sub { return 0 };
+ok($diff = diff($coderef1,$coderef1) and
+    keys %{$diff} == 1 and
+    exists $diff->{'common'} and
+    $diff->{'common'} eq $coderef1
+);
+
+my $coderef2 = sub { return 1 };
+ok($diff = diff($coderef1,$coderef2) and
+    keys %{$diff} == 1 and
+    exists $diff->{'changed'} and
+    @{$diff->{'changed'}} == 2 and
+    ref $diff->{'changed'}->[0] eq 'CODE' and
+    ref $diff->{'changed'}->[1] eq 'CODE' and
+    $diff->{'changed'}->[0] eq $coderef1 and
+    $diff->{'changed'}->[1] eq $coderef2 and
+    $diff->{'changed'}->[0] ne $diff->{'changed'}->[1]
 );
