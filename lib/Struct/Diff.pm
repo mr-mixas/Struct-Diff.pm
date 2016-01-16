@@ -6,7 +6,7 @@ use warnings FATAL => 'all';
 use base qw(Exporter);
 
 BEGIN {
-    our @EXPORT = qw(diff strip);
+    our @EXPORT_OK = qw(diff strip);
 }
 
 =head1 NAME

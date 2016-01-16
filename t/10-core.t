@@ -4,7 +4,7 @@ use strict;
 use warnings FATAL => 'all';
 use Test::More tests => 9;
 
-use Struct::Diff;
+use Struct::Diff qw(diff);
 
 my $diff;
 

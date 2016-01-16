@@ -5,7 +5,7 @@ use warnings FATAL => 'all';
 use Storable qw(dclone);
 use Test::More tests => 6;
 
-use Struct::Diff;
+use Struct::Diff qw(diff);
 
 my $diff;
 
