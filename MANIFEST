@@ -3,11 +3,13 @@ lib/Struct/Diff.pm
 Makefile.PL
 MANIFEST			This list of files
 README
-t/00-load.t
-t/10-core.t
-t/20-complex.t
-t/30-depth.t
-t/40-separate-changed.t
+t/000-load.t
+t/100-diff-primitives.t
+t/110-diff-arrays.t
+t/120-diff-hashes.t
+t/130-diff-complex.t
+t/140-diff-depth.t
+t/150-diff-separate-changed.t
 t/boilerplate.t
 t/manifest.t
 t/pod-coverage.t
