@@ -2,6 +2,7 @@ Makefile
 Makefile.old
 Build
 Build.bat
+MANIFEST.bak
 META.*
 MYMETA.*
 TODO
