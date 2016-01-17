@@ -23,7 +23,7 @@ ok($diff = diff(undef, 0, 'shortest' => 1) and
 
 ### arrays ###
 my $s_array_1 = [ 0, 1, undef, 3, 'a', 5];
-my $s_array_2 = [ 0, 1, undef, 3, 'b', 5];
+my $s_array_2 = [ 0, 7, undef, 3, 'b', 5];
 
 ok($diff = diff($s_array_1, $s_array_1, 'shortest' => 1) and
     keys %{$diff} == 0
@@ -32,10 +32,15 @@ ok($diff = diff($s_array_1, $s_array_1, 'shortest' => 1) and
 ok($diff = diff($s_array_1, $s_array_2, 'shortest' => 1) and
     keys %{$diff} == 1 and
     exists $diff->{'changed'} and
+    @{$diff->{'changed'}} == 2 and
     @{$diff->{'changed'}->[0]} == 3 and
-    $diff->{'changed'}->[0]->[0] eq 'a' and
-    $diff->{'changed'}->[0]->[1] eq 'b' and
-    $diff->{'changed'}->[0]->[2] == 4
+    $diff->{'changed'}->[0]->[0] == 1 and
+    $diff->{'changed'}->[0]->[1] == 7 and
+    $diff->{'changed'}->[0]->[2] == 1 and
+    @{$diff->{'changed'}->[1]} == 3 and
+    $diff->{'changed'}->[1]->[0] eq 'a' and
+    $diff->{'changed'}->[1]->[1] eq 'b' and
+    $diff->{'changed'}->[1]->[2] == 4
 );
 
 ### hashes ###
