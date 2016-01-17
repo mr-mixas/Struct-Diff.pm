@@ -61,7 +61,7 @@ sub diff($$;@) {
                     push @{$diff->{'added'}}, $si;
                 } else {
                     push @{$diff->{'changed'}}, [$fi, $si];
-                    push @{$diff->{'changed'}->[0]}, @{$frst} - @{$fc} - 1 if ($opts{'shortest'}); # add position in array for changed item
+                    push @{$diff->{'changed'}->[-1]}, @{$frst} - @{$fc} - 1 if ($opts{'shortest'}); # add position in array for changed item
                 }
             } else {
                 push @{$diff->{'common'}}, $fi unless ($opts{'shortest'});
