@@ -50,7 +50,7 @@ sub diff($$;@) {
     my $diff = {};
     if (ref $frst ne ref $scnd) {
         $diff->{'changed'} = [$frst, $scnd];
-    } elsif (ref $frst eq 'ARRAY' and (not exists $opts{'depth'} or $opts{'depth'} >= 0)) {
+    } elsif ((ref $frst eq 'ARRAY') and ($frst ne $scnd) and (not exists $opts{'depth'} or $opts{'depth'} >= 0)) {
         my $fc = [@{$frst}]; my $sc = [@{$scnd}]; # copy to new arrays to prevent original arrays corruption
         while (@{$fc} and @{$sc}) {
             my $fi = shift(@{$fc}); my $si = shift(@{$sc});
@@ -69,7 +69,7 @@ sub diff($$;@) {
         }
         push @{$diff->{'removed'}}, @{$fc} if (@{$fc});
         push @{$diff->{'added'}}, @{$sc} if (@{$sc});
-    } elsif (ref $frst eq 'HASH' and (not exists $opts{'depth'} or $opts{'depth'} >= 0)) {
+    } elsif ((ref $frst eq 'HASH') and ($frst ne $scnd) and (not exists $opts{'depth'} or $opts{'depth'} >= 0)) {
         for my $key (keys { map { $_, 1 } (keys %{$frst}, keys %{$scnd}) }) { # go througth united uniq keys
             if (exists $frst->{$key} and exists $scnd->{$key}) {
                 my $tmp = diff($frst->{$key}, $scnd->{$key}, %opts);
