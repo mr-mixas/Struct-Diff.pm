@@ -24,7 +24,7 @@ our $VERSION = '0.02';
 =head1 SYNOPSIS
 
     use Data::Dumper;
-    use Struct::Diff qw(diff strip);
+    use Struct::Diff qw(diff);
 
     my $diff = diff($ref1, $ref2);
     print Dumper $diff->['added'];
@@ -40,6 +40,10 @@ Nothing exports by default
 =head1 SUBROUTINES
 
 =head2 diff
+
+Returns HASH reference to diff between two passed references.
+Diff itself consists of linked parts of passed structures, be aware of it while changing returned diff.
+    $diff = diff($ref1, $ref2, %opts);
 
 =cut
 
@@ -100,6 +104,9 @@ sub diff($$;@) {
 
 =head2 strip
 
+Remove all common parts from two passed refs (diff inside-out)
+    strip($ref1, $ref2);
+
 =cut
 
 sub strip($$);
@@ -157,15 +164,11 @@ Please report any bugs or feature requests to C<bug-struct-diff at rt.cpan.org>,
 the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Struct-Diff>.  I will be notified, and then you'll
 automatically be notified of progress on your bug as I make changes.
 
-
-
-
 =head1 SUPPORT
 
 You can find documentation for this module with the perldoc command.
 
     perldoc Struct::Diff
-
 
 You can also look for information at:
 
@@ -190,12 +193,20 @@ L<http://search.cpan.org/dist/Struct-Diff/>
 =back
 
 
-=head1 ACKNOWLEDGEMENTS
+=head1 SEE ALSO
 
+L<http://search.cpan.org/dist/Data-Diff/>
+
+L<http://search.cpan.org/dist/Array-Diff/>
+L<http://search.cpan.org/dist/Array-Compare/>
+L<http://search.cpan.org/dist/Algorithm-Diff/>
+L<http://search.cpan.org/dist/Hash-Diff/>
+L<http://search.cpan.org/dist/Test-Struct/>
+L<http://search.cpan.org/dist/Struct-Compare/>
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2015 Michael Samoglyadov.
+Copyright 2015-2016 Michael Samoglyadov.
 
 This program is free software; you can redistribute it and/or modify it
 under the terms of either: the GNU General Public License as published
