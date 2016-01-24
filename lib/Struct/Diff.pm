@@ -75,8 +75,13 @@ sub diff($$;@) {
                 }
             }
         }
-        push @{$diff->{'removed'}}, @{$fc} if (@{$fc});
-        push @{$diff->{'added'}}, @{$sc} if (@{$sc});
+        if ($opts{'detailed'}) {
+            map { push @{$diff->{'diff'}}, { 'removed' => $_ } } @{$fc};
+            map { push @{$diff->{'diff'}}, { 'added' => $_ } } @{$sc};
+        } else {
+            push @{$diff->{'removed'}}, @{$fc} if (@{$fc});
+            push @{$diff->{'added'}}, @{$sc} if (@{$sc});
+        }
     } elsif ((ref $frst eq 'HASH') and ($frst ne $scnd) and (not exists $opts{'depth'} or $opts{'depth'} >= 0)) {
         for my $key (keys { map { $_, 1 } (keys %{$frst}, keys %{$scnd}) }) { # go througth united uniq keys
             if (exists $frst->{$key} and exists $scnd->{$key}) {
@@ -96,9 +101,17 @@ sub diff($$;@) {
                     }
                 }
             } elsif (exists $frst->{$key}) {
-                $diff->{'removed'}->{$key} = $frst->{$key};
+                if ($opts{'detailed'}) {
+                    $diff->{'diff'}->{$key} = { 'removed' => $frst->{$key} }
+                } else {
+                    $diff->{'removed'}->{$key} = $frst->{$key};
+                }
             } else {
-                $diff->{'added'}->{$key} = $scnd->{$key};
+                if ($opts{'detailed'}) {
+                    $diff->{'diff'}->{$key} = { 'added' => $scnd->{$key} };
+                } else {
+                    $diff->{'added'}->{$key} = $scnd->{$key};
+                }
             }
         }
     } else { # treat all other types as scalars
