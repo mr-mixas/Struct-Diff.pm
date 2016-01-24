@@ -11,6 +11,7 @@ t/130-diff-complex.t
 t/140-diff-depth.t
 t/150-diff-separate-changed.t
 t/160-diff-shortest.t
+t/170-diff-detailed.t
 t/boilerplate.t
 t/manifest.t
 t/pod-coverage.t
