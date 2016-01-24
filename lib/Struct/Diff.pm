@@ -59,16 +59,20 @@ sub diff($$;@) {
         while (@{$fc} and @{$sc}) {
             my $fi = shift(@{$fc}); my $si = shift(@{$sc});
             my $tmp = diff($fi, $si, %opts);
-            if (exists $tmp->{'added'} or exists $tmp->{'changed'} or exists $tmp->{'removed'}) {
-                if ($opts{'separate-changed'}) {
-                    push @{$diff->{'removed'}}, $fi;
-                    push @{$diff->{'added'}}, $si;
-                } else {
-                    push @{$diff->{'changed'}}, [$fi, $si];
-                    push @{$diff->{'changed'}->[-1]}, @{$frst} - @{$fc} - 1 if ($opts{'shortest'}); # add position in array for changed item
-                }
+            if ($opts{'detailed'}) {
+                push @{$diff->{'diff'}}, $tmp;
             } else {
-                push @{$diff->{'common'}}, $fi unless ($opts{'shortest'});
+                if (exists $tmp->{'added'} or exists $tmp->{'changed'} or exists $tmp->{'removed'}) {
+                    if ($opts{'separate-changed'}) {
+                        push @{$diff->{'removed'}}, $fi;
+                        push @{$diff->{'added'}}, $si;
+                    } else {
+                        push @{$diff->{'changed'}}, [$fi, $si];
+                        push @{$diff->{'changed'}->[-1]}, @{$frst} - @{$fc} - 1 if ($opts{'shortest'}); # add position in array for changed item
+                    }
+                } else {
+                    push @{$diff->{'common'}}, $fi unless ($opts{'shortest'});
+                }
             }
         }
         push @{$diff->{'removed'}}, @{$fc} if (@{$fc});
@@ -77,15 +81,19 @@ sub diff($$;@) {
         for my $key (keys { map { $_, 1 } (keys %{$frst}, keys %{$scnd}) }) { # go througth united uniq keys
             if (exists $frst->{$key} and exists $scnd->{$key}) {
                 my $tmp = diff($frst->{$key}, $scnd->{$key}, %opts);
-                if (exists $tmp->{'added'} or exists $tmp->{'changed'} or exists $tmp->{'removed'}) {
-                    if ($opts{'separate-changed'}) {
-                        $diff->{'removed'}->{$key} = $frst->{$key};
-                        $diff->{'added'}->{$key} = $scnd->{$key};
-                    } else {
-                        push @{$diff->{'changed'}->{$key}}, $frst->{$key}, $scnd->{$key};
-                    }
+                if ($opts{'detailed'}) {
+                    $diff->{'diff'}->{$key} = $tmp;
                 } else {
-                    $diff->{'common'}->{$key} = $frst->{$key} unless ($opts{'shortest'});
+                    if (exists $tmp->{'added'} or exists $tmp->{'changed'} or exists $tmp->{'removed'}) {
+                        if ($opts{'separate-changed'}) {
+                            $diff->{'removed'}->{$key} = $frst->{$key};
+                            $diff->{'added'}->{$key} = $scnd->{$key};
+                        } else {
+                            push @{$diff->{'changed'}->{$key}}, $frst->{$key}, $scnd->{$key};
+                        }
+                    } else {
+                        $diff->{'common'}->{$key} = $frst->{$key} unless ($opts{'shortest'});
+                    }
                 }
             } elsif (exists $frst->{$key}) {
                 $diff->{'removed'}->{$key} = $frst->{$key};
