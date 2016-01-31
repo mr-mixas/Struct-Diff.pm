@@ -5,8 +5,6 @@ use warnings FATAL => 'all';
 use Storable qw(dclone);
 use Test::More tests => 5;
 
-use Data::Dumper;
-
 use Struct::Diff qw(diff);
 
 my $diff;
@@ -38,13 +36,30 @@ my $sub_array = [ 0, [ 11, 12 ], 2 ]; # must be considered as equal by ref (wo d
 my $s_array_1 = [ 0, [[ 100 ]], [ 20, 'a' ], $sub_array, 4 ];
 my $s_array_2 = [ 0, [[ 100 ]], [ 20, 'b' ], $sub_array, 5 ];
 ok($diff = diff($s_array_1, $s_array_2, 'detailed' => 1) and
-print STDERR Dumper $diff and
     keys %{$diff} == 1 and
     exists $diff->{'diff'} and @{$diff->{'diff'}} == 5 and
     (grep { keys %{$_} } @{$diff->{'diff'}}) == 5 and
-    exists $diff->{'diff'}->[0]->{'common'} and $diff->{'diff'}->[0]->{'common'} == 0 and
-    # TODO
-    1
+    keys %{$diff->{'diff'}->[0]} == 1 and exists $diff->{'diff'}->[0]->{'common'} and $diff->{'diff'}->[0]->{'common'} == 0 and
+    keys %{$diff->{'diff'}->[1]} == 1 and exists $diff->{'diff'}->[1]->{'diff'} and @{$diff->{'diff'}->[1]->{'diff'}} == 1 and
+        exists $diff->{'diff'}->[1]->{'diff'}->[0]->{'diff'} and @{$diff->{'diff'}->[1]->{'diff'}->[0]->{'diff'}} == 1 and
+        keys %{$diff->{'diff'}->[1]->{'diff'}->[0]->{'diff'}->[0]} == 1 and exists $diff->{'diff'}->[1]->{'diff'}->[0]->{'diff'}->[0]->{'common'} and
+        $diff->{'diff'}->[1]->{'diff'}->[0]->{'diff'}->[0]->{'common'} == 100 and
+    keys %{$diff->{'diff'}->[2]} == 1 and exists $diff->{'diff'}->[2]->{'diff'} and @{$diff->{'diff'}->[2]->{'diff'}} == 2 and
+        keys %{$diff->{'diff'}->[2]->{'diff'}->[0]} == 1 and exists $diff->{'diff'}->[2]->{'diff'}->[0]->{'common'} and
+            $diff->{'diff'}->[2]->{'diff'}->[0]->{'common'} == 20 and
+        keys %{$diff->{'diff'}->[2]->{'diff'}->[1]} == 1 and exists $diff->{'diff'}->[2]->{'diff'}->[1]->{'changed'} and
+            @{$diff->{'diff'}->[2]->{'diff'}->[1]->{'changed'}} == 2 and
+            $diff->{'diff'}->[2]->{'diff'}->[1]->{'changed'}->[0] eq 'a' and
+            $diff->{'diff'}->[2]->{'diff'}->[1]->{'changed'}->[1] eq 'b' and
+    keys %{$diff->{'diff'}->[3]} == 1 and exists $diff->{'diff'}->[3]->{'common'} and @{$diff->{'diff'}->[3]->{'common'}} == 3 and
+        $diff->{'diff'}->[3]->{'common'}->[0] == 0 and
+        @{$diff->{'diff'}->[3]->{'common'}->[1]} == 2 and
+            $diff->{'diff'}->[3]->{'common'}->[1]->[0] == 11 and
+            $diff->{'diff'}->[3]->{'common'}->[1]->[1] == 12 and
+        $diff->{'diff'}->[3]->{'common'}->[2] == 2 and
+    keys %{$diff->{'diff'}->[4]} == 1 and exists $diff->{'diff'}->[4]->{'changed'} and @{$diff->{'diff'}->[4]->{'changed'}} == 2 and
+        $diff->{'diff'}->[4]->{'changed'}->[0] == 4 and
+        $diff->{'diff'}->[4]->{'changed'}->[1] == 5
 );
 
 ### hashes ###
