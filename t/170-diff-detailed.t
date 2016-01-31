@@ -3,7 +3,7 @@
 use strict;
 use warnings FATAL => 'all';
 use Storable qw(dclone);
-use Test::More tests => 5;
+use Test::More tests => 7;
 
 use Struct::Diff qw(diff);
 
@@ -62,6 +62,23 @@ ok($diff = diff($s_array_1, $s_array_2, 'detailed' => 1) and
         $diff->{'diff'}->[4]->{'changed'}->[1] == 5
 );
 
+ok($diff = diff($s_array_1, $s_array_2, 'detailed' => 1, 'shortest' => 1) and
+    keys %{$diff} == 1 and
+    exists $diff->{'diff'} and @{$diff->{'diff'}} == 5 and
+    keys %{$diff->{'diff'}->[0]} == 0 and
+    keys %{$diff->{'diff'}->[1]} == 0 and
+    keys %{$diff->{'diff'}->[2]} == 1 and exists $diff->{'diff'}->[2]->{'diff'} and @{$diff->{'diff'}->[2]->{'diff'}} == 2 and
+        keys %{$diff->{'diff'}->[2]->{'diff'}->[0]} == 0 and
+        keys %{$diff->{'diff'}->[2]->{'diff'}->[1]} == 1 and exists $diff->{'diff'}->[2]->{'diff'}->[1]->{'changed'} and
+            @{$diff->{'diff'}->[2]->{'diff'}->[1]->{'changed'}} == 2 and
+            $diff->{'diff'}->[2]->{'diff'}->[1]->{'changed'}->[0] eq 'a' and
+            $diff->{'diff'}->[2]->{'diff'}->[1]->{'changed'}->[1] eq 'b' and
+    keys %{$diff->{'diff'}->[3]} == 0 and
+    keys %{$diff->{'diff'}->[4]} == 1 and exists $diff->{'diff'}->[4]->{'changed'} and @{$diff->{'diff'}->[4]->{'changed'}} == 2 and
+        $diff->{'diff'}->[4]->{'changed'}->[0] == 4 and
+        $diff->{'diff'}->[4]->{'changed'}->[1] == 5
+);
+
 ### hashes ###
 my $s_hash_1 = { 'a' => 'a1', 'b' => { 'ba' => 'ba1', 'bb' => 'bb1' }, 'c' => 'c1' };
 my $s_hash_2 = { 'a' => 'a1', 'b' => { 'ba' => 'ba2', 'bb' => 'bb1' }, 'd' => 'd1' };
@@ -79,6 +96,20 @@ ok($diff = diff($s_hash_1, $s_hash_2, 'detailed' => 1) and
         exists $diff->{'diff'}->{'b'}->{'diff'}->{'bb'} and keys %{$diff->{'diff'}->{'b'}->{'diff'}->{'bb'}} == 1 and
             exists $diff->{'diff'}->{'b'}->{'diff'}->{'bb'}->{'common'} and
             $diff->{'diff'}->{'b'}->{'diff'}->{'bb'}->{'common'} eq 'bb1' and
+    keys %{$diff->{'diff'}->{'c'}} == 1 and exists $diff->{'diff'}->{'c'}->{'removed'} and $diff->{'diff'}->{'c'}->{'removed'} eq 'c1' and
+    keys %{$diff->{'diff'}->{'d'}} == 1 and exists $diff->{'diff'}->{'d'}->{'added'} and $diff->{'diff'}->{'d'}->{'added'} eq 'd1'
+);
+
+ok($diff = diff($s_hash_1, $s_hash_2, 'detailed' => 1, 'shortest' => 1) and
+    keys %{$diff} == 1 and
+    exists $diff->{'diff'} and keys %{$diff->{'diff'}} == 3 and
+    keys %{$diff->{'diff'}->{'b'}} == 1 and exists $diff->{'diff'}->{'b'}->{'diff'} and
+        keys %{$diff->{'diff'}->{'b'}->{'diff'}} == 1 and
+        exists $diff->{'diff'}->{'b'}->{'diff'}->{'ba'} and keys %{$diff->{'diff'}->{'b'}->{'diff'}->{'ba'}} == 1 and
+            exists $diff->{'diff'}->{'b'}->{'diff'}->{'ba'}->{'changed'} and
+            @{$diff->{'diff'}->{'b'}->{'diff'}->{'ba'}->{'changed'}} == 2 and
+            $diff->{'diff'}->{'b'}->{'diff'}->{'ba'}->{'changed'}->[0] eq 'ba1' and
+            $diff->{'diff'}->{'b'}->{'diff'}->{'ba'}->{'changed'}->[1] eq 'ba2' and
     keys %{$diff->{'diff'}->{'c'}} == 1 and exists $diff->{'diff'}->{'c'}->{'removed'} and $diff->{'diff'}->{'c'}->{'removed'} eq 'c1' and
     keys %{$diff->{'diff'}->{'d'}} == 1 and exists $diff->{'diff'}->{'d'}->{'added'} and $diff->{'diff'}->{'d'}->{'added'} eq 'd1'
 );
