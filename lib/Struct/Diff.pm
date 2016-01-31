@@ -33,6 +33,9 @@ our $VERSION = '0.02';
     print Dumper $diff->['removed'];
     ...
 
+    my $detailed = diff($ref1, $ref2, 'detailed' => 1);
+    print Dumper $detailed;
+
 =head1 EXPORT
 
 Nothing exports by default
@@ -42,8 +45,12 @@ Nothing exports by default
 =head2 diff
 
 Returns HASH reference to diff between two passed references.
-Diff itself consists of linked parts of passed structures, be aware of it while changing returned diff.
+Diff itself consists of linked parts of passed structures, be aware of it while change diff.
     $diff = diff($ref1, $ref2, %opts);
+
+=head3 Available options
+
+TODO
 
 =cut
 
@@ -53,9 +60,9 @@ sub diff($$;@) {
     $opts{'depth'}-- if (exists $opts{'depth'});
     my $diff = {};
     if (ref $frst ne ref $scnd) {
-        $diff->{'changed'} = [$frst, $scnd];
+        $diff->{'changed'} = [ $frst, $scnd ];
     } elsif ((ref $frst eq 'ARRAY') and ($frst ne $scnd) and (not exists $opts{'depth'} or $opts{'depth'} >= 0)) {
-        my $fc = [@{$frst}]; my $sc = [@{$scnd}]; # copy to new arrays to prevent original arrays corruption
+        my $fc = [ @{$frst} ]; my $sc = [ @{$scnd} ]; # copy to new arrays to prevent original arrays corruption
         while (@{$fc} and @{$sc}) {
             my $fi = shift(@{$fc}); my $si = shift(@{$sc});
             my $tmp = diff($fi, $si, %opts);
@@ -67,7 +74,7 @@ sub diff($$;@) {
                         push @{$diff->{'removed'}}, $fi;
                         push @{$diff->{'added'}}, $si;
                     } else {
-                        push @{$diff->{'changed'}}, [$fi, $si];
+                        push @{$diff->{'changed'}}, [ $fi, $si ];
                         push @{$diff->{'changed'}->[-1]}, @{$frst} - @{$fc} - 1 if ($opts{'shortest'}); # add position in array for changed item
                     }
                 } else {
@@ -102,7 +109,7 @@ sub diff($$;@) {
                 }
             } elsif (exists $frst->{$key}) {
                 if ($opts{'detailed'}) {
-                    $diff->{'diff'}->{$key} = { 'removed' => $frst->{$key} }
+                    $diff->{'diff'}->{$key} = { 'removed' => $frst->{$key} };
                 } else {
                     $diff->{'removed'}->{$key} = $frst->{$key};
                 }
@@ -114,9 +121,9 @@ sub diff($$;@) {
                 }
             }
         }
-    } else { # treat all other types as scalars
+    } else { # treat others as scalars
         unless ((not defined $frst and not defined $scnd) or ((defined $frst and defined $scnd) and ($frst eq $scnd))) {
-            $diff->{'changed'} = [$frst, $scnd];
+            $diff->{'changed'} = [ $frst, $scnd ];
         }
     }
     $diff->{'common'} = $frst unless (keys %{$diff} or $opts{'shortest'}); # if passed srtucts are empty
@@ -125,7 +132,7 @@ sub diff($$;@) {
 
 =head2 strip
 
-Remove all common parts from two passed refs (diff inside-out)
+Remove common parts from two passed refs (diff inside-out)
     strip($ref1, $ref2);
 
 =cut
@@ -135,14 +142,14 @@ sub strip($$) {
     my ($frst, $scnd) = @_;
     my $diff;
     if (ref $frst ne ref $scnd) {
-        $diff->{'changed'} = [$frst, $scnd];
+        $diff->{'changed'} = [ $frst, $scnd ];
     } elsif (ref $frst eq 'ARRAY') {
-        my $fa = [@{$frst}]; my $sa = [@{$scnd}]; # copy to new arrays to prevent original arrays corruption
+        my $fa = [@{$frst}]; my $sa = [ @{$scnd} ]; # copy to new arrays to prevent original arrays corruption
         for (my $i = 0; @{$fa} and @{$sa}; $i++) {
             my $fi = shift(@{$fa}); my $si = shift(@{$sa});
             my $tmp = strip($fi, $si);
             if (exists $tmp->{'added'} or exists $tmp->{'changed'} or exists $tmp->{'removed'}) {
-                push @{$diff->{'changed'}}, [$fi, $si];
+                push @{$diff->{'changed'}}, [ $fi, $si ];
             } else {
                 splice @{$frst}, $i, 1;
                 splice @{$scnd}, $i, 1;
@@ -167,9 +174,9 @@ sub strip($$) {
                 $diff->{'added'}->{$key} = $scnd->{$key};
             }
         }
-    } else { # treat all types as scalars
+    } else { # treat others as scalars
         unless ((not defined $frst and not defined $scnd) or ((defined $frst and defined $scnd) and ($frst eq $scnd))) {
-            $diff->{'changed'} = [$frst, $scnd];
+            $diff->{'changed'} = [ $frst, $scnd ];
         }
     }
     return $diff;
