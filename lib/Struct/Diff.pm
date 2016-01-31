@@ -89,12 +89,16 @@ sub diff($$;@) {
             push @{$diff->{'removed'}}, @{$fc} if (@{$fc});
             push @{$diff->{'added'}}, @{$sc} if (@{$sc});
         }
+        if ($opts{'shortest'} and keys %{$diff} == 1 and exists $diff->{'diff'} and @{$diff->{'diff'}} == 1 and not keys %{$diff->{'diff'}->[0]}) {
+            # do not expand common parts, "{}" (nodiff) will be ruturned to upper level - it is enough to know here is item and it is common
+            delete $diff->{'diff'}
+        }
     } elsif ((ref $frst eq 'HASH') and ($frst ne $scnd) and (not exists $opts{'depth'} or $opts{'depth'} >= 0)) {
         for my $key (keys { map { $_, 1 } (keys %{$frst}, keys %{$scnd}) }) { # go througth united uniq keys
             if (exists $frst->{$key} and exists $scnd->{$key}) {
                 my $tmp = diff($frst->{$key}, $scnd->{$key}, %opts);
                 if ($opts{'detailed'}) {
-                    $diff->{'diff'}->{$key} = $tmp;
+                    $diff->{'diff'}->{$key} = $tmp unless ($opts{'shortest'} and not keys %{$tmp});
                 } else {
                     if (exists $tmp->{'added'} or exists $tmp->{'changed'} or exists $tmp->{'removed'}) {
                         if ($opts{'separate-changed'}) {
