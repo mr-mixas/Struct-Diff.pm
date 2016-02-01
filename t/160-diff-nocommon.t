@@ -29,7 +29,7 @@ ok($diff = diff($s_array_1, $s_array_1, 'nocommon' => 1) and
     keys %{$diff} == 0
 );
 
-ok($diff = diff($s_array_1, $s_array_2, 'nocommon' => 1) and
+ok($diff = diff($s_array_1, $s_array_2, 'nocommon' => 1, 'positions' => 1) and
     keys %{$diff} == 1 and
     exists $diff->{'changed'} and
     @{$diff->{'changed'}} == 2 and
@@ -46,7 +46,7 @@ ok($diff = diff($s_array_1, $s_array_2, 'nocommon' => 1) and
 $s_array_1 = [ 0, 1, [ 20, [ 200, 201 ]], 3 ];
 $s_array_2 = [ 0, 1, [ 20, [ 202, 201 ]], 3 ];
 
-ok($diff = diff($s_array_1, $s_array_2, 'nocommon' => 1) and
+ok($diff = diff($s_array_1, $s_array_2, 'nocommon' => 1, 'positions' => 1) and
     keys %{$diff} == 1 and
     exists $diff->{'changed'} and
     @{$diff->{'changed'}->[0]} == 3 and
