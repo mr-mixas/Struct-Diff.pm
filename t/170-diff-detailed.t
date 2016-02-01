@@ -62,7 +62,7 @@ ok($diff = diff($s_array_1, $s_array_2, 'detailed' => 1) and
         $diff->{'diff'}->[4]->{'changed'}->[1] == 5
 );
 
-ok($diff = diff($s_array_1, $s_array_2, 'detailed' => 1, 'shortest' => 1) and
+ok($diff = diff($s_array_1, $s_array_2, 'detailed' => 1, 'nocommon' => 1) and
     keys %{$diff} == 1 and
     exists $diff->{'diff'} and @{$diff->{'diff'}} == 5 and
     keys %{$diff->{'diff'}->[0]} == 0 and
@@ -100,7 +100,7 @@ ok($diff = diff($s_hash_1, $s_hash_2, 'detailed' => 1) and
     keys %{$diff->{'diff'}->{'d'}} == 1 and exists $diff->{'diff'}->{'d'}->{'added'} and $diff->{'diff'}->{'d'}->{'added'} eq 'd1'
 );
 
-ok($diff = diff($s_hash_1, $s_hash_2, 'detailed' => 1, 'shortest' => 1) and
+ok($diff = diff($s_hash_1, $s_hash_2, 'detailed' => 1, 'nocommon' => 1) and
     keys %{$diff} == 1 and
     exists $diff->{'diff'} and keys %{$diff->{'diff'}} == 3 and
     keys %{$diff->{'diff'}->{'b'}} == 1 and exists $diff->{'diff'}->{'b'}->{'diff'} and

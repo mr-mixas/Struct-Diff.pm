@@ -75,10 +75,10 @@ sub diff($$;@) {
                         push @{$diff->{'added'}}, $si;
                     } else {
                         push @{$diff->{'changed'}}, [ $fi, $si ];
-                        push @{$diff->{'changed'}->[-1]}, @{$frst} - @{$fc} - 1 if ($opts{'shortest'}); # add position in array for changed item
+                        push @{$diff->{'changed'}->[-1]}, @{$frst} - @{$fc} - 1 if ($opts{'nocommon'}); # add position in array for changed item
                     }
                 } else {
-                    push @{$diff->{'common'}}, $fi unless ($opts{'shortest'});
+                    push @{$diff->{'common'}}, $fi unless ($opts{'nocommon'});
                 }
             }
         }
@@ -89,7 +89,7 @@ sub diff($$;@) {
             push @{$diff->{'removed'}}, @{$fc} if (@{$fc});
             push @{$diff->{'added'}}, @{$sc} if (@{$sc});
         }
-        if ($opts{'shortest'} and keys %{$diff} == 1 and exists $diff->{'diff'} and @{$diff->{'diff'}} == 1 and not keys %{$diff->{'diff'}->[0]}) {
+        if ($opts{'nocommon'} and keys %{$diff} == 1 and exists $diff->{'diff'} and @{$diff->{'diff'}} == 1 and not keys %{$diff->{'diff'}->[0]}) {
             # do not expand common parts, "{}" (nodiff) will be ruturned to upper level - it is enough to know here is item and it is common
             delete $diff->{'diff'}
         }
@@ -98,7 +98,7 @@ sub diff($$;@) {
             if (exists $frst->{$key} and exists $scnd->{$key}) {
                 my $tmp = diff($frst->{$key}, $scnd->{$key}, %opts);
                 if ($opts{'detailed'}) {
-                    $diff->{'diff'}->{$key} = $tmp unless ($opts{'shortest'} and not keys %{$tmp});
+                    $diff->{'diff'}->{$key} = $tmp unless ($opts{'nocommon'} and not keys %{$tmp});
                 } else {
                     if (exists $tmp->{'added'} or exists $tmp->{'changed'} or exists $tmp->{'removed'}) {
                         if ($opts{'separate-changed'}) {
@@ -108,7 +108,7 @@ sub diff($$;@) {
                             push @{$diff->{'changed'}->{$key}}, $frst->{$key}, $scnd->{$key};
                         }
                     } else {
-                        $diff->{'common'}->{$key} = $frst->{$key} unless ($opts{'shortest'});
+                        $diff->{'common'}->{$key} = $frst->{$key} unless ($opts{'nocommon'});
                     }
                 }
             } elsif (exists $frst->{$key}) {
@@ -130,7 +130,7 @@ sub diff($$;@) {
             $diff->{'changed'} = [ $frst, $scnd ];
         }
     }
-    $diff->{'common'} = $frst unless (keys %{$diff} or $opts{'shortest'}); # if passed srtucts are empty
+    $diff->{'common'} = $frst unless (keys %{$diff} or $opts{'nocommon'}); # if passed srtucts are empty
     return $diff;
 }
 
