@@ -67,7 +67,10 @@ sub diff($$;@) {
             my $fi = shift(@{$fc}); my $si = shift(@{$sc});
             my $tmp = diff($fi, $si, %opts);
             if ($opts{'detailed'}) {
-                push @{$diff->{'diff'}}, $tmp;
+                if (keys %{$tmp} or not $opts{'nocommon'}) {
+                    $tmp->{'position'} = @{$frst} - @{$fc} - 1 if ($opts{'positions'});
+                    push @{$diff->{'diff'}}, $tmp;
+                }
             } else {
                 if (exists $tmp->{'added'} or exists $tmp->{'changed'} or exists $tmp->{'removed'}) {
                     if ($opts{'separate-changed'}) {
@@ -88,10 +91,6 @@ sub diff($$;@) {
         } else {
             push @{$diff->{'removed'}}, @{$fc} if (@{$fc});
             push @{$diff->{'added'}}, @{$sc} if (@{$sc});
-        }
-        if ($opts{'nocommon'} and keys %{$diff} == 1 and exists $diff->{'diff'} and @{$diff->{'diff'}} == 1 and not keys %{$diff->{'diff'}->[0]}) {
-            # do not expand common parts, "{}" (nodiff) will be ruturned to upper level - it is enough to know here is item and it is common
-            delete $diff->{'diff'}
         }
     } elsif ((ref $frst eq 'HASH') and ($frst ne $scnd) and (not exists $opts{'depth'} or $opts{'depth'} >= 0)) {
         for my $key (keys { map { $_, 1 } (keys %{$frst}, keys %{$scnd}) }) { # go througth united uniq keys

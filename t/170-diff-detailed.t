@@ -3,7 +3,7 @@
 use strict;
 use warnings FATAL => 'all';
 use Storable qw(dclone);
-use Test::More tests => 7;
+use Test::More tests => 10;
 
 use Struct::Diff qw(diff);
 
@@ -30,6 +30,18 @@ ok($diff = diff([ 0, 1 ], [ 0 ], 'detailed' => 1) and
     exists $diff->{'diff'} and @{$diff->{'diff'}} == 2 and
     keys %{$diff->{'diff'}->[0]} == 1 and exists $diff->{'diff'}->[0]->{'common'} and $diff->{'diff'}->[0]->{'common'} == 0 and
     keys %{$diff->{'diff'}->[1]} == 1 and exists $diff->{'diff'}->[1]->{'removed'} and $diff->{'diff'}->[1]->{'removed'} == 1
+);
+
+ok($diff = diff([ 0 ], [ 0, 1 ], 'detailed' => 1, 'nocommon' => 1) and
+    keys %{$diff} == 1 and
+    exists $diff->{'diff'} and @{$diff->{'diff'}} == 1 and
+    keys %{$diff->{'diff'}->[0]} == 1 and exists $diff->{'diff'}->[0]->{'added'} and $diff->{'diff'}->[0]->{'added'} == 1
+);
+
+ok($diff = diff([ 0, 1 ], [ 0 ], 'detailed' => 1, 'nocommon' => 1) and
+    keys %{$diff} == 1 and
+    exists $diff->{'diff'} and @{$diff->{'diff'}} == 1 and
+    keys %{$diff->{'diff'}->[0]} == 1 and exists $diff->{'diff'}->[0]->{'removed'} and $diff->{'diff'}->[0]->{'removed'} == 1
 );
 
 my $sub_array = [ 0, [ 11, 12 ], 2 ]; # must be considered as equal by ref (wo descending into it)
@@ -64,19 +76,36 @@ ok($diff = diff($s_array_1, $s_array_2, 'detailed' => 1) and
 
 ok($diff = diff($s_array_1, $s_array_2, 'detailed' => 1, 'nocommon' => 1) and
     keys %{$diff} == 1 and
-    exists $diff->{'diff'} and @{$diff->{'diff'}} == 5 and
-    keys %{$diff->{'diff'}->[0]} == 0 and
-    keys %{$diff->{'diff'}->[1]} == 0 and
-    keys %{$diff->{'diff'}->[2]} == 1 and exists $diff->{'diff'}->[2]->{'diff'} and @{$diff->{'diff'}->[2]->{'diff'}} == 2 and
-        keys %{$diff->{'diff'}->[2]->{'diff'}->[0]} == 0 and
-        keys %{$diff->{'diff'}->[2]->{'diff'}->[1]} == 1 and exists $diff->{'diff'}->[2]->{'diff'}->[1]->{'changed'} and
-            @{$diff->{'diff'}->[2]->{'diff'}->[1]->{'changed'}} == 2 and
-            $diff->{'diff'}->[2]->{'diff'}->[1]->{'changed'}->[0] eq 'a' and
-            $diff->{'diff'}->[2]->{'diff'}->[1]->{'changed'}->[1] eq 'b' and
-    keys %{$diff->{'diff'}->[3]} == 0 and
-    keys %{$diff->{'diff'}->[4]} == 1 and exists $diff->{'diff'}->[4]->{'changed'} and @{$diff->{'diff'}->[4]->{'changed'}} == 2 and
-        $diff->{'diff'}->[4]->{'changed'}->[0] == 4 and
-        $diff->{'diff'}->[4]->{'changed'}->[1] == 5
+    exists $diff->{'diff'} and @{$diff->{'diff'}} == 2 and
+    keys %{$diff->{'diff'}->[0]} == 1 and exists $diff->{'diff'}->[0]->{'diff'} and @{$diff->{'diff'}->[0]->{'diff'}} == 1 and
+        keys %{$diff->{'diff'}->[0]->{'diff'}->[0]} == 1 and exists $diff->{'diff'}->[0]->{'diff'}->[0]->{'changed'} and
+            @{$diff->{'diff'}->[0]->{'diff'}->[0]->{'changed'}} == 2 and
+            $diff->{'diff'}->[0]->{'diff'}->[0]->{'changed'}->[0] eq 'a' and
+            $diff->{'diff'}->[0]->{'diff'}->[0]->{'changed'}->[1] eq 'b' and
+    keys %{$diff->{'diff'}->[1]} == 1 and exists $diff->{'diff'}->[1]->{'changed'} and @{$diff->{'diff'}->[1]->{'changed'}} == 2 and
+        $diff->{'diff'}->[1]->{'changed'}->[0] == 4 and
+        $diff->{'diff'}->[1]->{'changed'}->[1] == 5
+);
+
+ok($diff = diff($s_array_1, $s_array_2, 'detailed' => 1, 'nocommon' => 1, 'positions' => 1) and
+    keys %{$diff} == 1 and
+    exists $diff->{'diff'} and @{$diff->{'diff'}} == 2 and
+    keys %{$diff->{'diff'}->[0]} == 2 and
+        exists $diff->{'diff'}->[0]->{'diff'} and @{$diff->{'diff'}->[0]->{'diff'}} == 1 and
+            keys %{$diff->{'diff'}->[0]->{'diff'}->[0]} == 2 and
+                exists $diff->{'diff'}->[0]->{'diff'}->[0]->{'changed'} and @{$diff->{'diff'}->[0]->{'diff'}->[0]->{'changed'}} == 2 and
+                    $diff->{'diff'}->[0]->{'diff'}->[0]->{'changed'}->[0] eq 'a' and
+                    $diff->{'diff'}->[0]->{'diff'}->[0]->{'changed'}->[1] eq 'b' and
+                exists $diff->{'diff'}->[0]->{'diff'}->[0]->{'position'} and
+                    $diff->{'diff'}->[0]->{'diff'}->[0]->{'position'} == 1 and
+        exists $diff->{'diff'}->[0]->{'position'} and
+            $diff->{'diff'}->[0]->{'position'} == 2 and
+    keys %{$diff->{'diff'}->[1]} == 2 and
+        exists $diff->{'diff'}->[1]->{'changed'} and @{$diff->{'diff'}->[1]->{'changed'}} == 2 and
+            $diff->{'diff'}->[1]->{'changed'}->[0] == 4 and
+            $diff->{'diff'}->[1]->{'changed'}->[1] == 5 and
+        exists $diff->{'diff'}->[1]->{'changed'} and
+            $diff->{'diff'}->[1]->{'position'} == 4
 );
 
 ### hashes ###
