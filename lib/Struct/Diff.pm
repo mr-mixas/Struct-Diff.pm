@@ -93,7 +93,7 @@ sub diff($$;@) {
             push @{$diff->{'added'}}, @{$sc} if (@{$sc});
         }
     } elsif ((ref $frst eq 'HASH') and ($frst ne $scnd) and (not exists $opts{'depth'} or $opts{'depth'} >= 0)) {
-        for my $key (keys { map { $_, 1 } (keys %{$frst}, keys %{$scnd}) }) { # go througth united uniq keys
+        for my $key (keys { %{$frst}, %{$scnd} }) { # go througth united uniq keys
             if (exists $frst->{$key} and exists $scnd->{$key}) {
                 my $tmp = diff($frst->{$key}, $scnd->{$key}, %opts);
                 if ($opts{'detailed'}) {
