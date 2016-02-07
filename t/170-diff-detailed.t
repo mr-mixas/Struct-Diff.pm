@@ -2,12 +2,12 @@
 
 use strict;
 use warnings FATAL => 'all';
-use Storable qw(dclone);
-use Test::More tests => 10;
+use Storable qw(dclone freeze);
+use Test::More tests => 12;
 
 use Struct::Diff qw(diff);
 
-my $diff;
+my ($diff, $frozen_a, $frozen_b);
 
 ### primitives ###
 ok($diff = diff(1, 2, 'detailed' => 1) and
@@ -47,6 +47,10 @@ ok($diff = diff([ 0, 1 ], [ 0 ], 'detailed' => 1, 'nocommon' => 1) and
 my $sub_array = [ 0, [ 11, 12 ], 2 ]; # must be considered as equal by ref (wo descending into it)
 my $s_array_1 = [ 0, [[ 100 ]], [ 20, 'a' ], $sub_array, 4 ];
 my $s_array_2 = [ 0, [[ 100 ]], [ 20, 'b' ], $sub_array, 5 ];
+
+$frozen_a = freeze($s_array_1);
+$frozen_b = freeze($s_array_2);
+
 ok($diff = diff($s_array_1, $s_array_2, 'detailed' => 1) and
     keys %{$diff} == 1 and
     exists $diff->{'diff'} and @{$diff->{'diff'}} == 5 and
@@ -108,9 +112,15 @@ ok($diff = diff($s_array_1, $s_array_2, 'detailed' => 1, 'nocommon' => 1, 'posit
             $diff->{'diff'}->[1]->{'position'} == 4
 );
 
+ok($frozen_a eq freeze($s_array_1) and $frozen_b eq freeze($s_array_2)); # original structs must remain unchanged
+
 ### hashes ###
 my $s_hash_1 = { 'a' => 'a1', 'b' => { 'ba' => 'ba1', 'bb' => 'bb1' }, 'c' => 'c1' };
 my $s_hash_2 = { 'a' => 'a1', 'b' => { 'ba' => 'ba2', 'bb' => 'bb1' }, 'd' => 'd1' };
+
+$frozen_a = freeze($s_hash_1);
+$frozen_b = freeze($s_hash_2);
+
 ok($diff = diff($s_hash_1, $s_hash_2, 'detailed' => 1) and
     keys %{$diff} == 1 and
     exists $diff->{'diff'} and keys %{$diff->{'diff'}} == 4 and
@@ -142,3 +152,5 @@ ok($diff = diff($s_hash_1, $s_hash_2, 'detailed' => 1, 'nocommon' => 1) and
     keys %{$diff->{'diff'}->{'c'}} == 1 and exists $diff->{'diff'}->{'c'}->{'removed'} and $diff->{'diff'}->{'c'}->{'removed'} eq 'c1' and
     keys %{$diff->{'diff'}->{'d'}} == 1 and exists $diff->{'diff'}->{'d'}->{'added'} and $diff->{'diff'}->{'d'}->{'added'} eq 'd1'
 );
+
+ok($frozen_a eq freeze($s_hash_1) and $frozen_b eq freeze($s_hash_2)); # original structs must remain unchanged
