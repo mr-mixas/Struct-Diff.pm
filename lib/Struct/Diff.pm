@@ -62,23 +62,19 @@ sub diff($$;@) {
     if (ref $frst ne ref $scnd) {
         $diff->{'changed'} = [ $frst, $scnd ];
     } elsif ((ref $frst eq 'ARRAY') and ($frst ne $scnd) and (not exists $opts{'depth'} or $opts{'depth'} >= 0)) {
-        my $fc = [ @{$frst} ]; my $sc = [ @{$scnd} ]; # copy to new arrays to prevent original arrays corruption
-        while (@{$fc} and @{$sc}) {
-            my $fi = shift(@{$fc}); my $si = shift(@{$sc});
+        for (my $i = 0; $i < @{$frst} and $i < @{$scnd}; $i++) {
+            my $fi = $frst->[$i]; my $si = $scnd->[$i];
             my $tmp = diff($fi, $si, %opts);
             if ($opts{'detailed'}) {
-                if (keys %{$tmp} or not $opts{'nocommon'}) {
-                    $tmp->{'position'} = @{$frst} - @{$fc} - 1 if ($opts{'positions'});
-                    push @{$diff->{'diff'}}, $tmp;
-                }
+                push @{$diff->{'diff'}}, $opts{'positions'} ? { %{$tmp}, 'position' => $i } : $tmp
+                    if (keys %{$tmp} or not $opts{'nocommon'});
             } else {
                 if (exists $tmp->{'added'} or exists $tmp->{'changed'} or exists $tmp->{'removed'}) {
                     if ($opts{'separate-changed'}) {
                         push @{$diff->{'removed'}}, $fi;
                         push @{$diff->{'added'}}, $si;
                     } else {
-                        push @{$diff->{'changed'}}, [ $fi, $si ];
-                        push @{$diff->{'changed'}->[-1]}, @{$frst} - @{$fc} - 1 if ($opts{'positions'}); # add position in array for changed item
+                        push @{$diff->{'changed'}}, $opts{'positions'} ? [ $fi, $si, $i ] : [ $fi, $si ];
                     }
                 } else {
                     push @{$diff->{'common'}}, $fi unless ($opts{'nocommon'});
@@ -86,11 +82,13 @@ sub diff($$;@) {
             }
         }
         if ($opts{'detailed'}) {
-            map { push @{$diff->{'diff'}}, { 'removed' => $_ } } @{$fc};
-            map { push @{$diff->{'diff'}}, { 'added' => $_ } } @{$sc};
+            map { push @{$diff->{'diff'}}, { 'removed' => $_ } }
+                @{$frst}[@{$scnd}..$#{$frst}] if (@{$frst} > @{$scnd});
+            map { push @{$diff->{'diff'}}, { 'added' => $_ } }
+                @{$scnd}[@{$frst}..$#{$scnd}] if (@{$frst} < @{$scnd});
         } else {
-            push @{$diff->{'removed'}}, @{$fc} if (@{$fc});
-            push @{$diff->{'added'}}, @{$sc} if (@{$sc});
+            push @{$diff->{'removed'}}, @{$frst}[@{$scnd}..$#{$frst}] if (@{$frst} > @{$scnd});
+            push @{$diff->{'added'}},   @{$scnd}[@{$frst}..$#{$scnd}] if (@{$frst} < @{$scnd});
         }
     } elsif ((ref $frst eq 'HASH') and ($frst ne $scnd) and (not exists $opts{'depth'} or $opts{'depth'} >= 0)) {
         for my $key (keys { %{$frst}, %{$scnd} }) { # go througth united uniq keys
