@@ -1,6 +1,6 @@
 PATH := .:$(PATH)
 
-.PHONY = all benchmark clean
+.PHONY: all benchmark clean
 
 all: benchmark
 
