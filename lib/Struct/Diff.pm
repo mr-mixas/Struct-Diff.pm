@@ -44,13 +44,37 @@ Nothing exports by default
 
 =head2 diff
 
-Returns HASH reference to diff between two passed references.
-Diff itself consists of linked parts of passed structures, be aware of it while change diff.
+Returns HASH reference to diff between two passed references. Diff consists of linked parts of passed
+structures, be aware of it changing diff.
     $diff = diff($ref1, $ref2, %opts);
 
 =head3 Available options
 
-TODO
+=over 4
+
+=item depth
+
+Don't descend to structs deeper than specified level. Not defined (disabled) by default.
+
+=item detailed
+
+Explicit diff - each struct layer anticipated by metadata. This approach allows to trace exact changed elements
+in substructures. When disabled (by default is) metadata only on top of diff - easy way to know which elements of
+passed structures are changed and work with them.
+
+=item nocommon
+
+Hide unchanged parts.
+
+=item positions
+
+Show index for changed array items.
+
+=item separate-changed
+
+Split changed items in arrays to "added" and "removed"
+
+=back
 
 =cut
 
@@ -190,7 +214,7 @@ Michael Samoglyadov, C<< <mixas at cpan.org> >>
 =head1 BUGS
 
 Please report any bugs or feature requests to C<bug-struct-diff at rt.cpan.org>, or through
-the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Struct-Diff>.  I will be notified, and then you'll
+the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Struct-Diff>. I will be notified, and then you'll
 automatically be notified of progress on your bug as I make changes.
 
 =head1 SUPPORT
@@ -224,14 +248,9 @@ L<http://search.cpan.org/dist/Struct-Diff/>
 
 =head1 SEE ALSO
 
-L<http://search.cpan.org/dist/Data-Diff/>
+L<Data::Diff>
 
-L<http://search.cpan.org/dist/Array-Diff/>
-L<http://search.cpan.org/dist/Array-Compare/>
-L<http://search.cpan.org/dist/Algorithm-Diff/>
-L<http://search.cpan.org/dist/Hash-Diff/>
-L<http://search.cpan.org/dist/Test-Struct/>
-L<http://search.cpan.org/dist/Struct-Compare/>
+L<Array::Diff>, L<Array::Compare>, L<Algorithm::Diff>, L<Hash::Diff>, L<Test::Struct>, L<Struct::Compare>
 
 =head1 LICENSE AND COPYRIGHT
 
