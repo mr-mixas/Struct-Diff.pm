@@ -7,6 +7,7 @@ use Test::More tests => 12;
 
 use Struct::Diff qw(diff);
 
+$Storable::canonical = 1;
 my ($diff, $frozen_a, $frozen_b);
 
 ### primitives ###
