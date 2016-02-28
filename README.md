@@ -1,2 +1,2 @@
 # Struct-Diff.pm
-Recursive diff for nested perl structures
+Recursive diff tools for nested perl structures
