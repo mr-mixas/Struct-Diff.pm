@@ -2,7 +2,7 @@
 
 use strict;
 use warnings FATAL => 'all';
-use Test::More tests => 20;
+use Test::More tests => 22;
 
 use Struct::Diff qw(diff);
 
@@ -161,4 +161,17 @@ ok($diff = diff($coderef1,$coderef2) and
     $diff->{'C'}->[0] eq $coderef1 and
     $diff->{'C'}->[1] eq $coderef2 and
     $diff->{'C'}->[0] ne $diff->{'C'}->[1]
+);
+
+# blessed things
+use Data::Dumper;
+
+my $blessed1 = Data::Dumper->new([]);
+ok($diff = diff($blessed1,$blessed1) and
+    keys %{$diff} == 1 and exists $diff->{'U'}
+);
+
+my $blessed2 = Data::Dumper->new([]);
+ok($diff = diff($blessed1,$blessed2) and
+    keys %{$diff} == 1 and exists $diff->{'C'}
 );
