@@ -15,10 +15,10 @@ ok($diff = diff(undef, undef, 'nocommon' => 1) and
 
 ok($diff = diff(undef, 0, 'nocommon' => 1) and
     keys %{$diff} == 1 and
-    exists $diff->{'changed'} and
-    @{$diff->{'changed'}} == 2 and
-    not defined $diff->{'changed'}->[0] and
-    $diff->{'changed'}->[1] == 0
+    exists $diff->{'C'} and
+    @{$diff->{'C'}} == 2 and
+    not defined $diff->{'C'}->[0] and
+    $diff->{'C'}->[1] == 0
 );
 
 ### arrays ###
@@ -31,16 +31,16 @@ ok($diff = diff($s_array_1, $s_array_1, 'nocommon' => 1) and
 
 ok($diff = diff($s_array_1, $s_array_2, 'nocommon' => 1, 'positions' => 1) and
     keys %{$diff} == 1 and
-    exists $diff->{'changed'} and
-    @{$diff->{'changed'}} == 2 and
-    @{$diff->{'changed'}->[0]} == 3 and
-    $diff->{'changed'}->[0]->[0] == 1 and
-    $diff->{'changed'}->[0]->[1] == 7 and
-    $diff->{'changed'}->[0]->[2] == 1 and
-    @{$diff->{'changed'}->[1]} == 3 and
-    $diff->{'changed'}->[1]->[0] eq 'a' and
-    $diff->{'changed'}->[1]->[1] eq 'b' and
-    $diff->{'changed'}->[1]->[2] == 4
+    exists $diff->{'C'} and
+    @{$diff->{'C'}} == 2 and
+    @{$diff->{'C'}->[0]} == 3 and
+    $diff->{'C'}->[0]->[0] == 1 and
+    $diff->{'C'}->[0]->[1] == 7 and
+    $diff->{'C'}->[0]->[2] == 1 and
+    @{$diff->{'C'}->[1]} == 3 and
+    $diff->{'C'}->[1]->[0] eq 'a' and
+    $diff->{'C'}->[1]->[1] eq 'b' and
+    $diff->{'C'}->[1]->[2] == 4
 );
 
 $s_array_1 = [ 0, 1, [ 20, [ 200, 201 ]], 3 ];
@@ -48,18 +48,18 @@ $s_array_2 = [ 0, 1, [ 20, [ 202, 201 ]], 3 ];
 
 ok($diff = diff($s_array_1, $s_array_2, 'nocommon' => 1, 'positions' => 1) and
     keys %{$diff} == 1 and
-    exists $diff->{'changed'} and
-    @{$diff->{'changed'}->[0]} == 3 and
-    @{$diff->{'changed'}->[0]->[0]} == 2 and
-        $diff->{'changed'}->[0]->[0]->[0] == 20 and
-        @{$diff->{'changed'}->[0]->[0]->[1]} == 2 and
-        $diff->{'changed'}->[0]->[0]->[1]->[0] == 200 and
-        $diff->{'changed'}->[0]->[0]->[1]->[1] == 201 and
-    @{$diff->{'changed'}->[0]->[1]} == 2 and
-        $diff->{'changed'}->[0]->[1]->[0] == 20 and
-        @{$diff->{'changed'}->[0]->[1]->[1]} == 2 and
-        $diff->{'changed'}->[0]->[1]->[1]->[0] == 202 and
-        $diff->{'changed'}->[0]->[1]->[1]->[1] == 201
+    exists $diff->{'C'} and
+    @{$diff->{'C'}->[0]} == 3 and
+    @{$diff->{'C'}->[0]->[0]} == 2 and
+        $diff->{'C'}->[0]->[0]->[0] == 20 and
+        @{$diff->{'C'}->[0]->[0]->[1]} == 2 and
+        $diff->{'C'}->[0]->[0]->[1]->[0] == 200 and
+        $diff->{'C'}->[0]->[0]->[1]->[1] == 201 and
+    @{$diff->{'C'}->[0]->[1]} == 2 and
+        $diff->{'C'}->[0]->[1]->[0] == 20 and
+        @{$diff->{'C'}->[0]->[1]->[1]} == 2 and
+        $diff->{'C'}->[0]->[1]->[1]->[0] == 202 and
+        $diff->{'C'}->[0]->[1]->[1]->[1] == 201
 );
 
 ### hashes ###
@@ -72,9 +72,9 @@ ok($diff = diff($s_hash_1, $s_hash_1, 'nocommon' => 1) and
 
 ok($diff = diff($s_hash_1, $s_hash_2, 'nocommon' => 1) and
     keys %{$diff} == 1 and
-    exists $diff->{'changed'} and
-    keys $diff->{'changed'} == 1 and
-    @{$diff->{'changed'}->{'c'}} == 2 and
-    $diff->{'changed'}->{'c'}->[0] eq 'd' and
-    $diff->{'changed'}->{'c'}->[1] eq 'e'
+    exists $diff->{'C'} and
+    keys $diff->{'C'} == 1 and
+    @{$diff->{'C'}->{'c'}} == 2 and
+    $diff->{'C'}->{'c'}->[0] eq 'd' and
+    $diff->{'C'}->{'c'}->[1] eq 'e'
 );

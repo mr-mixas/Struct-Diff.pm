@@ -27,10 +27,10 @@ our $VERSION = '0.02';
     use Struct::Diff qw(diff);
 
     my $diff = diff($ref1, $ref2);
-    print Dumper $diff->['added'];
-    print Dumper $diff->['changed'];
-    print Dumper $diff->['common'];
-    print Dumper $diff->['removed'];
+    print Dumper $diff->['A']; # added
+    print Dumper $diff->['C']; # changed
+    print Dumper $diff->['U']; # unchanged
+    print Dumper $diff->['R']; # removed
     ...
 
     my $detailed = diff($ref1, $ref2, 'detailed' => 1);
@@ -80,84 +80,82 @@ Split changed items in arrays to "added" and "removed"
 
 sub diff($$;@);
 sub diff($$;@) {
-    my ($frst, $scnd, %opts) = @_;
+    my ($a, $b, %opts) = @_;
     $opts{'depth'}-- if (exists $opts{'depth'});
-    my $diff = {};
-    if (ref $frst ne ref $scnd) {
-        $diff->{'changed'} = [ $frst, $scnd ];
-    } elsif ((ref $frst eq 'ARRAY') and ($frst ne $scnd) and (not exists $opts{'depth'} or $opts{'depth'} >= 0)) {
-        for (my $i = 0; $i < @{$frst} and $i < @{$scnd}; $i++) {
-            my $fi = $frst->[$i]; my $si = $scnd->[$i];
-            my $tmp = diff($fi, $si, %opts);
+    my $d = {};
+    if (ref $a ne ref $b) {
+        $d->{'C'} = [ $a, $b ];
+    } elsif ((ref $a eq 'ARRAY') and ($a ne $b) and (not exists $opts{'depth'} or $opts{'depth'} >= 0)) {
+        for (my $i = 0; $i < @{$a} and $i < @{$b}; $i++) {
+            my $ai = $a->[$i]; my $bi = $b->[$i];
+            my $tmp = diff($ai, $bi, %opts);
             if ($opts{'detailed'}) {
-                push @{$diff->{'diff'}}, $opts{'positions'} ? { %{$tmp}, 'position' => $i } : $tmp
+                push @{$d->{'D'}}, $opts{'positions'} ? { %{$tmp}, 'position' => $i } : $tmp
                     if (keys %{$tmp} or not $opts{'nocommon'});
             } else {
-                if (exists $tmp->{'added'} or exists $tmp->{'changed'} or exists $tmp->{'removed'}) {
+                if (exists $tmp->{'A'} or exists $tmp->{'C'} or exists $tmp->{'R'}) {
                     if ($opts{'separate-changed'}) {
-                        push @{$diff->{'removed'}}, $fi;
-                        push @{$diff->{'added'}}, $si;
+                        push @{$d->{'R'}}, $ai;
+                        push @{$d->{'A'}}, $bi;
                     } else {
-                        push @{$diff->{'changed'}}, $opts{'positions'} ? [ $fi, $si, $i ] : [ $fi, $si ];
+                        push @{$d->{'C'}}, $opts{'positions'} ? [ $ai, $bi, $i ] : [ $ai, $bi ];
                     }
                 } else {
-                    push @{$diff->{'common'}}, $fi unless ($opts{'nocommon'});
+                    push @{$d->{'U'}}, $ai unless ($opts{'nocommon'});
                 }
             }
         }
         if ($opts{'detailed'}) {
-            map { push @{$diff->{'diff'}}, { 'removed' => $_ } }
-                @{$frst}[@{$scnd}..$#{$frst}] if (@{$frst} > @{$scnd});
-            map { push @{$diff->{'diff'}}, { 'added' => $_ } }
-                @{$scnd}[@{$frst}..$#{$scnd}] if (@{$frst} < @{$scnd});
+            map { push @{$d->{'D'}}, { 'R' => $_ } } @{$a}[@{$b}..$#{$a}] if (@{$a} > @{$b});
+            map { push @{$d->{'D'}}, { 'A' => $_ } } @{$b}[@{$a}..$#{$b}] if (@{$a} < @{$b});
         } else {
-            push @{$diff->{'removed'}}, @{$frst}[@{$scnd}..$#{$frst}] if (@{$frst} > @{$scnd});
-            push @{$diff->{'added'}},   @{$scnd}[@{$frst}..$#{$scnd}] if (@{$frst} < @{$scnd});
+            push @{$d->{'R'}}, @{$a}[@{$b}..$#{$a}] if (@{$a} > @{$b});
+            push @{$d->{'A'}}, @{$b}[@{$a}..$#{$b}] if (@{$a} < @{$b});
         }
-    } elsif ((ref $frst eq 'HASH') and ($frst ne $scnd) and (not exists $opts{'depth'} or $opts{'depth'} >= 0)) {
-        for my $key (keys { %{$frst}, %{$scnd} }) { # go througth united uniq keys
-            if (exists $frst->{$key} and exists $scnd->{$key}) {
-                my $tmp = diff($frst->{$key}, $scnd->{$key}, %opts);
+    } elsif ((ref $a eq 'HASH') and ($a ne $b) and (not exists $opts{'depth'} or $opts{'depth'} >= 0)) {
+        for my $key (keys { %{$a}, %{$b} }) { # go througth united uniq keys
+            if (exists $a->{$key} and exists $b->{$key}) {
+                my $tmp = diff($a->{$key}, $b->{$key}, %opts);
                 if ($opts{'detailed'}) {
-                    $diff->{'diff'}->{$key} = $tmp unless ($opts{'nocommon'} and not keys %{$tmp});
+                    $d->{'D'}->{$key} = $tmp unless ($opts{'nocommon'} and not keys %{$tmp});
                 } else {
-                    if (exists $tmp->{'added'} or exists $tmp->{'changed'} or exists $tmp->{'removed'}) {
+                    if (exists $tmp->{'A'} or exists $tmp->{'C'} or exists $tmp->{'R'}) {
                         if ($opts{'separate-changed'}) {
-                            $diff->{'removed'}->{$key} = $frst->{$key};
-                            $diff->{'added'}->{$key} = $scnd->{$key};
+                            $d->{'R'}->{$key} = $a->{$key};
+                            $d->{'A'}->{$key} = $b->{$key};
                         } else {
-                            push @{$diff->{'changed'}->{$key}}, $frst->{$key}, $scnd->{$key};
+                            push @{$d->{'C'}->{$key}}, $a->{$key}, $b->{$key};
                         }
                     } else {
-                        $diff->{'common'}->{$key} = $frst->{$key} unless ($opts{'nocommon'});
+                        $d->{'U'}->{$key} = $a->{$key} unless ($opts{'nocommon'});
                     }
                 }
-            } elsif (exists $frst->{$key}) {
+            } elsif (exists $a->{$key}) {
                 if ($opts{'detailed'}) {
-                    $diff->{'diff'}->{$key} = { 'removed' => $frst->{$key} };
+                    $d->{'D'}->{$key} = { 'R' => $a->{$key} };
                 } else {
-                    $diff->{'removed'}->{$key} = $frst->{$key};
+                    $d->{'R'}->{$key} = $a->{$key};
                 }
             } else {
                 if ($opts{'detailed'}) {
-                    $diff->{'diff'}->{$key} = { 'added' => $scnd->{$key} };
+                    $d->{'D'}->{$key} = { 'A' => $b->{$key} };
                 } else {
-                    $diff->{'added'}->{$key} = $scnd->{$key};
+                    $d->{'A'}->{$key} = $b->{$key};
                 }
             }
         }
     } else { # treat others as scalars
-        unless ((not defined $frst and not defined $scnd) or ((defined $frst and defined $scnd) and ($frst eq $scnd))) {
+        unless ((not defined $a and not defined $b) or ((defined $a and defined $b) and ($a eq $b))) {
             if ($opts{'separate-changed'}) {
-                $diff->{'removed'} = $frst;
-                $diff->{'added'} = $scnd;
+                $d->{'R'} = $a;
+                $d->{'A'} = $b;
             } else {
-                $diff->{'changed'} = [ $frst, $scnd ];
+                $d->{'C'} = [ $a, $b ];
             }
         }
     }
-    $diff->{'common'} = $frst unless (keys %{$diff} or $opts{'nocommon'}); # if passed srtucts are empty
-    return $diff;
+    $d->{'U'} = $a unless (keys %{$d} or $opts{'nocommon'}); # if passed srtucts are empty
+    return $d;
 }
 
 =head2 strip
@@ -169,47 +167,47 @@ Remove common parts from two passed refs (diff inside-out)
 
 sub strip($$);
 sub strip($$) {
-    my ($frst, $scnd) = @_;
-    my $diff;
-    if (ref $frst ne ref $scnd) {
-        $diff->{'changed'} = [ $frst, $scnd ];
-    } elsif (ref $frst eq 'ARRAY') {
-        my $fa = [@{$frst}]; my $sa = [ @{$scnd} ]; # copy to new arrays to prevent original arrays corruption
+    my ($a, $b) = @_;
+    my $d;
+    if (ref $a ne ref $b) {
+        $d->{'C'} = [ $a, $b ];
+    } elsif (ref $a eq 'ARRAY') {
+        my $fa = [@{$a}]; my $sa = [ @{$b} ]; # copy to new arrays to prevent original arrays corruption
         for (my $i = 0; @{$fa} and @{$sa}; $i++) {
-            my $fi = shift(@{$fa}); my $si = shift(@{$sa});
-            my $tmp = strip($fi, $si);
-            if (exists $tmp->{'added'} or exists $tmp->{'changed'} or exists $tmp->{'removed'}) {
-                push @{$diff->{'changed'}}, [ $fi, $si ];
+            my $ai = shift(@{$fa}); my $bi = shift(@{$sa});
+            my $tmp = strip($ai, $bi);
+            if (exists $tmp->{'A'} or exists $tmp->{'C'} or exists $tmp->{'R'}) {
+                push @{$d->{'C'}}, [ $ai, $bi ];
             } else {
-                splice @{$frst}, $i, 1;
-                splice @{$scnd}, $i, 1;
+                splice @{$a}, $i, 1;
+                splice @{$b}, $i, 1;
                 $i--;
             }
         }
-        push @{$diff->{'removed'}}, @{$frst} if (@{$frst});
-        push @{$diff->{'added'}}, @{$scnd} if (@{$scnd});
-    } elsif (ref $frst eq 'HASH') {
-        for my $key (keys { map { $_, 1 } (keys %{$frst}, keys %{$scnd}) }) { # go througth united uniq keys
-            if (exists $frst->{$key} and exists $scnd->{$key}) {
-                my $tmp = strip($frst->{$key}, $scnd->{$key});
-                if (exists $tmp->{'added'} or exists $tmp->{'changed'} or exists $tmp->{'removed'}) {
-                    push @{$diff->{'changed'}->{$key}}, $frst->{$key}, $scnd->{$key};
+        push @{$d->{'R'}}, @{$a} if (@{$a});
+        push @{$d->{'A'}}, @{$b} if (@{$b});
+    } elsif (ref $a eq 'HASH') {
+        for my $key (keys { map { $_, 1 } (keys %{$a}, keys %{$b}) }) { # go througth united uniq keys
+            if (exists $a->{$key} and exists $b->{$key}) {
+                my $tmp = strip($a->{$key}, $b->{$key});
+                if (exists $tmp->{'A'} or exists $tmp->{'C'} or exists $tmp->{'R'}) {
+                    push @{$d->{'C'}->{$key}}, $a->{$key}, $b->{$key};
                 } else {
-                    delete $frst->{$key};
-                    delete $scnd->{$key};
+                    delete $a->{$key};
+                    delete $b->{$key};
                 }
-            } elsif (exists $frst->{$key}) {
-                $diff->{'removed'}->{$key} = $frst->{$key};
+            } elsif (exists $a->{$key}) {
+                $d->{'R'}->{$key} = $a->{$key};
             } else {
-                $diff->{'added'}->{$key} = $scnd->{$key};
+                $d->{'A'}->{$key} = $b->{$key};
             }
         }
     } else { # treat others as scalars
-        unless ((not defined $frst and not defined $scnd) or ((defined $frst and defined $scnd) and ($frst eq $scnd))) {
-            $diff->{'changed'} = [ $frst, $scnd ];
+        unless ((not defined $a and not defined $b) or ((defined $a and defined $b) and ($a eq $b))) {
+            $d->{'C'} = [ $a, $b ];
         }
     }
-    return $diff;
+    return $d;
 }
 
 =head1 AUTHOR

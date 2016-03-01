@@ -11,154 +11,154 @@ my $diff;
 ### undefs
 ok($diff = diff(undef,undef) and
     keys %{$diff} == 1 and
-    exists $diff->{'common'} and
-    not defined $diff->{'common'}
+    exists $diff->{'U'} and
+    not defined $diff->{'U'}
 );
 
 ok($diff = diff(undef,0) and
     keys %{$diff} == 1 and
-    exists $diff->{'changed'} and
-    @{$diff->{'changed'}} == 2 and
-    not defined $diff->{'changed'}->[0] and
-    $diff->{'changed'}->[1] == 0
+    exists $diff->{'C'} and
+    @{$diff->{'C'}} == 2 and
+    not defined $diff->{'C'}->[0] and
+    $diff->{'C'}->[1] == 0
 );
 
 ok($diff = diff(undef,'') and
     keys %{$diff} == 1 and
-    exists $diff->{'changed'} and
-    @{$diff->{'changed'}} == 2 and
-    not defined $diff->{'changed'}->[0] and
-    $diff->{'changed'}->[1] eq ''
+    exists $diff->{'C'} and
+    @{$diff->{'C'}} == 2 and
+    not defined $diff->{'C'}->[0] and
+    $diff->{'C'}->[1] eq ''
 );
 
 # numbers
 ok($diff = diff(0,0) and
     keys %{$diff} == 1 and
-    exists $diff->{'common'} and
-    $diff->{'common'} == 0
+    exists $diff->{'U'} and
+    $diff->{'U'} == 0
 );
 
 ok($diff = diff(0,undef) and
     keys %{$diff} == 1 and
-    exists $diff->{'changed'} and
-    @{$diff->{'changed'}} == 2 and
-    $diff->{'changed'}->[0] == 0 and
-    not defined $diff->{'changed'}->[1]
+    exists $diff->{'C'} and
+    @{$diff->{'C'}} == 2 and
+    $diff->{'C'}->[0] == 0 and
+    not defined $diff->{'C'}->[1]
 );
 
 ok($diff = diff(0,'') and
     keys %{$diff} == 1 and
-    exists $diff->{'changed'} and
-    @{$diff->{'changed'}} == 2 and
-    $diff->{'changed'}->[0] == 0 and
-    $diff->{'changed'}->[1] eq ''
+    exists $diff->{'C'} and
+    @{$diff->{'C'}} == 2 and
+    $diff->{'C'}->[0] == 0 and
+    $diff->{'C'}->[1] eq ''
 );
 
 ok($diff = diff(1,1.0) and
     keys %{$diff} == 1 and
-    exists $diff->{'common'} and
-    $diff->{'common'} eq 1 # deliberate eq
+    exists $diff->{'U'} and
+    $diff->{'U'} eq 1 # deliberate eq
 );
 
 ok($diff = diff(1.0,1) and
     keys %{$diff} == 1 and
-    exists $diff->{'common'} and
-    $diff->{'common'} eq 1 # deliberate eq
+    exists $diff->{'U'} and
+    $diff->{'U'} eq 1 # deliberate eq
 );
 
 ok($diff = diff(1,2) and
     keys %{$diff} == 1 and
-    exists $diff->{'changed'} and
-    @{$diff->{'changed'}} == 2 and
-    $diff->{'changed'}->[0] == 1 and
-    $diff->{'changed'}->[1] == 2
+    exists $diff->{'C'} and
+    @{$diff->{'C'}} == 2 and
+    $diff->{'C'}->[0] == 1 and
+    $diff->{'C'}->[1] == 2
 );
 
 ok($diff = diff('2.0',2) and
     keys %{$diff} == 1 and
-    exists $diff->{'changed'} and
-    @{$diff->{'changed'}} == 2 and
-    $diff->{'changed'}->[0] eq '2.0' and
-    $diff->{'changed'}->[1] == 2
+    exists $diff->{'C'} and
+    @{$diff->{'C'}} == 2 and
+    $diff->{'C'}->[0] eq '2.0' and
+    $diff->{'C'}->[1] == 2
 );
 
 ### strings
 ok($diff = diff('',undef) and
     keys %{$diff} == 1 and
-    exists $diff->{'changed'} and
-    @{$diff->{'changed'}} == 2 and
-    $diff->{'changed'}->[0] eq '' and
-    not defined $diff->{'changed'}->[1]
+    exists $diff->{'C'} and
+    @{$diff->{'C'}} == 2 and
+    $diff->{'C'}->[0] eq '' and
+    not defined $diff->{'C'}->[1]
 );
 
 ok($diff = diff('',0) and
     keys %{$diff} == 1 and
-    exists $diff->{'changed'} and
-    @{$diff->{'changed'}} == 2 and
-    $diff->{'changed'}->[0] eq '' and
-    $diff->{'changed'}->[1] == 0
+    exists $diff->{'C'} and
+    @{$diff->{'C'}} == 2 and
+    $diff->{'C'}->[0] eq '' and
+    $diff->{'C'}->[1] == 0
 );
 
 ok($diff = diff('a',"a") and
     keys %{$diff} == 1 and
-    exists $diff->{'common'} and
-    $diff->{'common'} eq 'a'
+    exists $diff->{'U'} and
+    $diff->{'U'} eq 'a'
 );
 
 ok($diff = diff('a','b') and
     keys %{$diff} == 1 and
-    exists $diff->{'changed'} and
-    @{$diff->{'changed'}} == 2 and
-    $diff->{'changed'}->[0] eq 'a' and
-    $diff->{'changed'}->[1] eq 'b'
+    exists $diff->{'C'} and
+    @{$diff->{'C'}} == 2 and
+    $diff->{'C'}->[0] eq 'a' and
+    $diff->{'C'}->[1] eq 'b'
 );
 
 ### refs
 ok($diff = diff({},{}) and
     keys %{$diff} == 1 and
-    exists $diff->{'common'} and
-    keys %{$diff->{'common'}} == 0
+    exists $diff->{'U'} and
+    keys %{$diff->{'U'}} == 0
 );
 
 ok($diff = diff([],[]) and
     keys %{$diff} == 1 and
-    ref $diff->{'common'} eq 'ARRAY'
-    and @{$diff->{'common'}} == 0
+    ref $diff->{'U'} eq 'ARRAY'
+    and @{$diff->{'U'}} == 0
 );
 
 ok($diff = diff([],{}) and
     keys %{$diff} == 1 and
-    exists $diff->{'changed'} and
-    @{$diff->{'changed'}} == 2 and
-    @{$diff->{'changed'}->[0]} == 0 and
-    ref $diff->{'changed'}->[1] eq 'HASH' and
-    keys %{$diff->{'changed'}->[1]} == 0
+    exists $diff->{'C'} and
+    @{$diff->{'C'}} == 2 and
+    @{$diff->{'C'}->[0]} == 0 and
+    ref $diff->{'C'}->[1] eq 'HASH' and
+    keys %{$diff->{'C'}->[1]} == 0
 );
 
 ok($diff = diff({},[]) and
     keys %{$diff} == 1 and
-    exists $diff->{'changed'} and
-    @{$diff->{'changed'}} == 2 and
-    ref $diff->{'changed'}->[0] eq 'HASH' and
-    keys %{$diff->{'changed'}->[0]} == 0 and
-    @{$diff->{'changed'}->[1]} == 0
+    exists $diff->{'C'} and
+    @{$diff->{'C'}} == 2 and
+    ref $diff->{'C'}->[0] eq 'HASH' and
+    keys %{$diff->{'C'}->[0]} == 0 and
+    @{$diff->{'C'}->[1]} == 0
 );
 
 my $coderef1 = sub { return 0 };
 ok($diff = diff($coderef1,$coderef1) and
     keys %{$diff} == 1 and
-    exists $diff->{'common'} and
-    $diff->{'common'} eq $coderef1
+    exists $diff->{'U'} and
+    $diff->{'U'} eq $coderef1
 );
 
 my $coderef2 = sub { return 1 };
 ok($diff = diff($coderef1,$coderef2) and
     keys %{$diff} == 1 and
-    exists $diff->{'changed'} and
-    @{$diff->{'changed'}} == 2 and
-    ref $diff->{'changed'}->[0] eq 'CODE' and
-    ref $diff->{'changed'}->[1] eq 'CODE' and
-    $diff->{'changed'}->[0] eq $coderef1 and
-    $diff->{'changed'}->[1] eq $coderef2 and
-    $diff->{'changed'}->[0] ne $diff->{'changed'}->[1]
+    exists $diff->{'C'} and
+    @{$diff->{'C'}} == 2 and
+    ref $diff->{'C'}->[0] eq 'CODE' and
+    ref $diff->{'C'}->[1] eq 'CODE' and
+    $diff->{'C'}->[0] eq $coderef1 and
+    $diff->{'C'}->[1] eq $coderef2 and
+    $diff->{'C'}->[0] ne $diff->{'C'}->[1]
 );
