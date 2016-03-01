@@ -3,7 +3,7 @@
 use strict;
 use warnings FATAL => 'all';
 use Storable qw(dclone freeze);
-use Test::More tests => 16;
+use Test::More tests => 18;
 
 use Struct::Diff qw(diff);
 
@@ -59,6 +59,12 @@ ok($d = diff([ 0 ], [ 0, 1 ], 'detailed' => 1, 'nocommon' => 1) and
 ok($d = diff([ 0, 1 ], [ 0 ], 'detailed' => 1, 'nocommon' => 1) and
     keys %{$d} == 1 and exists $d->{'diff'} and @{$d->{'diff'}} == 1 and
     keys %{$d->{'diff'}->[0]} == 1 and exists $d->{'diff'}->[0]->{'removed'} and $d->{'diff'}->[0]->{'removed'} == 1
+);
+
+ok($d = diff([ 0 ], [ 1 ], 'detailed' => 1, 'separate-changed' => 1) and
+    keys %{$d} == 1 and exists $d->{'diff'} and @{$d->{'diff'}} == 1 and keys %{$d->{'diff'}->[0]} == 2 and
+        exists $d->{'diff'}->[0]->{'removed'} and $d->{'diff'}->[0]->{'removed'} == 0 and
+        exists $d->{'diff'}->[0]->{'added'} and $d->{'diff'}->[0]->{'added'} == 1
 );
 
 my $sub_array = [ 0, [ 11, 12 ], 2 ]; # must be considered as equal by ref (wo descending into it)
@@ -153,6 +159,13 @@ ok($d = diff({ 'a' => { 'b' => { 'c' => 0 }}}, { 'a' => { 'b' => { 'c' => 0 }}},
                         keys %{$d->{'diff'}->{'a'}->{'diff'}->{'b'}->{'diff'}->{'c'}} == 1 and
                             exists $d->{'diff'}->{'a'}->{'diff'}->{'b'}->{'diff'}->{'c'}->{'common'} and
                                 $d->{'diff'}->{'a'}->{'diff'}->{'b'}->{'diff'}->{'c'}->{'common'} == 0
+);
+
+ok($d = diff({ 'a' => 0 }, { 'a' => 1 }, 'detailed' => 1, 'separate-changed' => 1) and
+    keys %{$d} == 1 and exists $d->{'diff'} and keys %{$d->{'diff'}} == 1 and exists $d->{'diff'}->{'a'} and
+        keys %{$d->{'diff'}->{'a'}} == 2 and
+            exists $d->{'diff'}->{'a'}->{'removed'} and $d->{'diff'}->{'a'}->{'removed'} == 0 and
+            exists $d->{'diff'}->{'a'}->{'added'} and $d->{'diff'}->{'a'}->{'added'} == 1
 );
 
 $a = { 'a' => 'a1', 'b' => { 'ba' => 'ba1', 'bb' => 'bb1' }, 'c' => 'c1' };
