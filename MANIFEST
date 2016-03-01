@@ -5,13 +5,8 @@ MANIFEST			This list of files
 README
 t/000-load.t
 t/100-diff-primitives.t
-t/110-diff-arrays.t
-t/120-diff-hashes.t
-t/130-diff-complex.t
-t/140-diff-depth.t
-t/150-diff-separate-changed.t
-t/160-diff-shortest.t
-t/170-diff-detailed.t
+t/110-diff-detailed_0.t
+t/120-diff-detailed_1.t
 t/boilerplate.t
 t/manifest.t
 t/pod-coverage.t
