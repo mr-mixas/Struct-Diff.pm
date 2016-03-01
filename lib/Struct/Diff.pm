@@ -148,7 +148,12 @@ sub diff($$;@) {
         }
     } else { # treat others as scalars
         unless ((not defined $frst and not defined $scnd) or ((defined $frst and defined $scnd) and ($frst eq $scnd))) {
-            $diff->{'changed'} = [ $frst, $scnd ];
+            if ($opts{'separate-changed'}) {
+                $diff->{'removed'} = $frst;
+                $diff->{'added'} = $scnd;
+            } else {
+                $diff->{'changed'} = [ $frst, $scnd ];
+            }
         }
     }
     $diff->{'common'} = $frst unless (keys %{$diff} or $opts{'nocommon'}); # if passed srtucts are empty
