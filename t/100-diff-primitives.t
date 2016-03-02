@@ -164,14 +164,12 @@ ok($diff = diff($coderef1,$coderef2) and
 );
 
 # blessed things
-use Data::Dumper;
-
-my $blessed1 = Data::Dumper->new([]);
+my $blessed1 = bless {}, 'SomeClassName';
 ok($diff = diff($blessed1,$blessed1) and
     keys %{$diff} == 1 and exists $diff->{'U'}
 );
 
-my $blessed2 = Data::Dumper->new([]);
+my $blessed2 = bless {}, 'SomeClassName';
 ok($diff = diff($blessed1,$blessed2) and
     keys %{$diff} == 1 and exists $diff->{'C'}
 );
