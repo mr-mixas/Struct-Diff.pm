@@ -4,9 +4,10 @@ use 5.006;
 use strict;
 use warnings FATAL => 'all';
 use base qw(Exporter);
+use Carp;
 
 BEGIN {
-    our @EXPORT_OK = qw(diff strip);
+    our @EXPORT_OK = qw(diff dsplit strip);
 }
 
 =head1 NAME
@@ -156,6 +157,82 @@ sub diff($$;@) {
     }
     $d->{'U'} = $a unless (keys %{$d} or $opts{'nocommon'}); # if passed srtucts are empty
     return $d;
+}
+
+=head2 dsplit
+
+Divide diff to pseudo original structures.
+    my ($a, $b) = dsplit($diff);
+
+=cut
+
+sub dsplit($);
+sub dsplit($) {
+    my $d = shift;
+    croak "Wrong metadata format" unless (ref $d eq 'HASH');
+    my ($a, $b);
+
+    if (exists $d->{'U'}) {
+        if (ref $d->{'U'} eq 'ARRAY') {
+            push @{$a}, @{$d->{'U'}};
+            push @{$b}, @{$d->{'U'}};
+        } elsif (ref $d->{'U'} eq 'HASH') {
+            $a = defined $a ? { %{$a}, %{$d->{'U'}} } : { %{$d->{'U'}} };
+            $b = defined $b ? { %{$b}, %{$d->{'U'}} } : { %{$d->{'U'}} };
+        } else {
+            croak "Duplicates with different status" if (defined $a or defined $b);
+            $a = $b = $d->{'U'};
+        }
+    }
+
+    if (exists $d->{'C'}) {
+        if (ref $d->{'C'} eq 'ARRAY' and ref $d->{'C'}->[0] eq 'ARRAY' and ref $d->{'C'}->[1] eq 'ARRAY') {
+            for my $i (@{$d->{'C'}}) {
+                croak "Incorrect format for changed array element" if (@{$i} < 2 or @{$i} > 3);
+                if (@{$i} == 2) {
+                    carp "Position for changed array item not specified, would be added to the end";
+                    push @{$a}, $i->[0];
+                    push @{$b}, $i->[1];
+                } else {
+                    push @{$a}, $i->[0], splice(@{$a}, $i->[2]);
+                    push @{$b}, $i->[1], splice(@{$b}, $i->[2]);
+                }
+            }
+        } elsif (ref $d->{'C'} eq 'HASH') {
+            for my $key (keys %{$d->{'C'}}) {
+                croak "Incorrect format for changed hash element" if (@{$d->{'C'}->{$key}} != 2);
+                $a->{$key} = $d->{'C'}->{$key}->[0];
+                $b->{$key} = $d->{'C'}->{$key}->[1];
+            }
+        } else {
+            croak "Incorrect amount of changed elements" if (@{$d->{'C'}} != 2);
+            croak "Duplicates with different status" if (defined $a or defined $b);
+            $a = $d->{'C'}->[0];
+            $b = $d->{'C'}->[1];
+        }
+    }
+
+    if (exists $d->{'A'}) {
+        if (ref $d->{'A'} eq 'ARRAY') {
+            push @{$b}, @{$d->{'A'}};
+        } elsif (ref $d->{'A'} eq 'HASH') {
+            $b = defined $b ? { %{$b}, %{$d->{'A'}} } : { %{$d->{'A'}} };
+        } else {
+            croak "Element marked as added, but base structure neither ARRAY nor HASH";
+        }
+    }
+
+    if (exists $d->{'R'}) {
+        if (ref $d->{'R'} eq 'ARRAY') {
+            push @{$a}, @{$d->{'R'}};
+        } elsif (ref $d->{'R'} eq 'HASH') {
+            $a = defined $a ? { %{$a}, %{$d->{'R'}} } : { %{$d->{'R'}} };
+        } else {
+            croak "Element marked as removed, but base structure neither ARRAY nor HASH";
+        }
+    }
+
+    return $a, $b;
 }
 
 =head2 strip
