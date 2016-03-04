@@ -162,7 +162,9 @@ sub diff($$;@) {
 =head2 dsplit
 
 Divide diff to pseudo original structures.
-    my ($a, $b) = dsplit($diff);
+    my ($ptruct) = dsplit($diff);
+    print Dumper $struct->{'a'};
+    print Dumper $struct->{'b'};
 
 =cut
 
@@ -170,18 +172,34 @@ sub dsplit($);
 sub dsplit($) {
     my $d = shift;
     croak "Wrong metadata format" unless (ref $d eq 'HASH');
-    my ($a, $b);
+    my $s = {};
+
+    if (exists $d->{'D'}) {
+        if (ref $d->{'D'} eq 'ARRAY') {
+            for my $di (@{$d->{'D'}}) {
+                my ($ts) = dsplit($di);
+                push @{$s->{'a'}}, $ts->{'a'} if (exists $ts->{'a'});
+                push @{$s->{'b'}}, $ts->{'b'} if (exists $ts->{'b'});
+            }
+        } elsif (ref $d->{'D'} eq 'HASH') {
+            for my $key (keys %{$d->{'D'}}) {
+                my ($ts) = dsplit($d->{'D'}->{$key});
+                $s->{'a'}->{$key} = $ts->{'a'} if (exists $ts->{'a'});
+                $s->{'b'}->{$key} = $ts->{'b'} if (exists $ts->{'b'});
+            }
+        }
+    }
 
     if (exists $d->{'U'}) {
         if (ref $d->{'U'} eq 'ARRAY') {
-            push @{$a}, @{$d->{'U'}};
-            push @{$b}, @{$d->{'U'}};
+            push @{$s->{'a'}}, @{$d->{'U'}};
+            push @{$s->{'b'}}, @{$d->{'U'}};
         } elsif (ref $d->{'U'} eq 'HASH') {
-            $a = defined $a ? { %{$a}, %{$d->{'U'}} } : { %{$d->{'U'}} };
-            $b = defined $b ? { %{$b}, %{$d->{'U'}} } : { %{$d->{'U'}} };
+            $s->{'a'} = defined $s->{'a'} ? { %{$s->{'a'}}, %{$d->{'U'}} } : { %{$d->{'U'}} };
+            $s->{'b'} = defined $s->{'b'} ? { %{$s->{'b'}}, %{$d->{'U'}} } : { %{$d->{'U'}} };
         } else {
-            croak "Duplicates with different status" if (defined $a or defined $b);
-            $a = $b = $d->{'U'};
+            croak "Duplicates with different status" if (defined $s->{'a'} or defined $s->{'b'});
+            $s->{'a'} = $s->{'b'} = $d->{'U'};
         }
     }
 
@@ -191,48 +209,48 @@ sub dsplit($) {
                 croak "Incorrect format for changed array element" if (@{$i} < 2 or @{$i} > 3);
                 if (@{$i} == 2) {
                     carp "Position for changed array item not specified, would be added to the end";
-                    push @{$a}, $i->[0];
-                    push @{$b}, $i->[1];
+                    push @{$s->{'a'}}, $i->[0];
+                    push @{$s->{'b'}}, $i->[1];
                 } else {
-                    push @{$a}, $i->[0], splice(@{$a}, $i->[2]);
-                    push @{$b}, $i->[1], splice(@{$b}, $i->[2]);
+                    push @{$s->{'a'}}, $i->[0], splice(@{$s->{'a'}}, $i->[2]);
+                    push @{$s->{'b'}}, $i->[1], splice(@{$s->{'b'}}, $i->[2]);
                 }
             }
         } elsif (ref $d->{'C'} eq 'HASH') {
             for my $key (keys %{$d->{'C'}}) {
                 croak "Incorrect format for changed hash element" if (@{$d->{'C'}->{$key}} != 2);
-                $a->{$key} = $d->{'C'}->{$key}->[0];
-                $b->{$key} = $d->{'C'}->{$key}->[1];
+                $s->{'a'}->{$key} = $d->{'C'}->{$key}->[0];
+                $s->{'b'}->{$key} = $d->{'C'}->{$key}->[1];
             }
         } else {
             croak "Incorrect amount of changed elements" if (@{$d->{'C'}} != 2);
-            croak "Duplicates with different status" if (defined $a or defined $b);
-            $a = $d->{'C'}->[0];
-            $b = $d->{'C'}->[1];
+            croak "Duplicates with different status" if (defined $s->{'a'} or defined $s->{'b'});
+            $s->{'a'} = $d->{'C'}->[0];
+            $s->{'b'} = $d->{'C'}->[1];
         }
     }
 
     if (exists $d->{'A'}) {
         if (ref $d->{'A'} eq 'ARRAY') {
-            push @{$b}, @{$d->{'A'}};
+            push @{$s->{'b'}}, @{$d->{'A'}};
         } elsif (ref $d->{'A'} eq 'HASH') {
-            $b = defined $b ? { %{$b}, %{$d->{'A'}} } : { %{$d->{'A'}} };
+            $s->{'b'} = defined $s->{'b'} ? { %{$s->{'b'}}, %{$d->{'A'}} } : { %{$d->{'A'}} };
         } else {
-            croak "Element marked as added, but base structure neither ARRAY nor HASH";
+            $s->{'b'} = $d->{'A'};
         }
     }
 
     if (exists $d->{'R'}) {
         if (ref $d->{'R'} eq 'ARRAY') {
-            push @{$a}, @{$d->{'R'}};
+            push @{$s->{'a'}}, @{$d->{'R'}};
         } elsif (ref $d->{'R'} eq 'HASH') {
-            $a = defined $a ? { %{$a}, %{$d->{'R'}} } : { %{$d->{'R'}} };
+            $s->{'a'} = defined $s->{'a'} ? { %{$s->{'a'}}, %{$d->{'R'}} } : { %{$d->{'R'}} };
         } else {
-            croak "Element marked as removed, but base structure neither ARRAY nor HASH";
+            $s->{'a'} = $d->{'R'};
         }
     }
 
-    return $a, $b;
+    return $s;
 }
 
 =head2 strip
