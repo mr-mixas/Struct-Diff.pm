@@ -8,6 +8,7 @@ t/100-diff-primitives.t
 t/110-diff-detailed_0.t
 t/120-diff-detailed_1.t
 t/210-dsplit-detailed_0.t
+t/220-dsplit-detailed_1.t
 t/fixmes.t
 t/manifest.t
 t/pod-coverage.t
