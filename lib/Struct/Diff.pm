@@ -91,8 +91,12 @@ sub diff($$;@) {
             my $ai = $a->[$i]; my $bi = $b->[$i];
             my $tmp = diff($ai, $bi, %opts);
             if ($opts{'detailed'}) {
-                push @{$d->{'D'}}, $opts{'positions'} ? { %{$tmp}, 'position' => $i } : $tmp
-                    if (keys %{$tmp} or not $opts{'nocommon'});
+                next unless (keys %{$tmp} or not $opts{'nocommon'});
+                if (exists $tmp->{'D'} and @{$tmp->{'D'}} == grep { exists $_->{'U'}} @{$tmp->{'D'}}) {
+                    push @{$d->{'D'}}, { 'U' => $ai };
+                } else {
+                    push @{$d->{'D'}}, $opts{'positions'} ? { %{$tmp}, 'position' => $i } : $tmp;
+                }
             } else {
                 if (exists $tmp->{'A'} or exists $tmp->{'C'} or exists $tmp->{'R'}) {
                     if ($opts{'separate-changed'}) {
@@ -118,7 +122,12 @@ sub diff($$;@) {
             if (exists $a->{$key} and exists $b->{$key}) {
                 my $tmp = diff($a->{$key}, $b->{$key}, %opts);
                 if ($opts{'detailed'}) {
-                    $d->{'D'}->{$key} = $tmp unless ($opts{'nocommon'} and not keys %{$tmp});
+                    next unless (keys %{$tmp} or not $opts{'nocommon'});
+                    if (exists $tmp->{'D'} and keys %{$tmp->{'D'}} == grep { exists $_->{'U'} } values %{$tmp->{'D'}}) {
+                        $d->{'D'}->{$key} = { 'U' => $a->{$key} };
+                    } else {
+                        $d->{'D'}->{$key} = $tmp;
+                    }
                 } else {
                     if (exists $tmp->{'A'} or exists $tmp->{'C'} or exists $tmp->{'R'}) {
                         if ($opts{'separate-changed'}) {
@@ -342,7 +351,6 @@ L<http://cpanratings.perl.org/d/Struct-Diff>
 L<http://search.cpan.org/dist/Struct-Diff/>
 
 =back
-
 
 =head1 SEE ALSO
 
