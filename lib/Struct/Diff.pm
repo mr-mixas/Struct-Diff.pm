@@ -27,14 +27,14 @@ our $VERSION = '0.02';
     use Data::Dumper;
     use Struct::Diff qw(diff);
 
-    my $diff = diff($ref1, $ref2);
+    $diff = diff($ref1, $ref2);
     print Dumper $diff->['A']; # added
     print Dumper $diff->['C']; # changed
     print Dumper $diff->['U']; # unchanged
     print Dumper $diff->['R']; # removed
     ...
 
-    my $detailed = diff($ref1, $ref2, 'detailed' => 1);
+    $detailed = diff($ref1, $ref2, 'detailed' => 1);
     print Dumper $detailed;
 
 =head1 EXPORT
@@ -157,9 +157,8 @@ sub diff($$;@) {
 =head2 dsplit
 
 Divide diff to pseudo original structures.
-    my ($ptruct) = dsplit($diff);
-    print Dumper $struct->{'a'};
-    print Dumper $struct->{'b'};
+    $struct = dsplit($diff);
+    print Dumper $struct->{'a'}, $struct->{'b'};
 
 =cut
 
@@ -337,7 +336,6 @@ L<http://cpanratings.perl.org/d/Struct-Diff>
 L<http://search.cpan.org/dist/Struct-Diff/>
 
 =back
-
 
 =head1 SEE ALSO
 
