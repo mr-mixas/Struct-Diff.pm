@@ -53,10 +53,6 @@ structures, be aware of it changing diff.
 
 =over 4
 
-=item depth
-
-Don't descend to structs deeper than specified level. Not defined (disabled) by default.
-
 =item detailed
 
 Explicit diff - each struct layer anticipated by metadata. This approach allows to trace exact changed elements
@@ -82,11 +78,10 @@ Split changed items in arrays to "added" and "removed"
 sub diff($$;@);
 sub diff($$;@) {
     my ($a, $b, %opts) = @_;
-    $opts{'depth'}-- if (exists $opts{'depth'});
     my $d = {};
     if (ref $a ne ref $b) {
         $d->{'C'} = [ $a, $b ];
-    } elsif ((ref $a eq 'ARRAY') and ($a ne $b) and (not exists $opts{'depth'} or $opts{'depth'} >= 0)) {
+    } elsif ((ref $a eq 'ARRAY') and ($a ne $b)) {
         for (my $i = 0; $i < @{$a} and $i < @{$b}; $i++) {
             my $ai = $a->[$i]; my $bi = $b->[$i];
             my $tmp = diff($ai, $bi, %opts);
@@ -113,7 +108,7 @@ sub diff($$;@) {
             push @{$d->{'R'}}, @{$a}[@{$b}..$#{$a}] if (@{$a} > @{$b});
             push @{$d->{'A'}}, @{$b}[@{$a}..$#{$b}] if (@{$a} < @{$b});
         }
-    } elsif ((ref $a eq 'HASH') and ($a ne $b) and (not exists $opts{'depth'} or $opts{'depth'} >= 0)) {
+    } elsif ((ref $a eq 'HASH') and ($a ne $b)) {
         for my $key (keys { %{$a}, %{$b} }) { # go througth united uniq keys
             if (exists $a->{$key} and exists $b->{$key}) {
                 my $tmp = diff($a->{$key}, $b->{$key}, %opts);
