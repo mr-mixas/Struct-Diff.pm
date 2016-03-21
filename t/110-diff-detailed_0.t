@@ -3,7 +3,7 @@
 use strict;
 use warnings FATAL => 'all';
 use Storable qw(dclone freeze);
-use Test::More tests => 18;
+use Test::More tests => 14;
 
 use Struct::Diff qw(diff);
 
@@ -28,20 +28,6 @@ ok($d = diff([ 0, 1 ], [ 0 ], 'detailed' => 0) and
     keys %{$d} == 2 and
         exists $d->{'U'} and @{$d->{'U'}} == 1 and $d->{'U'}->[0] == 0 and
         exists $d->{'R'} and @{$d->{'R'}} == 1 and $d->{'R'}->[0] == 1
-);
-
-ok($d = diff([[[ 0 ]]], [[[ 0 ]]], 'detailed' => 0, 'depth' => 2) and # don't descend deeper than second level
-    keys %{$d} == 1 and exists $d->{'C'} and @{$d->{'C'}} == 1 and
-        @{$d->{'C'}->[0]} == 2 and
-            @{$d->{'C'}->[0]->[0]} == 1 and @{$d->{'C'}->[0]->[0]->[0]} == 1 and
-                @{$d->{'C'}->[0]->[0]->[0]} == 1 and $d->{'C'}->[0]->[0]->[0]->[0] == 0 and
-            @{$d->{'C'}->[0]->[1]} == 1 and @{$d->{'C'}->[0]->[1]->[0]} == 1 and
-                @{$d->{'C'}->[0]->[1]->[0]} == 1 and $d->{'C'}->[0]->[1]->[0]->[0] == 0
-);
-
-ok($d = diff([[[ 0 ]]], [[[ 0 ]]], 'detailed' => 0, 'depth' => 3) and
-    keys %{$d} == 1 and exists $d->{'U'} and @{$d->{'U'}} == 1 and
-        @{$d->{'U'}->[0]} == 1 and @{$d->{'U'}->[0]->[0]} == 1 and $d->{'U'}->[0]->[0]->[0] == 0
 );
 
 ok($d = diff([ 0 ], [ 0, 1 ], 'detailed' => 0, 'nocommon' => 1) and
@@ -125,24 +111,6 @@ ok($d = diff($a, $b, 'detailed' => 0, 'nocommon' => 1, 'positions' => 1) and
 ok($frozen_a eq freeze($a) and $frozen_b eq freeze($b)); # original structs must remain unchanged
 
 ### hashes ###
-
-ok($d = diff({ 'a' => { 'b' => { 'c' => 0 }}}, { 'a' => { 'b' => { 'c' => 0 }}}, 'detailed' => 0, 'depth' => 2) and # don't descend deeper than second level
-    keys %{$d} == 1 and exists $d->{'C'} and keys %{$d->{'C'}} == 1 and exists $d->{'C'}->{'a'} and
-        @{$d->{'C'}->{'a'}} == 2 and
-            keys %{$d->{'C'}->{'a'}->[0]} == 1 and exists $d->{'C'}->{'a'}->[0]->{'b'} and
-                keys %{$d->{'C'}->{'a'}->[0]->{'b'}} == 1 and exists $d->{'C'}->{'a'}->[0]->{'b'}->{'c'} and
-                    $d->{'C'}->{'a'}->[0]->{'b'}->{'c'} == 0 and
-            keys %{$d->{'C'}->{'a'}->[1]} == 1 and exists $d->{'C'}->{'a'}->[1]->{'b'} and
-                keys %{$d->{'C'}->{'a'}->[1]->{'b'}} == 1 and exists $d->{'C'}->{'a'}->[1]->{'b'}->{'c'} and
-                    $d->{'C'}->{'a'}->[1]->{'b'}->{'c'} == 0
-);
-
-ok($d = diff({ 'a' => { 'b' => { 'c' => 0 }}}, { 'a' => { 'b' => { 'c' => 0 }}}, 'detailed' => 0, 'depth' => 3) and
-    keys %{$d} == 1 and exists $d->{'U'} and keys %{$d->{'U'}} == 1 and exists $d->{'U'}->{'a'} and
-        keys %{$d->{'U'}->{'a'}} == 1 and exists $d->{'U'}->{'a'}->{'b'} and
-            keys %{$d->{'U'}->{'a'}->{'b'}} == 1 and exists $d->{'U'}->{'a'}->{'b'}->{'c'} and
-                $d->{'U'}->{'a'}->{'b'}->{'c'} == 0
-);
 
 ok($d = diff({ 'a' => 0 }, { 'a' => 1 }, 'detailed' => 0, 'separate-changed' => 1) and
     keys %{$d} == 2 and

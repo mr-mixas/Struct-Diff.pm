@@ -27,14 +27,14 @@ our $VERSION = '0.02';
     use Data::Dumper;
     use Struct::Diff qw(diff);
 
-    my $diff = diff($ref1, $ref2);
+    $diff = diff($ref1, $ref2);
     print Dumper $diff->['A']; # added
     print Dumper $diff->['C']; # changed
     print Dumper $diff->['U']; # unchanged
     print Dumper $diff->['R']; # removed
     ...
 
-    my $detailed = diff($ref1, $ref2, 'detailed' => 1);
+    $detailed = diff($ref1, $ref2, 'detailed' => 1);
     print Dumper $detailed;
 
 =head1 EXPORT
@@ -52,10 +52,6 @@ structures, be aware of it changing diff.
 =head3 Available options
 
 =over 4
-
-=item depth
-
-Don't descend to structs deeper than specified level. Not defined (disabled) by default.
 
 =item detailed
 
@@ -82,11 +78,10 @@ Split changed items in arrays to "added" and "removed"
 sub diff($$;@);
 sub diff($$;@) {
     my ($a, $b, %opts) = @_;
-    $opts{'depth'}-- if (exists $opts{'depth'});
     my $d = {};
     if (ref $a ne ref $b) {
         $d->{'C'} = [ $a, $b ];
-    } elsif ((ref $a eq 'ARRAY') and ($a ne $b) and (not exists $opts{'depth'} or $opts{'depth'} >= 0)) {
+    } elsif ((ref $a eq 'ARRAY') and ($a ne $b)) {
         for (my $i = 0; $i < @{$a} and $i < @{$b}; $i++) {
             my $ai = $a->[$i]; my $bi = $b->[$i];
             my $tmp = diff($ai, $bi, %opts);
@@ -117,7 +112,7 @@ sub diff($$;@) {
             push @{$d->{'R'}}, @{$a}[@{$b}..$#{$a}] if (@{$a} > @{$b});
             push @{$d->{'A'}}, @{$b}[@{$a}..$#{$b}] if (@{$a} < @{$b});
         }
-    } elsif ((ref $a eq 'HASH') and ($a ne $b) and (not exists $opts{'depth'} or $opts{'depth'} >= 0)) {
+    } elsif ((ref $a eq 'HASH') and ($a ne $b)) {
         for my $key (keys { %{$a}, %{$b} }) { # go througth united uniq keys
             if (exists $a->{$key} and exists $b->{$key}) {
                 my $tmp = diff($a->{$key}, $b->{$key}, %opts);
@@ -171,9 +166,8 @@ sub diff($$;@) {
 =head2 dsplit
 
 Divide diff to pseudo original structures.
-    my ($ptruct) = dsplit($diff);
-    print Dumper $struct->{'a'};
-    print Dumper $struct->{'b'};
+    $struct = dsplit($diff);
+    print Dumper $struct->{'a'}, $struct->{'b'};
 
 =cut
 
