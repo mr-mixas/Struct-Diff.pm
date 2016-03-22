@@ -3,7 +3,7 @@
 use strict;
 use warnings FATAL => 'all';
 use Storable qw(freeze);
-use Test::More tests => 10;
+use Test::More tests => 8;
 
 use Struct::Diff qw(diff dsplit);
 
@@ -34,37 +34,7 @@ my $sub_array = [ 0, [ 11, 12 ], 2 ];
 $a = [ 0, [[ 100 ]], [ 20, 'a' ], $sub_array, 4 ];
 $b = [ 0, [[ 100 ]], [ 20, 'b' ], $sub_array, 5 ];
 
-$d = diff($a, $b, 'detailed' => 0, 'positions' => 0);
-$frozen_d = freeze($d);
-
-ok($s = dsplit($d) and
-    @{$s->{'a'}} == 5 and
-        $s->{'a'}->[0] == 0 and
-        @{$s->{'a'}->[1]} == 1 and @{$s->{'a'}->[1]->[0]} == 1 and @{$s->{'a'}->[1]->[0]} == 1 and $s->{'a'}->[1]->[0]->[0] == 100 and
-        @{$s->{'a'}->[2]} == 3 and
-            $s->{'a'}->[2]->[0] == 0 and
-            @{$s->{'a'}->[2]->[1]} == 2 and $s->{'a'}->[2]->[1]->[0] == 11 and $s->{'a'}->[2]->[1]->[1] == 12 and
-            $s->{'a'}->[2]->[2] == 2 and
-        @{$s->{'a'}->[3]} == 2 and
-            $s->{'a'}->[3]->[0] == 20 and
-            $s->{'a'}->[3]->[1] eq 'a' and
-        $s->{'a'}->[4] == 4 and
-    @{$s->{'b'}} == 5 and
-        $s->{'b'}->[0] == 0 and
-        @{$s->{'b'}->[1]} == 1 and @{$s->{'b'}->[1]->[0]} == 1 and @{$s->{'b'}->[1]->[0]} == 1 and $s->{'b'}->[1]->[0]->[0] == 100 and
-        @{$s->{'b'}->[2]} == 3 and
-            $s->{'b'}->[2]->[0] == 0 and
-            @{$s->{'b'}->[2]->[1]} == 2 and $s->{'b'}->[2]->[1]->[0] == 11 and $s->{'b'}->[2]->[1]->[1] == 12 and
-            $s->{'b'}->[2]->[2] == 2 and
-        @{$s->{'b'}->[3]} == 2 and
-            $s->{'b'}->[3]->[0] == 20 and
-            $s->{'b'}->[3]->[1] eq 'b' and
-        $s->{'b'}->[4] == 5
-);
-
-ok($frozen_d eq freeze($d)); # original struct must remain unchanged
-
-$d = diff($a, $b, 'detailed' => 0, 'positions' => 1);
+$d = diff($a, $b, 'detailed' => 0);
 $frozen_d = freeze($d);
 
 ok($s = dsplit($d) and

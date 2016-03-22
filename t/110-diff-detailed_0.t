@@ -54,16 +54,18 @@ $frozen_b = freeze($b);
 ok($d = diff($a, $b, 'detailed' => 0) and
     keys %{$d} == 2 and
         exists $d->{'C'} and @{$d->{'C'}} == 2 and
-            @{$d->{'C'}->[0]} == 2 and
+            @{$d->{'C'}->[0]} == 3 and
                 @{$d->{'C'}->[0]->[0]} == 2 and
                     $d->{'C'}->[0]->[0]->[0] == 20 and
                     $d->{'C'}->[0]->[0]->[1] eq 'a' and
                 @{$d->{'C'}->[0]->[1]} == 2 and
                     $d->{'C'}->[0]->[1]->[0] == 20 and
                     $d->{'C'}->[0]->[1]->[1] eq 'b' and
-            @{$d->{'C'}->[1]} == 2 and
+                $d->{'C'}->[0]->[2] == 2 and
+            @{$d->{'C'}->[1]} == 3 and
                 $d->{'C'}->[1]->[0] == 4 and
                 $d->{'C'}->[1]->[1] == 5 and
+                $d->{'C'}->[1]->[2] == 4 and
         exists $d->{'U'} and @{$d->{'U'}} == 3 and
             $d->{'U'}->[0] == 0 and
             @{$d->{'U'}->[1]} == 1 and @{$d->{'U'}->[1]->[0]} == 1 and
@@ -79,19 +81,21 @@ ok($d = diff($a, $b, 'detailed' => 0) and
 ok($d = diff($a, $b, 'detailed' => 0, 'nocommon' => 1) and
     keys %{$d} == 1 and
         exists $d->{'C'} and @{$d->{'C'}} == 2 and
-            @{$d->{'C'}->[0]} == 2 and
+            @{$d->{'C'}->[0]} == 3 and
                 @{$d->{'C'}->[0]->[0]} == 2 and
                     $d->{'C'}->[0]->[0]->[0] == 20 and
                     $d->{'C'}->[0]->[0]->[1] eq 'a' and
                 @{$d->{'C'}->[0]->[1]} == 2 and
                     $d->{'C'}->[0]->[1]->[0] == 20 and
                     $d->{'C'}->[0]->[1]->[1] eq 'b' and
-            @{$d->{'C'}->[1]} == 2 and
+                $d->{'C'}->[0]->[2] == 2 and
+            @{$d->{'C'}->[1]} == 3 and
                 $d->{'C'}->[1]->[0] == 4 and
-                $d->{'C'}->[1]->[1] == 5
+                $d->{'C'}->[1]->[1] == 5 and
+                $d->{'C'}->[1]->[2] == 4
 );
 
-ok($d = diff($a, $b, 'detailed' => 0, 'nocommon' => 1, 'positions' => 1) and
+ok($d = diff($a, $b, 'detailed' => 0, 'nocommon' => 1) and
     keys %{$d} == 1 and
         exists $d->{'C'} and @{$d->{'C'}} == 2 and
             @{$d->{'C'}->[0]} == 3 and

@@ -3,7 +3,7 @@
 use strict;
 use warnings FATAL => 'all';
 use Storable qw(dclone freeze);
-use Test::More tests => 14;
+use Test::More tests => 13;
 
 use Struct::Diff qw(diff);
 
@@ -16,7 +16,7 @@ ok($d = diff(1, 2, 'detailed' => 1) and
     $d->{'C'}->[0] == 1 and
     $d->{'C'}->[1] == 2
 );
-
+use Data::Dumper;
 ### arrays ###
 ok($d = diff([ 0 ], [ 0, 1 ], 'detailed' => 1) and
     keys %{$d} == 1 and exists $d->{'D'} and @{$d->{'D'}} == 2 and
@@ -78,34 +78,22 @@ ok($d = diff($a, $b, 'detailed' => 1) and
 
 ok($d = diff($a, $b, 'detailed' => 1, 'nocommon' => 1) and
     keys %{$d} == 1 and exists $d->{'D'} and @{$d->{'D'}} == 2 and
-    keys %{$d->{'D'}->[0]} == 1 and exists $d->{'D'}->[0]->{'D'} and @{$d->{'D'}->[0]->{'D'}} == 1 and
-        keys %{$d->{'D'}->[0]->{'D'}->[0]} == 1 and exists $d->{'D'}->[0]->{'D'}->[0]->{'C'} and
-            @{$d->{'D'}->[0]->{'D'}->[0]->{'C'}} == 2 and
-            $d->{'D'}->[0]->{'D'}->[0]->{'C'}->[0] eq 'a' and
-            $d->{'D'}->[0]->{'D'}->[0]->{'C'}->[1] eq 'b' and
-    keys %{$d->{'D'}->[1]} == 1 and exists $d->{'D'}->[1]->{'C'} and @{$d->{'D'}->[1]->{'C'}} == 2 and
-        $d->{'D'}->[1]->{'C'}->[0] == 4 and
-        $d->{'D'}->[1]->{'C'}->[1] == 5
-);
-
-ok($d = diff($a, $b, 'detailed' => 1, 'nocommon' => 1, 'positions' => 1) and
-    keys %{$d} == 1 and exists $d->{'D'} and @{$d->{'D'}} == 2 and
     keys %{$d->{'D'}->[0]} == 2 and
         exists $d->{'D'}->[0]->{'D'} and @{$d->{'D'}->[0]->{'D'}} == 1 and
             keys %{$d->{'D'}->[0]->{'D'}->[0]} == 2 and
                 exists $d->{'D'}->[0]->{'D'}->[0]->{'C'} and @{$d->{'D'}->[0]->{'D'}->[0]->{'C'}} == 2 and
                     $d->{'D'}->[0]->{'D'}->[0]->{'C'}->[0] eq 'a' and
                     $d->{'D'}->[0]->{'D'}->[0]->{'C'}->[1] eq 'b' and
-                exists $d->{'D'}->[0]->{'D'}->[0]->{'position'} and
-                    $d->{'D'}->[0]->{'D'}->[0]->{'position'} == 1 and
-        exists $d->{'D'}->[0]->{'position'} and
-            $d->{'D'}->[0]->{'position'} == 2 and
+                exists $d->{'D'}->[0]->{'D'}->[0]->{'I'} and
+                    $d->{'D'}->[0]->{'D'}->[0]->{'I'} == 1 and
+        exists $d->{'D'}->[0]->{'I'} and
+            $d->{'D'}->[0]->{'I'} == 2 and
     keys %{$d->{'D'}->[1]} == 2 and
         exists $d->{'D'}->[1]->{'C'} and @{$d->{'D'}->[1]->{'C'}} == 2 and
             $d->{'D'}->[1]->{'C'}->[0] == 4 and
             $d->{'D'}->[1]->{'C'}->[1] == 5 and
         exists $d->{'D'}->[1]->{'C'} and
-            $d->{'D'}->[1]->{'position'} == 4
+            $d->{'D'}->[1]->{'I'} == 4
 );
 
 ok($frozen_a eq freeze($a) and $frozen_b eq freeze($b)); # original structs must remain unchanged

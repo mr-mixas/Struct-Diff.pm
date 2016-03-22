@@ -63,10 +63,6 @@ passed structures are changed and work with them.
 
 Hide unchanged parts.
 
-=item positions
-
-Show index for changed array items.
-
 =item separate-changed
 
 Split changed items in arrays to "added" and "removed"
@@ -90,7 +86,7 @@ sub diff($$;@) {
                 if (exists $tmp->{'D'} and @{$tmp->{'D'}} == grep { exists $_->{'U'}} @{$tmp->{'D'}}) {
                     push @{$d->{'D'}}, { 'U' => $ai };
                 } else {
-                    push @{$d->{'D'}}, $opts{'positions'} ? { %{$tmp}, 'position' => $i } : $tmp;
+                    push @{$d->{'D'}}, $opts{'nocommon'} ? { %{$tmp}, 'I' => $i } : $tmp;
                 }
             } else {
                 if (exists $tmp->{'A'} or exists $tmp->{'C'} or exists $tmp->{'R'}) {
@@ -98,7 +94,7 @@ sub diff($$;@) {
                         push @{$d->{'R'}}, $ai;
                         push @{$d->{'A'}}, $bi;
                     } else {
-                        push @{$d->{'C'}}, $opts{'positions'} ? [ $ai, $bi, $i ] : [ $ai, $bi ];
+                        push @{$d->{'C'}}, [ $ai, $bi, $i ];
                     }
                 } else {
                     push @{$d->{'U'}}, $ai unless ($opts{'nocommon'});
@@ -209,15 +205,9 @@ sub dsplit($) {
     if (exists $d->{'C'}) {
         if (ref $d->{'C'} eq 'ARRAY' and ref $d->{'C'}->[0] eq 'ARRAY' and ref $d->{'C'}->[1] eq 'ARRAY') {
             for my $i (@{$d->{'C'}}) {
-                croak "Incorrect format for changed array element" if (@{$i} < 2 or @{$i} > 3);
-                if (@{$i} == 2) {
-                    carp "Position for changed array item not specified, would be added to the end";
-                    push @{$s->{'a'}}, $i->[0];
-                    push @{$s->{'b'}}, $i->[1];
-                } else {
-                    push @{$s->{'a'}}, $i->[0], splice(@{$s->{'a'}}, $i->[2]);
-                    push @{$s->{'b'}}, $i->[1], splice(@{$s->{'b'}}, $i->[2]);
-                }
+                croak "Incorrect format for changed array element" unless (@{$i} == 3);
+                push @{$s->{'a'}}, $i->[0], splice(@{$s->{'a'}}, $i->[2]);
+                push @{$s->{'b'}}, $i->[1], splice(@{$s->{'b'}}, $i->[2]);
             }
         } elsif (ref $d->{'C'} eq 'HASH') {
             for my $key (keys %{$d->{'C'}}) {
