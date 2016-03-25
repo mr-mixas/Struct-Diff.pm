@@ -7,7 +7,7 @@ use base qw(Exporter);
 use Carp;
 
 BEGIN {
-    our @EXPORT_OK = qw(diff dsplit strip);
+    our @EXPORT_OK = qw(diff dsplit);
 }
 
 =head1 NAME
@@ -244,58 +244,6 @@ sub dsplit($) {
     }
 
     return $s;
-}
-
-=head2 strip
-
-Remove common parts from two passed refs (diff inside-out)
-    strip($ref1, $ref2);
-
-=cut
-
-sub strip($$);
-sub strip($$) {
-    my ($a, $b) = @_;
-    my $d;
-    if (ref $a ne ref $b) {
-        $d->{'C'} = [ $a, $b ];
-    } elsif (ref $a eq 'ARRAY') {
-        my $fa = [@{$a}]; my $sa = [ @{$b} ]; # copy to new arrays to prevent original arrays corruption
-        for (my $i = 0; @{$fa} and @{$sa}; $i++) {
-            my $ai = shift(@{$fa}); my $bi = shift(@{$sa});
-            my $tmp = strip($ai, $bi);
-            if (exists $tmp->{'A'} or exists $tmp->{'C'} or exists $tmp->{'R'}) {
-                push @{$d->{'C'}}, [ $ai, $bi ];
-            } else {
-                splice @{$a}, $i, 1;
-                splice @{$b}, $i, 1;
-                $i--;
-            }
-        }
-        push @{$d->{'R'}}, @{$a} if (@{$a});
-        push @{$d->{'A'}}, @{$b} if (@{$b});
-    } elsif (ref $a eq 'HASH') {
-        for my $key (keys { map { $_, 1 } (keys %{$a}, keys %{$b}) }) { # go througth united uniq keys
-            if (exists $a->{$key} and exists $b->{$key}) {
-                my $tmp = strip($a->{$key}, $b->{$key});
-                if (exists $tmp->{'A'} or exists $tmp->{'C'} or exists $tmp->{'R'}) {
-                    push @{$d->{'C'}->{$key}}, $a->{$key}, $b->{$key};
-                } else {
-                    delete $a->{$key};
-                    delete $b->{$key};
-                }
-            } elsif (exists $a->{$key}) {
-                $d->{'R'}->{$key} = $a->{$key};
-            } else {
-                $d->{'A'}->{$key} = $b->{$key};
-            }
-        }
-    } else { # treat others as scalars
-        unless ((not defined $a and not defined $b) or ((defined $a and defined $b) and ($a eq $b))) {
-            $d->{'C'} = [ $a, $b ];
-        }
-    }
-    return $d;
 }
 
 =head1 AUTHOR
