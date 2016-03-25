@@ -59,7 +59,7 @@ Explicit diff - each struct layer anticipated by metadata. This approach allows 
 in substructures. When disabled (by default is) metadata only on top of diff - easy way to know which elements of
 passed structures are changed and work with them.
 
-=item nocommon
+=item noU
 
 Hide unchanged parts.
 
@@ -82,11 +82,11 @@ sub diff($$;@) {
             my $ai = $a->[$i]; my $bi = $b->[$i];
             my $tmp = diff($ai, $bi, %opts);
             if ($opts{'detailed'}) {
-                next unless (keys %{$tmp} or not $opts{'nocommon'});
+                next unless (keys %{$tmp} or not $opts{'noU'});
                 if (exists $tmp->{'D'} and @{$tmp->{'D'}} == grep { exists $_->{'U'}} @{$tmp->{'D'}}) {
                     push @{$d->{'D'}}, { 'U' => $ai };
                 } else {
-                    push @{$d->{'D'}}, $opts{'nocommon'} ? { %{$tmp}, 'I' => $i } : $tmp;
+                    push @{$d->{'D'}}, $opts{'noU'} ? { %{$tmp}, 'I' => $i } : $tmp;
                 }
             } else {
                 if (exists $tmp->{'A'} or exists $tmp->{'C'} or exists $tmp->{'R'}) {
@@ -97,7 +97,7 @@ sub diff($$;@) {
                         push @{$d->{'C'}}, [ $ai, $bi, $i ];
                     }
                 } else {
-                    push @{$d->{'U'}}, $ai unless ($opts{'nocommon'});
+                    push @{$d->{'U'}}, $ai unless ($opts{'noU'});
                 }
             }
         }
@@ -113,7 +113,7 @@ sub diff($$;@) {
             if (exists $a->{$key} and exists $b->{$key}) {
                 my $tmp = diff($a->{$key}, $b->{$key}, %opts);
                 if ($opts{'detailed'}) {
-                    next unless (keys %{$tmp} or not $opts{'nocommon'});
+                    next unless (keys %{$tmp} or not $opts{'noU'});
                     if (exists $tmp->{'D'} and keys %{$tmp->{'D'}} == grep { exists $_->{'U'} } values %{$tmp->{'D'}}) {
                         $d->{'D'}->{$key} = { 'U' => $a->{$key} };
                     } else {
@@ -128,7 +128,7 @@ sub diff($$;@) {
                             push @{$d->{'C'}->{$key}}, $a->{$key}, $b->{$key};
                         }
                     } else {
-                        $d->{'U'}->{$key} = $a->{$key} unless ($opts{'nocommon'});
+                        $d->{'U'}->{$key} = $a->{$key} unless ($opts{'noU'});
                     }
                 }
             } elsif (exists $a->{$key}) {
@@ -155,7 +155,7 @@ sub diff($$;@) {
             }
         }
     }
-    $d->{'U'} = $a unless (keys %{$d} or $opts{'nocommon'}); # if passed srtucts are empty
+    $d->{'U'} = $a unless (keys %{$d} or $opts{'noU'}); # if passed srtucts are empty
     return $d;
 }
 

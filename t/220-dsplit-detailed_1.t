@@ -35,7 +35,7 @@ my $sub_array = [ 0, [ 11, 12 ], 2 ];
 $a = [ 0, [[ 100 ]], [ 20, 'a' ], $sub_array, 4 ];
 $b = [ 0, [[ 100 ]], [ 20, 'b' ], $sub_array, 5 ];
 
-$d = diff($a, $b, 'detailed' => 1, 'nocommon' => 0);
+$d = diff($a, $b, 'detailed' => 1, 'noU' => 0);
 $frozen_d = freeze($d);
 
 ok($s = dsplit($d) and
@@ -65,7 +65,7 @@ ok($s = dsplit($d) and
 
 ok($frozen_d eq freeze($d)); # original struct must remain unchanged
 
-$d = diff($a, $b, 'detailed' => 1, 'nocommon' => 1);
+$d = diff($a, $b, 'detailed' => 1, 'noU' => 1);
 $frozen_d = freeze($d);
 
 ok($s = dsplit($d) and

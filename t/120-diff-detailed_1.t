@@ -30,12 +30,12 @@ ok($d = diff([ 0, 1 ], [ 0 ], 'detailed' => 1) and
     keys %{$d->{'D'}->[1]} == 1 and exists $d->{'D'}->[1]->{'R'} and $d->{'D'}->[1]->{'R'} == 1
 );
 
-ok($d = diff([ 0 ], [ 0, 1 ], 'detailed' => 1, 'nocommon' => 1) and
+ok($d = diff([ 0 ], [ 0, 1 ], 'detailed' => 1, 'noU' => 1) and
     keys %{$d} == 1 and exists $d->{'D'} and @{$d->{'D'}} == 1 and
     keys %{$d->{'D'}->[0]} == 1 and exists $d->{'D'}->[0]->{'A'} and $d->{'D'}->[0]->{'A'} == 1
 );
 
-ok($d = diff([ 0, 1 ], [ 0 ], 'detailed' => 1, 'nocommon' => 1) and
+ok($d = diff([ 0, 1 ], [ 0 ], 'detailed' => 1, 'noU' => 1) and
     keys %{$d} == 1 and exists $d->{'D'} and @{$d->{'D'}} == 1 and
     keys %{$d->{'D'}->[0]} == 1 and exists $d->{'D'}->[0]->{'R'} and $d->{'D'}->[0]->{'R'} == 1
 );
@@ -76,7 +76,7 @@ ok($d = diff($a, $b, 'detailed' => 1) and
         $d->{'D'}->[4]->{'C'}->[1] == 5
 );
 
-ok($d = diff($a, $b, 'detailed' => 1, 'nocommon' => 1) and
+ok($d = diff($a, $b, 'detailed' => 1, 'noU' => 1) and
     keys %{$d} == 1 and exists $d->{'D'} and @{$d->{'D'}} == 2 and
     keys %{$d->{'D'}->[0]} == 2 and
         exists $d->{'D'}->[0]->{'D'} and @{$d->{'D'}->[0]->{'D'}} == 1 and
@@ -130,7 +130,7 @@ ok($d = diff($a, $b, 'detailed' => 1) and
     keys %{$d->{'D'}->{'d'}} == 1 and exists $d->{'D'}->{'d'}->{'A'} and $d->{'D'}->{'d'}->{'A'} eq 'd1'
 );
 
-ok($d = diff($a, $b, 'detailed' => 1, 'nocommon' => 1) and
+ok($d = diff($a, $b, 'detailed' => 1, 'noU' => 1) and
     keys %{$d} == 1 and exists $d->{'D'} and keys %{$d->{'D'}} == 3 and
     keys %{$d->{'D'}->{'b'}} == 1 and exists $d->{'D'}->{'b'}->{'D'} and
         keys %{$d->{'D'}->{'b'}->{'D'}} == 1 and
