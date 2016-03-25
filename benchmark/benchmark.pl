@@ -18,8 +18,7 @@ $DD = 1 unless ($@);
 
 for my $type ('AoA', 'HoH', 'MIX') {
     my $rivals = {};
-    $rivals->{"SD_${type}_det0"} = sub { diff($Structs::STRUCT1->{"${type}"}, $cloned->{"${type}"}), 'detailed' => 0 };
-    $rivals->{"SD_${type}_det1"} = sub { diff($Structs::STRUCT1->{"${type}"}, $cloned->{"${type}"}), 'detailed' => 1 };
+    $rivals->{"SD_${type}"} = sub { diff($Structs::STRUCT1->{"${type}"}, $cloned->{"${type}"}) };
     $rivals->{"DD_${type}"} = sub { Diff($Structs::STRUCT1->{"${type}"}, $cloned->{"${type}"}) } if ($DD);
     cmpthese (50, $rivals);
 }

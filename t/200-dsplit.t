@@ -11,22 +11,22 @@ $Storable::canonical = 1;
 my ($a, $b, $d, $frozen_d, $s);
 
 ### primitives ###
-ok($s = dsplit(diff(0, 0, 'detailed' => 1)) and
+ok($s = dsplit(diff(0, 0)) and
     $s->{'a'} == 0 and $s->{'b'} == 0
 );
 
-ok($s = dsplit(diff(0, 1, 'detailed' => 1)) and
+ok($s = dsplit(diff(0, 1)) and
     $s->{'a'} == 0 and $s->{'b'} == 1
 );
 
 ### arrays ###
-$d = diff([ 0 ], [ 0, 1 ], 'detailed' => 1);
+$d = diff([ 0 ], [ 0, 1 ]);
 ok(($s) = dsplit($d) and
     @{$s->{'a'}} == 1 and $s->{'a'}->[0] == 0 and
     @{$s->{'b'}} == 2 and $s->{'b'}->[0] == 0 and $s->{'b'}->[1] == 1
 );
 
-ok($s = dsplit(diff([ 0, 1 ], [ 0 ], 'detailed' => 1)) and
+ok($s = dsplit(diff([ 0, 1 ], [ 0 ])) and
     @{$s->{'a'}} == 2 and $s->{'a'}->[0] == 0 and $s->{'a'}->[1] == 1 and
     @{$s->{'b'}} == 1 and $s->{'b'}->[0] == 0
 );
@@ -35,7 +35,7 @@ my $sub_array = [ 0, [ 11, 12 ], 2 ];
 $a = [ 0, [[ 100 ]], [ 20, 'a' ], $sub_array, 4 ];
 $b = [ 0, [[ 100 ]], [ 20, 'b' ], $sub_array, 5 ];
 
-$d = diff($a, $b, 'detailed' => 1, 'noU' => 0);
+$d = diff($a, $b, 'noU' => 0);
 $frozen_d = freeze($d);
 
 ok($s = dsplit($d) and
@@ -65,7 +65,7 @@ ok($s = dsplit($d) and
 
 ok($frozen_d eq freeze($d)); # original struct must remain unchanged
 
-$d = diff($a, $b, 'detailed' => 1, 'noU' => 1);
+$d = diff($a, $b, 'noU' => 1);
 $frozen_d = freeze($d);
 
 ok($s = dsplit($d) and
@@ -84,7 +84,7 @@ ok($frozen_d eq freeze($d)); # original struct must remain unchanged
 $a = { 'a' => 'a1', 'b' => { 'ba' => 'ba1', 'bb' => 'bb1' }, 'c' => 'c1' };
 $b = { 'a' => 'a1', 'b' => { 'ba' => 'ba2', 'bb' => 'bb1' }, 'd' => 'd1' };
 
-$d = diff($a, $b, 'detailed' => 1);
+$d = diff($a, $b);
 $frozen_d = freeze($d);
 
 ok($s = dsplit($d) and

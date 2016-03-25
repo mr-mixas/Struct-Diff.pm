@@ -28,14 +28,7 @@ our $VERSION = '0.02';
     use Struct::Diff qw(diff);
 
     $diff = diff($ref1, $ref2);
-    print Dumper $diff->['A']; # added
-    print Dumper $diff->['C']; # changed
-    print Dumper $diff->['U']; # unchanged
-    print Dumper $diff->['R']; # removed
-    ...
-
-    $detailed = diff($ref1, $ref2, 'detailed' => 1);
-    print Dumper $detailed;
+    print Dumper $diff;
 
 =head1 EXPORT
 
@@ -45,19 +38,13 @@ Nothing exports by default
 
 =head2 diff
 
-Returns HASH reference to diff between two passed references. Diff consists of linked parts of passed
-structures, be aware of it changing diff.
+Returns HASH reference to diff between two passed references. Each struct layer anticipated by metadata. Be aware when
+changing diff: some of it's substructures are links to original structures.
     $diff = diff($ref1, $ref2, %opts);
 
 =head3 Available options
 
 =over 4
-
-=item detailed
-
-Explicit diff - each struct layer anticipated by metadata. This approach allows to trace exact changed elements
-in substructures. When disabled (by default is) metadata only on top of diff - easy way to know which elements of
-passed structures are changed and work with them.
 
 =item noU
 
@@ -81,68 +68,29 @@ sub diff($$;@) {
         for (my $i = 0; $i < @{$a} and $i < @{$b}; $i++) {
             my $ai = $a->[$i]; my $bi = $b->[$i];
             my $tmp = diff($ai, $bi, %opts);
-            if ($opts{'detailed'}) {
-                next unless (keys %{$tmp} or not $opts{'noU'});
-                if (exists $tmp->{'D'} and @{$tmp->{'D'}} == grep { exists $_->{'U'}} @{$tmp->{'D'}}) {
-                    push @{$d->{'D'}}, { 'U' => $ai };
-                } else {
-                    push @{$d->{'D'}}, $opts{'noU'} ? { %{$tmp}, 'I' => $i } : $tmp;
-                }
+            next unless (keys %{$tmp} or not $opts{'noU'});
+            if (exists $tmp->{'D'} and @{$tmp->{'D'}} == grep { exists $_->{'U'}} @{$tmp->{'D'}}) {
+                push @{$d->{'D'}}, { 'U' => $ai };
             } else {
-                if (exists $tmp->{'A'} or exists $tmp->{'C'} or exists $tmp->{'R'}) {
-                    if ($opts{'separate-changed'}) {
-                        push @{$d->{'R'}}, $ai;
-                        push @{$d->{'A'}}, $bi;
-                    } else {
-                        push @{$d->{'C'}}, [ $ai, $bi, $i ];
-                    }
-                } else {
-                    push @{$d->{'U'}}, $ai unless ($opts{'noU'});
-                }
+                push @{$d->{'D'}}, $opts{'noU'} ? { %{$tmp}, 'I' => $i } : $tmp;
             }
         }
-        if ($opts{'detailed'}) {
-            map { push @{$d->{'D'}}, { 'R' => $_ } } @{$a}[@{$b}..$#{$a}] if (@{$a} > @{$b});
-            map { push @{$d->{'D'}}, { 'A' => $_ } } @{$b}[@{$a}..$#{$b}] if (@{$a} < @{$b});
-        } else {
-            push @{$d->{'R'}}, @{$a}[@{$b}..$#{$a}] if (@{$a} > @{$b});
-            push @{$d->{'A'}}, @{$b}[@{$a}..$#{$b}] if (@{$a} < @{$b});
-        }
+        map { push @{$d->{'D'}}, { 'R' => $_ } } @{$a}[@{$b}..$#{$a}] if (@{$a} > @{$b});
+        map { push @{$d->{'D'}}, { 'A' => $_ } } @{$b}[@{$a}..$#{$b}] if (@{$a} < @{$b});
     } elsif ((ref $a eq 'HASH') and ($a ne $b)) {
         for my $key (keys { %{$a}, %{$b} }) { # go througth united uniq keys
             if (exists $a->{$key} and exists $b->{$key}) {
                 my $tmp = diff($a->{$key}, $b->{$key}, %opts);
-                if ($opts{'detailed'}) {
-                    next unless (keys %{$tmp} or not $opts{'noU'});
-                    if (exists $tmp->{'D'} and keys %{$tmp->{'D'}} == grep { exists $_->{'U'} } values %{$tmp->{'D'}}) {
-                        $d->{'D'}->{$key} = { 'U' => $a->{$key} };
-                    } else {
-                        $d->{'D'}->{$key} = $tmp;
-                    }
+                next unless (keys %{$tmp} or not $opts{'noU'});
+                if (exists $tmp->{'D'} and keys %{$tmp->{'D'}} == grep { exists $_->{'U'} } values %{$tmp->{'D'}}) {
+                    $d->{'D'}->{$key} = { 'U' => $a->{$key} };
                 } else {
-                    if (exists $tmp->{'A'} or exists $tmp->{'C'} or exists $tmp->{'R'}) {
-                        if ($opts{'separate-changed'}) {
-                            $d->{'R'}->{$key} = $a->{$key};
-                            $d->{'A'}->{$key} = $b->{$key};
-                        } else {
-                            push @{$d->{'C'}->{$key}}, $a->{$key}, $b->{$key};
-                        }
-                    } else {
-                        $d->{'U'}->{$key} = $a->{$key} unless ($opts{'noU'});
-                    }
+                    $d->{'D'}->{$key} = $tmp;
                 }
             } elsif (exists $a->{$key}) {
-                if ($opts{'detailed'}) {
-                    $d->{'D'}->{$key} = { 'R' => $a->{$key} };
-                } else {
-                    $d->{'R'}->{$key} = $a->{$key};
-                }
+                $d->{'D'}->{$key} = { 'R' => $a->{$key} };
             } else {
-                if ($opts{'detailed'}) {
-                    $d->{'D'}->{$key} = { 'A' => $b->{$key} };
-                } else {
-                    $d->{'A'}->{$key} = $b->{$key};
-                }
+                $d->{'D'}->{$key} = { 'A' => $b->{$key} };
             }
         }
     } else { # treat others as scalars
