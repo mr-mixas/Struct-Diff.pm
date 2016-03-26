@@ -7,7 +7,7 @@ use base qw(Exporter);
 use Carp;
 
 BEGIN {
-    our @EXPORT_OK = qw(diff dsplit);
+    our @EXPORT_OK = qw(diff dselect dsplit);
 }
 
 =head1 NAME
@@ -105,6 +105,51 @@ sub diff($$;@) {
     }
     $d->{'U'} = $a unless (keys %{$d} or $opts{'noU'}); # if passed srtucts are empty
     return $d;
+}
+
+=head2 dselect
+
+Returns list of items with desired status from diff
+Items with all states will be returned if 'states' opt not defined
+All items with specified states will be returned if 'from' opt not defined
+    $hau = dselect($diff, states => { 'A' => 1, 'U' => 1 }, 'from' => [ 'a', 'b', 'c' ]) # hashes
+    $adc = dselect($diff, states => { 'D' => 1, 'C' => 1 }, 'from' => [ 0, 1, 3, 5, 9 ]) # arrays
+
+=cut
+
+sub dselect(@) {
+    my ($d, %opts) = @_;
+    croak "Unsupported diff struct passed" unless (ref $d eq 'HASH');
+    my @out;
+
+    while (my($k, $v) = each %{$d}) {
+        if ($k eq 'D') {
+            if (ref $v eq 'ARRAY') {
+                for my $i ($opts{'from'} ? @{$opts{'from'}} : 0..$#{$v}) {
+                    croak "Requested index $i not in diff's array range" unless ($i >= 0 and $i < @{$v});
+                    for (keys %{$v->[$i]}) {
+                        next if ($opts{'states'} and not $opts{'states'}{$_});
+                        push @out, $v->[$i];
+                        last;
+                    }
+                }
+            } elsif (ref $v eq 'HASH') {
+                for my $i ($opts{'from'} ? @{$opts{'from'}} : keys %{$v}) {
+                    next unless (exists $v->{$i});
+                    for (keys %{$v->{$i}}) {
+                        next if ($opts{'states'} and not $opts{'states'}{$_});
+                        push @out, { $i => $v->{$i} };
+                        last;
+                    }
+                }
+            }
+        } else {
+            next if ($opts{'states'} and not $opts{'states'}{$k});
+            push @out, { $k => $v };
+        }
+    }
+
+    return @out;
 }
 
 =head2 dsplit
