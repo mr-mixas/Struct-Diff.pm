@@ -7,6 +7,7 @@ t/000-load.t
 t/100-diff-primitives.t
 t/110-diff-structures.t
 t/200-dsplit.t
+t/300-dselect.t
 t/fixmes.t
 t/manifest.t
 t/pod-coverage.t
