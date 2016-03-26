@@ -38,9 +38,39 @@ Nothing exports by default
 
 =head2 diff
 
-Returns HASH reference to diff between two passed references. Each struct layer anticipated by metadata. Be aware when
+Returns HASH reference to diff between two passed structures. Each struct layer anticipated by metadata. Be aware when
 changing diff: some of it's substructures are links to original structures.
     $diff = diff($ref1, $ref2, %opts);
+
+=head3 Diff's states
+
+Diff's keys shows status of each item from passed structures.
+
+=over 4
+
+=item A
+
+'A' stands for 'added' (exists only in second passed structure), it's value - added item.
+
+=item C
+
+'C' means 'changed' (item exists in both structures but have no common parts). Value for this key is always array. For
+diff between hashes it contains two values - "old" and "new". In array's diffs third element appeared - index.
+
+=item D
+
+'D' means 'different' it is similar for 'C' status, but shows that underneath struct have unchanged parts. Simply - it
+is subdiff.
+
+=item R
+
+'R' similar for 'A', but for removed items.
+
+=item U
+
+'U' represent 'unchanged' items -- common for both structures.
+
+=back
 
 =head3 Available options
 
@@ -62,6 +92,7 @@ sub diff($$;@);
 sub diff($$;@) {
     my ($a, $b, %opts) = @_;
     my $d = {};
+
     if (ref $a ne ref $b) {
         $d->{'C'} = [ $a, $b ];
     } elsif ((ref $a eq 'ARRAY') and ($a ne $b)) {
@@ -104,16 +135,31 @@ sub diff($$;@) {
         }
     }
     $d->{'U'} = $a unless (keys %{$d} or $opts{'noU'}); # if passed srtucts are empty
+
     return $d;
 }
 
 =head2 dselect
 
-Returns list of items with desired status from diff
-Items with all states will be returned if 'states' opt not defined
-All items with specified states will be returned if 'from' opt not defined
-    $hau = dselect($diff, states => { 'A' => 1, 'U' => 1 }, 'from' => [ 'a', 'b', 'c' ]) # hashes
-    $adc = dselect($diff, states => { 'D' => 1, 'C' => 1 }, 'from' => [ 0, 1, 3, 5, 9 ]) # arrays
+Returns items with desired status from diff
+    @items = dselect($diff, states => { 'A' => 1, 'U' => 1 }, 'from' => [ 'a', 'b', 'c' ]) # hashes
+    @items = dselect($diff, states => { 'D' => 1, 'C' => 1 }, 'from' => [ 0, 1, 3, 5, 9 ]) # arrays
+
+=head3 Available options
+
+=over 4
+
+=item from
+
+Expects list of positions (indexes for arrays and keys for hashes). All items with specified states will be returned
+if opt not defined
+
+=item states
+
+Expects hash with desired states as keys with values in some true value. Items with all states will be returned if
+opt not defined
+
+=back
 
 =cut
 
