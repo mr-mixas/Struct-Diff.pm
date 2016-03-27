@@ -2,21 +2,14 @@
 
 use strict;
 use warnings FATAL => 'all';
-use Storable qw(dclone freeze);
-use Test::More tests => 13;
+use Storable qw(freeze);
+use Test::More tests => 12;
 
 use Struct::Diff qw(diff);
 
 $Storable::canonical = 1;
 my ($a, $b, $d, $frozen_a, $frozen_b);
 
-### primitives ###
-ok($d = diff(1, 2) and
-    keys %{$d} == 1 and exists $d->{'C'} and @{$d->{'C'}} == 2 and
-    $d->{'C'}->[0] == 1 and
-    $d->{'C'}->[1] == 2
-);
-use Data::Dumper;
 ### arrays ###
 ok($d = diff([ 0 ], [ 0, 1 ]) and
     keys %{$d} == 1 and exists $d->{'D'} and @{$d->{'D'}} == 2 and
