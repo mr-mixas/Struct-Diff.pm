@@ -10,6 +10,25 @@ BEGIN {
     our @EXPORT_OK = qw(diff dselect dsplit);
 }
 
+sub _validate_meta($) {
+    my $d = shift;
+    croak "Unsupported diff struct passed" if (ref $d ne 'HASH');
+    croak "Item can't have more than one state at a time" unless ((grep { exists $d->{$_} } qw(A C D R U)) == 1);
+    if (exists $d->{'C'}) {
+        croak "Value for 'C' state must be a list" unless (ref $d->{'C'} eq 'ARRAY');
+        if (@{$d->{'C'}} == 2) {
+            croak "Array's changed item must have third 'C' status (it's index)"
+                if (ref $d->{'C'}->[0] eq 'ARRAY' and ref $d->{'C'}->[1] eq 'ARRAY');
+        } elsif (@{$d->{'C'}} == 3) {
+            croak "Only array's changed element may have third 'C' status"
+                unless (ref $d->{'C'}->[0] eq 'ARRAY' and ref $d->{'C'}->[1] eq 'ARRAY');
+        } else {
+            croak "Value for 'C' state must have two or three list items";
+        }
+    }
+    return 1;
+}
+
 =head1 NAME
 
 Struct::Diff - Recursive diff tools for nested perl structures
@@ -165,7 +184,7 @@ opt not defined
 
 sub dselect(@) {
     my ($d, %opts) = @_;
-    croak "Unsupported diff struct passed" unless (ref $d eq 'HASH');
+    _validate_meta($d);
     my @out;
 
     while (my($k, $v) = each %{$d}) {
@@ -209,7 +228,7 @@ Divide diff to pseudo original structures.
 sub dsplit($);
 sub dsplit($) {
     my $d = shift;
-    croak "Wrong metadata format" unless (ref $d eq 'HASH');
+    _validate_meta($d);
     my $s = {};
 
     if (exists $d->{'D'}) {
