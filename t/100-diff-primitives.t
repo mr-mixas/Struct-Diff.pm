@@ -2,7 +2,7 @@
 
 use strict;
 use warnings FATAL => 'all';
-use Test::More tests => 22;
+use Test::More tests => 24;
 
 use Struct::Diff qw(diff);
 
@@ -114,6 +114,22 @@ ok($diff = diff('a','b') and
 );
 
 ### refs
+my ($a, $b) = (0, 0);
+
+ok($diff=diff(\$a, \$a) and
+    keys %{$diff} == 1 and
+    exists $diff->{'U'} and
+    $diff->{'U'} == \$a
+);
+
+ok($diff=diff(\$a, \$b) and
+    keys %{$diff} == 1 and
+    exists $diff->{'C'} and
+    @{$diff->{'C'}} == 2 and
+    $diff->{'C'}->[0] == \$a and
+    $diff->{'C'}->[1] == \$b
+);
+
 ok($diff = diff({},{}) and
     keys %{$diff} == 1 and
     exists $diff->{'U'} and
