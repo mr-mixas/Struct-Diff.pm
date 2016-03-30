@@ -13,7 +13,8 @@ BEGIN {
 sub _validate_meta($) {
     my $d = shift;
     croak "Unsupported diff struct passed" if (ref $d ne 'HASH');
-    croak "Item can't have more than one state at a time" unless ((grep { exists $d->{$_} } qw(A C D R U)) == 1);
+    croak "Item can't have more than one state at a time"
+        unless ((grep { exists $d->{$_} } qw(A C D R U)) == 1);
     if (exists $d->{'C'}) {
         croak "Value for 'C' state must be a list" unless (ref $d->{'C'} eq 'ARRAY');
         if (@{$d->{'C'}} == 2) {
@@ -25,6 +26,10 @@ sub _validate_meta($) {
         } else {
             croak "Value for 'C' state must have two or three list items";
         }
+    }
+    if (exists $d->{'D'}) {
+        croak "Value for 'D' status must be hash or array"
+            unless (ref $d->{'D'} eq 'HASH' or ref $d->{'D'} eq 'ARRAY');
     }
     return 1;
 }
