@@ -4,7 +4,7 @@ use strict;
 use warnings FATAL => 'all';
 use Data::Compare;
 use Storable qw(freeze);
-use Test::More tests => 6;
+use Test::More tests => 7;
 
 use Struct::Diff qw(diff patch);
 
@@ -14,6 +14,10 @@ my ($a, $b, $d);
 ### primitives ###
 ($a, $b) = (0, 0);
 $d = diff($a, $b);
+ok(patch(\$a, $d) and $a == $b);
+
+($a, $b) = (0, 0);
+$d = diff($a, $b, "noU" => 1);
 ok(patch(\$a, $d) and $a == $b);
 
 ($a, $b) = (0, 1);
