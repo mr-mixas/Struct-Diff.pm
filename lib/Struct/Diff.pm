@@ -7,7 +7,7 @@ use base qw(Exporter);
 use Carp;
 
 BEGIN {
-    our @EXPORT_OK = qw(diff dselect dsplit);
+    our @EXPORT_OK = qw(diff dselect dsplit patch);
 }
 
 sub _validate_meta($) {
@@ -307,6 +307,58 @@ sub dsplit($) {
     }
 
     return $s;
+}
+
+=head2 patch
+
+Apply diff to reference.
+    patch($ref, $diff);
+
+=cut
+
+sub patch($$);
+sub patch($$) {
+    my ($s, $d) = @_;
+    _validate_meta($d);
+
+    if (exists $d->{'C'}) {
+        unless (ref $d->{'C'}->[1]) {
+            ${$s} = $d->{'C'}->[1];
+        }
+    }
+
+    if (exists $d->{'D'}) {
+        if (ref $d->{'D'} eq 'ARRAY') {
+            for my $i (0..$#{$d->{'D'}}) {
+                next if (exists $d->{'D'}->[$i]->{'U'});
+                if (exists $d->{'D'}->[$i]->{'D'} or exists $d->{'D'}->[$i]->{'C'}) {
+                    patch(ref $s->[$i] ? $s->[$i] : \$s->[$i], $d->{'D'}->[$i]);
+                    next;
+                }
+                if (exists $d->{'D'}->[$i]->{'A'}) {
+                    push @{$s}, $d->{'D'}->[$i]->{'A'};
+                    next;
+                }
+                pop @{$s} if (exists $d->{'D'}->[$i]->{'R'});
+            }
+        } else {
+            for my $k (keys %{$d->{'D'}}) {
+                next if (exists $d->{'D'}->{$k}->{'U'});
+                if (exists $d->{'D'}->{$k}->{'D'} or exists $d->{'D'}->{$k}->{'C'}) {
+                    print STDERR "Heere\n";
+                    patch(ref $s->{$k} ? $s->{$k} : \$s->{$k}, $d->{'D'}->{$k});
+                    next;
+                }
+                if (exists $d->{'D'}->{$k}->{'A'}) {
+                    $s->{$k} = $d->{'D'}->{$k}->{'A'};
+                    next;
+                }
+                delete $s->{$k} if (exists $d->{'D'}->{$k}->{'R'});
+            }
+        }
+    }
+
+    return 1;
 }
 
 =head1 AUTHOR
