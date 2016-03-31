@@ -14,7 +14,7 @@ sub _validate_meta($) {
     my $d = shift;
     croak "Unsupported diff struct passed" if (ref $d ne 'HASH');
     croak "Item can't have more than one state at a time"
-        unless ((grep { exists $d->{$_} } qw(A C D R U)) == 1);
+        if (keys %{$d} and not (grep { exists $d->{$_} } qw(A C D R U)) == 1);
     if (exists $d->{'C'}) {
         croak "Value for 'C' state must be a list" unless (ref $d->{'C'} eq 'ARRAY');
         if (@{$d->{'C'}} == 2) {
@@ -345,7 +345,6 @@ sub patch($$) {
             for my $k (keys %{$d->{'D'}}) {
                 next if (exists $d->{'D'}->{$k}->{'U'});
                 if (exists $d->{'D'}->{$k}->{'D'} or exists $d->{'D'}->{$k}->{'C'}) {
-                    print STDERR "Heere\n";
                     patch(ref $s->{$k} ? $s->{$k} : \$s->{$k}, $d->{'D'}->{$k});
                     next;
                 }
