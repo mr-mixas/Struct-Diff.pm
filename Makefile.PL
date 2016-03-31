@@ -15,8 +15,9 @@ WriteMakefile(
         'ExtUtils::MakeMaker' => 0,
     },
     BUILD_REQUIRES => {
-        'Storable'   => 0,
-        'Test::More' => 0,
+        'Data::Compare'   => 0,
+        'Storable'        => 0,
+        'Test::More'      => 0,
     },
     PREREQ_PM => {
         #'Foo::Bar::Module' => 5.0401,
