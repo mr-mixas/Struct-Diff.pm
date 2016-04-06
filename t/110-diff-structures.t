@@ -3,7 +3,7 @@
 use strict;
 use warnings FATAL => 'all';
 use Storable qw(freeze);
-use Test::More tests => 12;
+use Test::More tests => 18;
 
 use Struct::Diff qw(diff);
 
@@ -11,6 +11,14 @@ $Storable::canonical = 1;
 my ($a, $b, $d, $frozen_a, $frozen_b);
 
 ### arrays ###
+ok($d = diff([], [ 1 ]) and
+    keys %{$d} == 1 and exists $d->{'A'} and @{$d->{'A'}} == 1 and $d->{'A'}->[0] == 1
+);
+
+ok($d = diff([ 1 ], []) and
+    keys %{$d} == 1 and exists $d->{'R'} and @{$d->{'R'}} == 1 and $d->{'R'}->[0] == 1
+);
+
 ok($d = diff([ 0 ], [ 0, 1 ]) and
     keys %{$d} == 1 and exists $d->{'D'} and @{$d->{'D'}} == 2 and
     keys %{$d->{'D'}->[0]} == 1 and exists $d->{'D'}->[0]->{'U'} and $d->{'D'}->[0]->{'U'} == 0 and
@@ -135,5 +143,44 @@ ok($d = diff($a, $b, 'noU' => 1) and
     keys %{$d->{'D'}->{'c'}} == 1 and exists $d->{'D'}->{'c'}->{'R'} and $d->{'D'}->{'c'}->{'R'} eq 'c1' and
     keys %{$d->{'D'}->{'d'}} == 1 and exists $d->{'D'}->{'d'}->{'A'} and $d->{'D'}->{'d'}->{'A'} eq 'd1'
 );
+
+ok($frozen_a eq freeze($a) and $frozen_b eq freeze($b)); # original structs must remain unchanged
+
+### mixed structures ###
+$a = { 'a' => [ { 'aa' => { 'aaa' => [ 7, 4 ]}}, 8 ]};
+$b = { 'a' => [ { 'aa' => { 'aaa' => [ 7, 3 ]}}, 8 ]};
+
+$frozen_a = freeze($a);
+$frozen_b = freeze($b);
+
+my ($DaD, $DaD0DaaD);
+
+ok($d = diff($a, $b) and
+    keys %{$d} == 1 and exists $d->{'D'} and keys %{$d->{'D'}} == 1 and
+        exists $d->{'D'}->{'a'} and keys %{$d->{'D'}->{'a'}} == 1 and exists $d->{'D'}->{'a'}->{'D'} and
+        $DaD = $d->{'D'}->{'a'}->{'D'} and @{$DaD} == 2 and
+            keys %{$DaD->[0]} == 1 and
+                exists $DaD->[0]->{'D'} and keys %{$DaD->[0]->{'D'}} == 1 and
+                    exists $DaD->[0]->{'D'}->{'aa'} and keys %{$DaD->[0]->{'D'}->{'aa'}} == 1 and
+                        exists $DaD->[0]->{'D'}->{'aa'}->{'D'} and
+                        $DaD0DaaD = $DaD->[0]->{'D'}->{'aa'}->{'D'} and keys %{$DaD0DaaD} == 1 and
+                            exists $DaD0DaaD->{'aaa'} and keys %{$DaD0DaaD->{'aaa'}} == 1 and
+                                exists $DaD0DaaD->{'aaa'}->{'D'} and @{$DaD0DaaD->{'aaa'}->{'D'}} == 2 and
+                                    keys %{$DaD0DaaD->{'aaa'}->{'D'}->[0]} == 1 and
+                                        exists $DaD0DaaD->{'aaa'}->{'D'}->[0]->{'U'} and
+                                            $DaD0DaaD->{'aaa'}->{'D'}->[0]->{'U'} == 7 and
+                                    keys %{$DaD0DaaD->{'aaa'}->{'D'}->[1]} == 1 and
+                                        exists $DaD0DaaD->{'aaa'}->{'D'}->[1]->{'C'} and
+                                            @{$DaD0DaaD->{'aaa'}->{'D'}->[1]->{'C'}} == 2 and
+                                                $DaD0DaaD->{'aaa'}->{'D'}->[1]->{'C'}->[0] == 4 and
+                                                $DaD0DaaD->{'aaa'}->{'D'}->[1]->{'C'}->[1] == 3 and
+            keys %{$DaD->[1]} == 1 and
+                exists $DaD->[1]->{'U'} and
+                    $DaD->[1]->{'U'} == 8
+);
+
+ok($d = diff($a, $a, 'noU' => 1) and keys %{$d} == 0);
+
+ok($d = diff($a, $a) and freeze($d->{'U'}) eq $frozen_a);
 
 ok($frozen_a eq freeze($a) and $frozen_b eq freeze($b)); # original structs must remain unchanged
