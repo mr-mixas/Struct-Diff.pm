@@ -120,32 +120,52 @@ sub diff($$;@) {
     if (ref $a ne ref $b) {
         $d->{'C'} = [ $a, $b ];
     } elsif ((ref $a eq 'ARRAY') and ($a ne $b)) {
+        my $hidden;
         for (my $i = 0; $i < @{$a} and $i < @{$b}; $i++) {
-            my $ai = $a->[$i]; my $bi = $b->[$i];
-            my $tmp = diff($ai, $bi, %opts);
-            next unless (keys %{$tmp} or not $opts{'noU'});
-            if (exists $tmp->{'D'} and @{$tmp->{'D'}} == grep { exists $_->{'U'}} @{$tmp->{'D'}}) {
-                push @{$d->{'D'}}, { 'U' => $ai };
+            my $tmp = diff($a->[$i], $b->[$i], %opts);
+            if (keys %{$tmp}) {
+                $tmp->{'I'} = $i if ($hidden or (exists $tmp->{'C'} and $opts{'noU'}));
+                push @{$d->{'D'}}, $tmp;
             } else {
-                push @{$d->{'D'}}, $opts{'noU'} ? { %{$tmp}, 'I' => $i } : $tmp;
+                $hidden = 1;
             }
         }
         map { push @{$d->{'D'}}, { 'R' => $_ } } @{$a}[@{$b}..$#{$a}] if (@{$a} > @{$b});
         map { push @{$d->{'D'}}, { 'A' => $_ } } @{$b}[@{$a}..$#{$b}] if (@{$a} < @{$b});
+
+        my $s = { map { $_, 1 } map { keys %{$_} } exists $d->{'D'} ? @{$d->{'D'}} : { 'U' => 1 } };
+        delete $s->{'I'}; # ignored -- not a status
+
+        if (keys %{$s} < 2 and not $hidden) { # all have one state - drop D and return native state
+            my ($n) = (keys(%{$s}))[0];
+            map { $_ = $_->{$n} } @{$d->{'D'}};
+            $d->{$n} = delete $d->{'D'};
+        }
+
     } elsif ((ref $a eq 'HASH') and ($a ne $b)) {
+        my $hidden;
         for my $key (keys { %{$a}, %{$b} }) { # go througth united uniq keys
             if (exists $a->{$key} and exists $b->{$key}) {
                 my $tmp = diff($a->{$key}, $b->{$key}, %opts);
-                next unless (keys %{$tmp} or not $opts{'noU'});
-                if (exists $tmp->{'D'} and keys %{$tmp->{'D'}} == grep { exists $_->{'U'} } values %{$tmp->{'D'}}) {
-                    $d->{'D'}->{$key} = { 'U' => $a->{$key} };
-                } else {
-                    $d->{'D'}->{$key} = $tmp;
+                $hidden = 1 unless (keys %{$tmp});
+                while (my ($s, $v) = each(%{$tmp})) {
+                    if ($s eq 'D') {
+                        $d->{'D'}->{$key} = $tmp;
+                    } else {
+                        $d->{$s}->{$key} = $v;
+                    }
                 }
             } elsif (exists $a->{$key}) {
-                $d->{'D'}->{$key} = { 'R' => $a->{$key} };
+                $d->{'R'}->{$key} = $a->{$key};
             } else {
-                $d->{'D'}->{$key} = { 'A' => $b->{$key} };
+                $d->{'A'}->{$key} = $b->{$key};
+            }
+        }
+        if (keys %{$d} > 1 or $hidden) {
+            for my $s (keys %{$d}) {
+                next if ($s eq 'D');
+                map { $d->{'D'}->{$_}->{$s} = delete $d->{$s}->{$_} } keys %{$d->{$s}};
+                delete $d->{$s} unless ($s eq 'D');
             }
         }
     } else { # treat others as scalars
@@ -159,7 +179,6 @@ sub diff($$;@) {
         }
     }
     $d->{'U'} = $a unless (keys %{$d} or $opts{'noU'}); # if passed srtucts are empty
-
     return $d;
 }
 
