@@ -13,20 +13,6 @@ BEGIN {
 sub _validate_meta($) {
     my $d = shift;
     croak "Unsupported diff struct passed" if (ref $d ne 'HASH');
-    croak "Item can't have more than one state at a time"
-        if (keys %{$d} and not (grep { exists $d->{$_} } qw(A C D R U)) == 1);
-    if (exists $d->{'C'}) {
-        croak "Value for 'C' state must be a list" unless (ref $d->{'C'} eq 'ARRAY');
-        if (@{$d->{'C'}} == 2) {
-            croak "Array's changed item must have third 'C' status (it's index)"
-                if (ref $d->{'C'}->[0] eq 'ARRAY' and ref $d->{'C'}->[1] eq 'ARRAY');
-        } elsif (@{$d->{'C'}} == 3) {
-            croak "Only array's changed element may have third 'C' status"
-                unless (ref $d->{'C'}->[0] eq 'ARRAY' and ref $d->{'C'}->[1] eq 'ARRAY');
-        } else {
-            croak "Value for 'C' state must have two or three list items";
-        }
-    }
     if (exists $d->{'D'}) {
         croak "Value for 'D' status must be hash or array"
             unless (ref $d->{'D'} eq 'HASH' or ref $d->{'D'} eq 'ARRAY');
@@ -288,27 +274,6 @@ sub dsplit($) {
         }
     }
 
-    if (exists $d->{'C'}) {
-        if (ref $d->{'C'} eq 'ARRAY' and ref $d->{'C'}->[0] eq 'ARRAY' and ref $d->{'C'}->[1] eq 'ARRAY') {
-            for my $i (@{$d->{'C'}}) {
-                croak "Incorrect format for changed array element" unless (@{$i} == 3);
-                push @{$s->{'a'}}, $i->[0], splice(@{$s->{'a'}}, $i->[2]);
-                push @{$s->{'b'}}, $i->[1], splice(@{$s->{'b'}}, $i->[2]);
-            }
-        } elsif (ref $d->{'C'} eq 'HASH') {
-            for my $key (keys %{$d->{'C'}}) {
-                croak "Incorrect format for changed hash element" if (@{$d->{'C'}->{$key}} != 2);
-                $s->{'a'}->{$key} = $d->{'C'}->{$key}->[0];
-                $s->{'b'}->{$key} = $d->{'C'}->{$key}->[1];
-            }
-        } else {
-            croak "Incorrect amount of changed elements" if (@{$d->{'C'}} != 2);
-            croak "Duplicates with different status" if (defined $s->{'a'} or defined $s->{'b'});
-            $s->{'a'} = $d->{'C'}->[0];
-            $s->{'b'} = $d->{'C'}->[1];
-        }
-    }
-
     if (exists $d->{'A'}) {
         if (ref $d->{'A'} eq 'ARRAY') {
             push @{$s->{'b'}}, @{$d->{'A'}};
@@ -316,6 +281,26 @@ sub dsplit($) {
             $s->{'b'} = defined $s->{'b'} ? { %{$s->{'b'}}, %{$d->{'A'}} } : { %{$d->{'A'}} };
         } else {
             $s->{'b'} = $d->{'A'};
+        }
+    }
+
+    if (exists $d->{'N'}) {
+        if (ref $d->{'N'} eq 'ARRAY') {
+            push @{$s->{'b'}}, $d->{'N'}, splice(@{$s->{'b'}}, $d->{'I'});
+        } elsif (ref $d->{'A'} eq 'HASH') {
+            $s->{'b'} = defined $s->{'b'} ? { %{$s->{'b'}}, %{$d->{'N'}} } : { %{$d->{'N'}} };
+        } else {
+            $s->{'b'} = $d->{'N'};
+        }
+    }
+
+    if (exists $d->{'O'}) {
+        if (ref $d->{'O'} eq 'ARRAY') {
+            push @{$s->{'b'}}, $d->{'O'}, splice(@{$s->{'b'}}, $d->{'I'});
+        } elsif (ref $d->{'O'} eq 'HASH') {
+            $s->{'a'} = defined $s->{'a'} ? { %{$s->{'a'}}, %{$d->{'O'}} } : { %{$d->{'O'}} };
+        } else {
+            $s->{'a'} = $d->{'O'};
         }
     }
 
