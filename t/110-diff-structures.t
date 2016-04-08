@@ -62,39 +62,32 @@ ok($d = diff($a, $b) and
     keys %{$d->{'D'}->[2]} == 1 and exists $d->{'D'}->[2]->{'D'} and @{$d->{'D'}->[2]->{'D'}} == 2 and
         keys %{$d->{'D'}->[2]->{'D'}->[0]} == 1 and exists $d->{'D'}->[2]->{'D'}->[0]->{'U'} and
             $d->{'D'}->[2]->{'D'}->[0]->{'U'} == 20 and
-        keys %{$d->{'D'}->[2]->{'D'}->[1]} == 1 and exists $d->{'D'}->[2]->{'D'}->[1]->{'C'} and
-            @{$d->{'D'}->[2]->{'D'}->[1]->{'C'}} == 2 and
-            $d->{'D'}->[2]->{'D'}->[1]->{'C'}->[0] eq 'a' and
-            $d->{'D'}->[2]->{'D'}->[1]->{'C'}->[1] eq 'b' and
+        keys %{$d->{'D'}->[2]->{'D'}->[1]} == 2 and
+            exists $d->{'D'}->[2]->{'D'}->[1]->{'O'} and $d->{'D'}->[2]->{'D'}->[1]->{'O'} eq 'a' and
+            exists $d->{'D'}->[2]->{'D'}->[1]->{'N'} and $d->{'D'}->[2]->{'D'}->[1]->{'N'} eq 'b' and
     keys %{$d->{'D'}->[3]} == 1 and exists $d->{'D'}->[3]->{'U'} and @{$d->{'D'}->[3]->{'U'}} == 3 and
         $d->{'D'}->[3]->{'U'}->[0] == 0 and
         @{$d->{'D'}->[3]->{'U'}->[1]} == 2 and
             $d->{'D'}->[3]->{'U'}->[1]->[0] == 11 and
             $d->{'D'}->[3]->{'U'}->[1]->[1] == 12 and
         $d->{'D'}->[3]->{'U'}->[2] == 2 and
-    keys %{$d->{'D'}->[4]} == 1 and exists $d->{'D'}->[4]->{'C'} and @{$d->{'D'}->[4]->{'C'}} == 2 and
-        $d->{'D'}->[4]->{'C'}->[0] == 4 and
-        $d->{'D'}->[4]->{'C'}->[1] == 5
+     keys %{$d->{'D'}->[4]} == 2 and
+        exists $d->{'D'}->[4]->{'O'} and $d->{'D'}->[4]->{'O'} == 4 and
+        exists $d->{'D'}->[4]->{'N'} and $d->{'D'}->[4]->{'N'} == 5
 );
 
 ok($d = diff($a, $b, 'noU' => 1) and
     keys %{$d} == 1 and exists $d->{'D'} and @{$d->{'D'}} == 2 and
-    keys %{$d->{'D'}->[0]} == 2 and
-        exists $d->{'D'}->[0]->{'D'} and @{$d->{'D'}->[0]->{'D'}} == 1 and
-            keys %{$d->{'D'}->[0]->{'D'}->[0]} == 2 and
-                exists $d->{'D'}->[0]->{'D'}->[0]->{'C'} and @{$d->{'D'}->[0]->{'D'}->[0]->{'C'}} == 2 and
-                    $d->{'D'}->[0]->{'D'}->[0]->{'C'}->[0] eq 'a' and
-                    $d->{'D'}->[0]->{'D'}->[0]->{'C'}->[1] eq 'b' and
-                exists $d->{'D'}->[0]->{'D'}->[0]->{'I'} and
-                    $d->{'D'}->[0]->{'D'}->[0]->{'I'} == 1 and
-        exists $d->{'D'}->[0]->{'I'} and
-            $d->{'D'}->[0]->{'I'} == 2 and
-    keys %{$d->{'D'}->[1]} == 2 and
-        exists $d->{'D'}->[1]->{'C'} and @{$d->{'D'}->[1]->{'C'}} == 2 and
-            $d->{'D'}->[1]->{'C'}->[0] == 4 and
-            $d->{'D'}->[1]->{'C'}->[1] == 5 and
-        exists $d->{'D'}->[1]->{'C'} and
-            $d->{'D'}->[1]->{'I'} == 4
+        keys %{$d->{'D'}->[0]} == 2 and
+            exists $d->{'D'}->[0]->{'D'} and exists $d->{'D'}->[0]->{'I'} and $d->{'D'}->[0]->{'I'} == 2 and
+                @{$d->{'D'}->[0]->{'D'}} == 1 and
+                    exists $d->{'D'}->[0]->{'D'}->[0]->{'I'} and $d->{'D'}->[0]->{'D'}->[0]->{'I'} == 1  and
+                    exists $d->{'D'}->[0]->{'D'}->[0]->{'O'} and $d->{'D'}->[0]->{'D'}->[0]->{'O'} eq 'a' and
+                    exists $d->{'D'}->[0]->{'D'}->[0]->{'N'} and $d->{'D'}->[0]->{'D'}->[0]->{'N'} eq 'b' and
+        keys %{$d->{'D'}->[1]} == 3 and
+            exists $d->{'D'}->[1]->{'I'} and $d->{'D'}->[1]->{'I'} == 4 and
+            exists $d->{'D'}->[1]->{'O'} and $d->{'D'}->[1]->{'O'} == 4 and
+            exists $d->{'D'}->[1]->{'N'} and $d->{'D'}->[1]->{'N'} == 5
 );
 
 ok($frozen_a eq freeze($a) and $frozen_b eq freeze($b)); # original structs must remain unchanged
@@ -119,11 +112,9 @@ ok($d = diff($a, $b) and
     keys %{$d->{'D'}->{'a'}} == 1 and exists $d->{'D'}->{'a'}->{'U'} and $d->{'D'}->{'a'}->{'U'} eq 'a1' and
     keys %{$d->{'D'}->{'b'}} == 1 and exists $d->{'D'}->{'b'}->{'D'} and
         keys %{$d->{'D'}->{'b'}->{'D'}} == 2 and
-        exists $d->{'D'}->{'b'}->{'D'}->{'ba'} and keys %{$d->{'D'}->{'b'}->{'D'}->{'ba'}} == 1 and
-            exists $d->{'D'}->{'b'}->{'D'}->{'ba'}->{'C'} and
-            @{$d->{'D'}->{'b'}->{'D'}->{'ba'}->{'C'}} == 2 and
-            $d->{'D'}->{'b'}->{'D'}->{'ba'}->{'C'}->[0] eq 'ba1' and
-            $d->{'D'}->{'b'}->{'D'}->{'ba'}->{'C'}->[1] eq 'ba2' and
+        exists $d->{'D'}->{'b'}->{'D'}->{'ba'} and keys %{$d->{'D'}->{'b'}->{'D'}->{'ba'}} == 2 and
+            exists $d->{'D'}->{'b'}->{'D'}->{'ba'}->{'O'} and $d->{'D'}->{'b'}->{'D'}->{'ba'}->{'O'} eq 'ba1' and
+            exists $d->{'D'}->{'b'}->{'D'}->{'ba'}->{'N'} and $d->{'D'}->{'b'}->{'D'}->{'ba'}->{'N'} eq 'ba2' and
         exists $d->{'D'}->{'b'}->{'D'}->{'bb'} and keys %{$d->{'D'}->{'b'}->{'D'}->{'bb'}} == 1 and
             exists $d->{'D'}->{'b'}->{'D'}->{'bb'}->{'U'} and
             $d->{'D'}->{'b'}->{'D'}->{'bb'}->{'U'} eq 'bb1' and
@@ -135,11 +126,12 @@ ok($d = diff($a, $b, 'noU' => 1) and
     keys %{$d} == 1 and exists $d->{'D'} and keys %{$d->{'D'}} == 3 and
     keys %{$d->{'D'}->{'b'}} == 1 and exists $d->{'D'}->{'b'}->{'D'} and
         keys %{$d->{'D'}->{'b'}->{'D'}} == 1 and
-        exists $d->{'D'}->{'b'}->{'D'}->{'ba'} and keys %{$d->{'D'}->{'b'}->{'D'}->{'ba'}} == 1 and
-            exists $d->{'D'}->{'b'}->{'D'}->{'ba'}->{'C'} and
-            @{$d->{'D'}->{'b'}->{'D'}->{'ba'}->{'C'}} == 2 and
-            $d->{'D'}->{'b'}->{'D'}->{'ba'}->{'C'}->[0] eq 'ba1' and
-            $d->{'D'}->{'b'}->{'D'}->{'ba'}->{'C'}->[1] eq 'ba2' and
+            exists $d->{'D'}->{'b'}->{'D'}->{'ba'} and keys %{$d->{'D'}->{'b'}->{'D'}->{'ba'}} == 2 and
+                keys %{$d->{'D'}->{'b'}->{'D'}->{'ba'}} == 2 and
+                    exists $d->{'D'}->{'b'}->{'D'}->{'ba'}->{'O'} and
+                        $d->{'D'}->{'b'}->{'D'}->{'ba'}->{'O'} eq 'ba1' and
+                    exists $d->{'D'}->{'b'}->{'D'}->{'ba'}->{'N'} and
+                        $d->{'D'}->{'b'}->{'D'}->{'ba'}->{'N'} eq 'ba2' and
     keys %{$d->{'D'}->{'c'}} == 1 and exists $d->{'D'}->{'c'}->{'R'} and $d->{'D'}->{'c'}->{'R'} eq 'c1' and
     keys %{$d->{'D'}->{'d'}} == 1 and exists $d->{'D'}->{'d'}->{'A'} and $d->{'D'}->{'d'}->{'A'} eq 'd1'
 );
@@ -169,11 +161,11 @@ ok($d = diff($a, $b) and
                                     keys %{$DaD0DaaD->{'aaa'}->{'D'}->[0]} == 1 and
                                         exists $DaD0DaaD->{'aaa'}->{'D'}->[0]->{'U'} and
                                             $DaD0DaaD->{'aaa'}->{'D'}->[0]->{'U'} == 7 and
-                                    keys %{$DaD0DaaD->{'aaa'}->{'D'}->[1]} == 1 and
-                                        exists $DaD0DaaD->{'aaa'}->{'D'}->[1]->{'C'} and
-                                            @{$DaD0DaaD->{'aaa'}->{'D'}->[1]->{'C'}} == 2 and
-                                                $DaD0DaaD->{'aaa'}->{'D'}->[1]->{'C'}->[0] == 4 and
-                                                $DaD0DaaD->{'aaa'}->{'D'}->[1]->{'C'}->[1] == 3 and
+                                    keys %{$DaD0DaaD->{'aaa'}->{'D'}->[1]} == 2 and
+                                        exists $DaD0DaaD->{'aaa'}->{'D'}->[1]->{'O'} and
+                                            $DaD0DaaD->{'aaa'}->{'D'}->[1]->{'O'} == 4 and
+                                        exists $DaD0DaaD->{'aaa'}->{'D'}->[1]->{'N'} and
+                                            $DaD0DaaD->{'aaa'}->{'D'}->[1]->{'N'} == 3 and
             keys %{$DaD->[1]} == 1 and
                 exists $DaD->[1]->{'U'} and
                     $DaD->[1]->{'U'} == 8

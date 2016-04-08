@@ -76,15 +76,17 @@ Diff's keys shows status of each item from passed structures.
 
 'A' stands for 'added' (exists only in second passed structure), it's value - added item.
 
-=item C
-
-'C' means 'changed' (item exists in both structures but have no common parts). Value for this key is always array. For
-diff between hashes it contains two values - "old" and "new". In array's diffs third element appeared - index.
-
 =item D
 
-'D' means 'different' it is similar for 'C' status, but shows that underneath struct have unchanged parts. Simply - it
-is subdiff.
+'D' means 'different' status and shows that underneath struct have subdiff.
+
+=item N
+
+'N' is a new value for changed item
+
+=item O
+
+Alike 'N', 'O' is a changed item's old value
 
 =item R
 
@@ -118,7 +120,8 @@ sub diff($$;@) {
     my $d = {};
 
     if (ref $a ne ref $b) {
-        $d->{'C'} = [ $a, $b ];
+        $d->{'O'} = $a;
+        $d->{'N'} = $b;
     } elsif ((ref $a eq 'ARRAY') and ($a ne $b)) {
         my $hidden;
         for (my $i = 0; $i < @{$a} and $i < @{$b}; $i++) {
@@ -174,7 +177,8 @@ sub diff($$;@) {
                 $d->{'R'} = $a;
                 $d->{'A'} = $b;
             } else {
-                $d->{'C'} = [ $a, $b ];
+                $d->{'O'} = $a;
+                $d->{'N'} = $b;
             }
         }
     }
