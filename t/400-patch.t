@@ -3,9 +3,8 @@
 use strict;
 use warnings FATAL => 'all';
 use Data::Compare;
-use Data::Dumper;
 use Storable qw(freeze);
-use Test::More tests => 7;
+use Test::More tests => 8;
 
 use Struct::Diff qw(diff patch);
 
@@ -39,6 +38,10 @@ $a = [ 0, [[ 100 ]], [ 20, 'a' ], $sub_array, 4 ];
 $b = [ 0, [[ 100 ]], [ 20, 'b' ], $sub_array, 5 ];
 
 $d = diff($a, $b);
+ok(patch($a, $d) and Compare($a, $b));
+
+$a = [ 0, [[ 100 ]], [ 20, 'a' ], $sub_array, 4 ]; # restore $a
+$d = diff($a, $b, 'noU' => 1);
 ok(patch($a, $d) and Compare($a, $b));
 
 ### hashes ###

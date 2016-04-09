@@ -335,8 +335,9 @@ sub patch($$) {
         if (ref $d->{'D'} eq 'ARRAY') {
             for my $i (0..$#{$d->{'D'}}) {
                 next if (exists $d->{'D'}->[$i]->{'U'});
+                my $si = exists $d->{'D'}->[$i]->{'I'} ? $d->{'D'}->[$i]->{'I'} : $i; # use provided index
                 if (exists $d->{'D'}->[$i]->{'D'} or exists $d->{'D'}->[$i]->{'N'}) {
-                    patch(ref $s->[$i] ? $s->[$i] : \$s->[$i], $d->{'D'}->[$i]);
+                    patch(ref $s->[$si] ? $s->[$si] : \$s->[$si], $d->{'D'}->[$i]);
                     next;
                 }
                 if (exists $d->{'D'}->[$i]->{'A'}) {
