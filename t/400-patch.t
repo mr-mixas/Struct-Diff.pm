@@ -3,6 +3,7 @@
 use strict;
 use warnings FATAL => 'all';
 use Data::Compare;
+use Data::Dumper;
 use Storable qw(freeze);
 use Test::More tests => 7;
 

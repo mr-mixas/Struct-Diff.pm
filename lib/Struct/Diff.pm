@@ -329,17 +329,13 @@ sub patch($$) {
     my ($s, $d) = @_;
     _validate_meta($d);
 
-    if (exists $d->{'C'}) {
-        unless (ref $d->{'C'}->[1]) {
-            ${$s} = $d->{'C'}->[1];
-        }
-    }
+    ${$s} = $d->{'N'} if (exists $d->{'N'});
 
     if (exists $d->{'D'}) {
         if (ref $d->{'D'} eq 'ARRAY') {
             for my $i (0..$#{$d->{'D'}}) {
                 next if (exists $d->{'D'}->[$i]->{'U'});
-                if (exists $d->{'D'}->[$i]->{'D'} or exists $d->{'D'}->[$i]->{'C'}) {
+                if (exists $d->{'D'}->[$i]->{'D'} or exists $d->{'D'}->[$i]->{'N'}) {
                     patch(ref $s->[$i] ? $s->[$i] : \$s->[$i], $d->{'D'}->[$i]);
                     next;
                 }
@@ -352,7 +348,7 @@ sub patch($$) {
         } else {
             for my $k (keys %{$d->{'D'}}) {
                 next if (exists $d->{'D'}->{$k}->{'U'});
-                if (exists $d->{'D'}->{$k}->{'D'} or exists $d->{'D'}->{$k}->{'C'}) {
+                if (exists $d->{'D'}->{$k}->{'D'} or exists $d->{'D'}->{$k}->{'N'}) {
                     patch(ref $s->{$k} ? $s->{$k} : \$s->{$k}, $d->{'D'}->{$k});
                     next;
                 }
