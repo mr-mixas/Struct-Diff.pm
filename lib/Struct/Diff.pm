@@ -176,7 +176,7 @@ sub diff($$;@) {
 
 Returns items with desired status from diff
     @items = dselect($diff, states => { 'A' => 1, 'U' => 1 }, 'from' => [ 'a', 'b', 'c' ]) # hashes
-    @items = dselect($diff, states => { 'D' => 1, 'C' => 1 }, 'from' => [ 0, 1, 3, 5, 9 ]) # arrays
+    @items = dselect($diff, states => { 'D' => 1, 'N' => 1 }, 'from' => [ 0, 1, 3, 5, 9 ]) # arrays
 
 =head3 Available options
 
@@ -184,8 +184,8 @@ Returns items with desired status from diff
 
 =item from
 
-Expects list of positions (indexes for arrays and keys for hashes). All items with specified states will be returned
-if opt not defined
+Select from subdiff ('D' state). Expects list of positions (indexes for arrays and keys for hashes). All items with
+specified states will be returned if opt exists, but not defined or is an empty list.
 
 =item states
 
@@ -201,34 +201,31 @@ sub dselect(@) {
     _validate_meta($d);
     my @out;
 
-    while (my($k, $v) = each %{$d}) {
-        if ($k eq 'D') {
-            if (ref $v eq 'ARRAY') {
-                for my $i ($opts{'from'} ? @{$opts{'from'}} : 0..$#{$v}) {
-                    croak "Requested index $i not in diff's array range" unless ($i >= 0 and $i < @{$v});
-                    for (keys %{$v->[$i]}) {
-                        next if ($opts{'states'} and not $opts{'states'}{$_});
-                        push @out, $v->[$i];
-                        last;
-                    }
-                }
-            } elsif (ref $v eq 'HASH') {
-                for my $i ($opts{'from'} ? @{$opts{'from'}} : keys %{$v}) {
-                    next unless (exists $v->{$i});
-                    for (keys %{$v->{$i}}) {
-                        next if ($opts{'states'} and not $opts{'states'}{$_});
-                        push @out, { $i => $v->{$i} };
-                        last;
-                    }
-                }
+    if (exists $opts{'from'}) {
+        croak "'from' defined, but no 'D' state found" unless (exists $d->{'D'});
+        if (ref $d->{'D'} eq 'ARRAY') {
+            for my $i (($opts{'from'} and @{$opts{'from'}}) ? @{$opts{'from'}} : 0..$#{$d->{'D'}}) {
+                croak "Requested index $i not in diff's array range" unless ($i >= 0 and $i < @{$d->{'D'}});
+                push @out, {
+                    map { $_ => $d->{'D'}->[$i]->{$_} }
+                    grep { not $opts{'states'} or exists $opts{'states'}->{$_} }
+                    keys %{$d->{'D'}->[$i]}
+                };
             }
-        } else {
-            next if ($opts{'states'} and not $opts{'states'}{$k});
-            push @out, { $k => $v };
+        } else { # HASH
+            for my $k (($opts{'from'} and @{$opts{'from'}}) ? @{$opts{'from'}} : keys %{$d->{'D'}}) {
+                push @out, {
+                    map { $k => { $_ => $d->{'D'}->{$k}->{$_} } }
+                    grep { not $opts{'states'} or exists $opts{'states'}->{$_} }
+                    keys %{$d->{'D'}->{$k}}
+                };
+            }
         }
+    } else {
+        @out = { map { $_ => $d->{$_} } grep { not $opts{'states'} or exists $opts{'states'}->{$_} } keys %{$d} };
     }
 
-    return @out;
+    return grep { keys %{$_} } @out;
 }
 
 =head2 dsplit

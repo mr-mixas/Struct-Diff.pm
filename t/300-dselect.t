@@ -3,7 +3,7 @@
 use strict;
 use warnings FATAL => 'all';
 use Storable qw(freeze);
-use Test::More tests => 20;
+use Test::More tests => 21;
 
 use Struct::Diff qw(diff dselect);
 
@@ -16,7 +16,7 @@ $d = diff(0, 0);
 @se = dselect($d);
 ok(@se == 1 and keys %{$se[0]} == 1 and exists $se[0]->{'U'} and $se[0]->{'U'} == 0);
 
-@se = dselect($d, 'states' => { 'C' => 1 });
+@se = dselect($d, 'states' => { 'N' => 1 });
 ok(@se == 0);
 
 @se = dselect($d, 'states' => {}); # empty states list - empty result
@@ -25,26 +25,28 @@ ok(@se == 0);
 $d = diff(0, 1);
 @se = dselect($d);
 ok(
-    @se == 1 and keys %{$se[0]} == 1 and exists $se[0]->{'C'} and
-    @{$se[0]->{'C'}} == 2 and
-        $se[0]->{'C'}->[0] == 0 and
-        $se[0]->{'C'}->[1] == 1
+    @se == 1 and keys %{$se[0]} == 2 and
+        exists $se[0]->{'O'} and $se[0]->{'O'} == 0 and
+        exists $se[0]->{'N'} and $se[0]->{'N'} == 1
 );
 
 ### arrays ###
 $d = diff([ 0 ], [ 0, 1 ]);
 @se = dselect($d);
+ok(freeze($d) eq freeze($se[0])); # D returned
+
+@se = dselect($d, 'from' => undef); # empty list means from all
 ok(
     @se == 2 and
         keys %{$se[0]} == 1 and exists $se[0]->{'U'} and $se[0]->{'U'} == 0 and
         keys %{$se[1]} == 1 and exists $se[1]->{'A'} and $se[1]->{'A'} == 1
 );
 
-@se = dselect($d, 'states' => { 'A' => 1 });
+@se = dselect($d, 'from' => undef, 'states' => { 'A' => 1 });
 ok(@se == 1 and keys %{$se[0]} == 1 and exists $se[0]->{'A'} and $se[0]->{'A'} == 1);
 
 $d = diff([ 0, 1 ], [ 0 ]);
-@se = dselect($d);
+@se = dselect($d, 'from' => undef);
 ok(
     @se == 2 and
         keys %{$se[0]} == 1 and exists $se[0]->{'U'} and $se[0]->{'U'} == 0 and
@@ -57,44 +59,38 @@ $b = [ 0, [[ 100 ]], [ 20, 'b' ], $sub_array, 5 ];
 
 $d = diff($a, $b);
 $frozen_d = freeze($d);
-@se = dselect($d);
+@se = dselect($d, 'from' => undef);
 ok(freeze($d->{'D'}) eq freeze(\@se)); # select here -- mere extraction from 'D'
 
 @se = dselect($d, 'states' => {});
 ok(@se == 0);
 
-@se = dselect($d, 'from' => []);
-ok(@se == 0);
-
+@se = dselect($d, 'from' => []); # emply list in 'from' means all
+ok(freeze($d->{'D'}) eq freeze(\@se));
 
 @se = dselect($d, 'from' => [ 0, 4 ]);
 ok(
     @se == 2 and
     keys %{$se[0]} == 1 and exists $se[0]->{'U'} and
         $se[0]->{'U'} == 0 and
-    keys %{$se[1]} == 1 and exists $se[1]->{'C'} and
-        @{$se[1]->{'C'}} == 2 and
-            $se[1]->{'C'}->[0] == 4 and
-            $se[1]->{'C'}->[1] == 5
+    keys %{$se[1]} == 2 and
+        exists $se[1]->{'O'} and $se[1]->{'O'} == 4 and
+        exists $se[1]->{'N'} and $se[1]->{'N'} == 5
 );
 
-@se = dselect($d, 'states' => { 'C' => 1, 'U' => 1 }, 'from' => [ 0, 4 ]);
+@se = dselect($d, 'states' => { 'N' => 1, 'U' => 1 }, 'from' => [ 0, 4 ]);
 ok(
     @se == 2 and
     keys %{$se[0]} == 1 and exists $se[0]->{'U'} and
         $se[0]->{'U'} == 0 and
-    keys %{$se[1]} == 1 and exists $se[1]->{'C'} and
-        @{$se[1]->{'C'}} == 2 and
-            $se[1]->{'C'}->[0] == 4 and
-            $se[1]->{'C'}->[1] == 5
+    keys %{$se[1]} == 1 and exists $se[1]->{'N'} and
+        $se[1]->{'N'} == 5
 );
 
-@se = dselect($d, 'states' => { 'C' => 1 }, 'from' => [ 0, 4 ]);
+@se = dselect($d, 'states' => { 'O' => 1 }, 'from' => [ 0, 4 ]);
 ok(
-    @se == 1 and keys %{$se[0]} == 1 and exists $se[0]->{'C'} and
-    @{$se[0]->{'C'}} == 2 and
-        $se[0]->{'C'}->[0] == 4 and
-        $se[0]->{'C'}->[1] == 5
+    @se == 1 and keys %{$se[0]} == 1 and
+        exists $se[0]->{'O'} and $se[0]->{'O'} == 4
 );
 
 ok($frozen_d eq freeze($d)); # original struct must remain unchanged
@@ -111,7 +107,7 @@ $frozen_d = freeze($d);
 ok(@se == 0);
 
 @se = dselect($d, 'from' => []);
-ok(@se == 0);
+ok(freeze($d->{'D'}) eq freeze( { map { %{$_} } @se } ));
 
 @se = dselect($d, 'from' => [ 'd', 'c']);
 ok(
