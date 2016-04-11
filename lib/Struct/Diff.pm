@@ -66,13 +66,17 @@ Diff's keys shows status of each item from passed structures.
 
 'D' means 'different' status and shows that underneath struct have subdiff.
 
+=item I
+
+'I' shows index for changed items in arrays.
+
 =item N
 
-'N' is a new value for changed item
+'N' is a new value for changed item.
 
 =item O
 
-Alike 'N', 'O' is a changed item's old value
+Alike 'N', 'O' is a changed item's old value.
 
 =item R
 
@@ -184,7 +188,7 @@ Returns items with desired status from diff
 
 =item from
 
-Select from subdiff ('D' state). Expects list of positions (indexes for arrays and keys for hashes). All items with
+Select from diff's 'D' state. Expects list of positions (indexes for arrays and keys for hashes). All items with
 specified states will be returned if opt exists, but not defined or is an empty list.
 
 =item states
@@ -231,8 +235,8 @@ sub dselect(@) {
 =head2 dsplit
 
 Divide diff to pseudo original structures.
-    $struct = dsplit($diff);
-    print Dumper $struct->{'a'}, $struct->{'b'};
+    $structs = dsplit($diff);
+    print Dumper $structs->{'a'}, $structs->{'b'};
 
 =cut
 
@@ -316,7 +320,7 @@ sub dsplit($) {
 
 =head2 patch
 
-Apply diff to reference.
+Apply diff.
     patch($ref, $diff);
 
 =cut
@@ -404,7 +408,8 @@ L<http://search.cpan.org/dist/Struct-Diff/>
 
 L<Data::Diff>
 
-L<Array::Diff>, L<Array::Compare>, L<Algorithm::Diff>, L<Hash::Diff>, L<Test::Struct>, L<Struct::Compare>
+L<Array::Diff>, L<Array::Compare>, L<Algorithm::Diff>, L<Data::Compare>, L<Hash::Diff>, L<Test::Struct>,
+L<Struct::Compare>
 
 =head1 LICENSE AND COPYRIGHT
 
