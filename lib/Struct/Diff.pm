@@ -96,10 +96,6 @@ Alike 'N', 'O' is a changed item's old value.
 
 Hide unchanged parts.
 
-=item separate-changed
-
-Split changed items in arrays to "added" and "removed"
-
 =back
 
 =cut
@@ -163,13 +159,8 @@ sub diff($$;@) {
         }
     } else { # treat others as scalars
         unless ((not defined $a and not defined $b) or ((defined $a and defined $b) and ($a eq $b))) {
-            if ($opts{'separate-changed'}) {
-                $d->{'R'} = $a;
-                $d->{'A'} = $b;
-            } else {
-                $d->{'O'} = $a;
-                $d->{'N'} = $b;
-            }
+            $d->{'O'} = $a;
+            $d->{'N'} = $b;
         }
     }
     $d->{'U'} = $a unless (keys %{$d} or $opts{'noU'}); # if passed srtucts are empty

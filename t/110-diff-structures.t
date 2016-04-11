@@ -3,7 +3,7 @@
 use strict;
 use warnings FATAL => 'all';
 use Storable qw(freeze);
-use Test::More tests => 18;
+use Test::More tests => 16;
 
 use Struct::Diff qw(diff);
 
@@ -39,12 +39,6 @@ ok($d = diff([ 0 ], [ 0, 1 ], 'noU' => 1) and
 ok($d = diff([ 0, 1 ], [ 0 ], 'noU' => 1) and
     keys %{$d} == 1 and exists $d->{'D'} and @{$d->{'D'}} == 1 and
     keys %{$d->{'D'}->[0]} == 1 and exists $d->{'D'}->[0]->{'R'} and $d->{'D'}->[0]->{'R'} == 1
-);
-
-ok($d = diff([ 0 ], [ 1 ], 'separate-changed' => 1) and
-    keys %{$d} == 1 and exists $d->{'D'} and @{$d->{'D'}} == 1 and keys %{$d->{'D'}->[0]} == 2 and
-        exists $d->{'D'}->[0]->{'R'} and $d->{'D'}->[0]->{'R'} == 0 and
-        exists $d->{'D'}->[0]->{'A'} and $d->{'D'}->[0]->{'A'} == 1
 );
 
 my $sub_array = [ 0, [ 11, 12 ], 2 ]; # must be considered as equal by ref (wo descending into it)
@@ -93,13 +87,6 @@ ok($d = diff($a, $b, 'noU' => 1) and
 ok($frozen_a eq freeze($a) and $frozen_b eq freeze($b)); # original structs must remain unchanged
 
 ### hashes ###
-
-ok($d = diff({ 'a' => 0 }, { 'a' => 1 }, 'separate-changed' => 1) and
-    keys %{$d} == 1 and exists $d->{'D'} and keys %{$d->{'D'}} == 1 and exists $d->{'D'}->{'a'} and
-        keys %{$d->{'D'}->{'a'}} == 2 and
-            exists $d->{'D'}->{'a'}->{'R'} and $d->{'D'}->{'a'}->{'R'} == 0 and
-            exists $d->{'D'}->{'a'}->{'A'} and $d->{'D'}->{'a'}->{'A'} == 1
-);
 
 $a = { 'a' => 'a1', 'b' => { 'ba' => 'ba1', 'bb' => 'bb1' }, 'c' => 'c1' };
 $b = { 'a' => 'a1', 'b' => { 'ba' => 'ba2', 'bb' => 'bb1' }, 'd' => 'd1' };
