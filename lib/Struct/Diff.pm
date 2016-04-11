@@ -113,7 +113,7 @@ sub diff($$;@) {
         for (my $i = 0; $i < @{$a} and $i < @{$b}; $i++) {
             my $tmp = diff($a->[$i], $b->[$i], %opts);
             if (keys %{$tmp}) {
-                $tmp->{'I'} = $i if ($hidden or (exists $tmp->{'C'} and $opts{'noU'}));
+                $tmp->{'I'} = $i if ($hidden);
                 push @{$d->{'D'}}, $tmp;
             } else {
                 $hidden = 1;
