@@ -61,19 +61,19 @@ Diff's keys shows status of each item from passed structures.
 
 =item A
 
-'A' stands for 'added' (exists only in second passed structure), it's value - added item.
+stands for 'added' (exists only in second structure), it's value - added item.
 
 =item D
 
-'D' means 'different' status and shows that underneath struct have subdiff.
+means 'different' and contains subdiff.
 
 =item I
 
-'I' shows index for changed items in arrays.
+shows index for changed items (in arrays only).
 
 =item N
 
-'N' is a new value for changed item.
+is a new value for changed item.
 
 =item O
 
@@ -81,11 +81,11 @@ Alike 'N', 'O' is a changed item's old value.
 
 =item R
 
-'R' similar for 'A', but for removed items.
+similar for 'A', but for removed items.
 
 =item U
 
-'U' represent 'unchanged' items -- common for both structures.
+represent 'unchanged' items - common for both structures.
 
 =back
 
@@ -95,7 +95,7 @@ Alike 'N', 'O' is a changed item's old value.
 
 =item noX
 
-Where X is a item status (A, N, O, R, U) -- omit such statuses in diff
+Where X is a status (A, N, O, R, U) - such statuses will be omitted
 
 =back
 
