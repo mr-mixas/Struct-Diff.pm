@@ -51,6 +51,7 @@ Nothing exports by default
 Returns HASH reference to diff between two passed structures. Each struct layer anticipated by metadata. Be aware when
 changing diff: some of it's substructures are links to original structures.
     $diff = diff($ref1, $ref2, %opts);
+    $patch = diff($a, $b, noU => 1, noO => 1);
 
 =head3 Diff's states
 
@@ -92,9 +93,9 @@ Alike 'N', 'O' is a changed item's old value.
 
 =over 4
 
-=item noU
+=item noX
 
-Hide unchanged parts.
+Where X is a item status (A, N, O, R, U) -- omit such statuses in diff
 
 =back
 
@@ -104,12 +105,20 @@ sub diff($$;@);
 sub diff($$;@) {
     my ($a, $b, %opts) = @_;
     my $d = {};
+    my $hidden;
 
     if (ref $a ne ref $b) {
-        $d->{'O'} = $a;
-        $d->{'N'} = $b;
+        if ($opts{'noO'}) {
+            $hidden = 1;
+        } else {
+            $d->{'O'} = $a;
+        }
+        if ($opts{'noN'}) {
+            $hidden = 1;
+        } else {
+            $d->{'N'} = $b;
+        }
     } elsif ((ref $a eq 'ARRAY') and ($a ne $b)) {
-        my $hidden;
         for (my $i = 0; $i < @{$a} and $i < @{$b}; $i++) {
             my $tmp = diff($a->[$i], $b->[$i], %opts);
             if (keys %{$tmp}) {
@@ -119,8 +128,20 @@ sub diff($$;@) {
                 $hidden = 1;
             }
         }
-        map { push @{$d->{'D'}}, { 'R' => $_ } } @{$a}[@{$b}..$#{$a}] if (@{$a} > @{$b});
-        map { push @{$d->{'D'}}, { 'A' => $_ } } @{$b}[@{$a}..$#{$b}] if (@{$a} < @{$b});
+        if (@{$a} > @{$b}) {
+            if ($opts{'noR'}) {
+                $hidden = 1;
+            } else {
+                map { push @{$d->{'D'}}, { 'R' => $_ } } @{$a}[@{$b}..$#{$a}];
+            }
+        }
+        if (@{$a} < @{$b}) {
+            if ($opts{'noA'}) {
+                $hidden = 1;
+            } else {
+                map { push @{$d->{'D'}}, { 'A' => $_ } } @{$b}[@{$a}..$#{$b}];
+            }
+        }
 
         my $s = { map { $_, 1 } map { keys %{$_} } exists $d->{'D'} ? @{$d->{'D'}} : { 'U' => 1 } };
         delete $s->{'I'}; # ignored -- not a status
@@ -130,9 +151,7 @@ sub diff($$;@) {
             map { $_ = $_->{$n} } @{$d->{'D'}};
             $d->{$n} = delete $d->{'D'};
         }
-
     } elsif ((ref $a eq 'HASH') and ($a ne $b)) {
-        my $hidden;
         for my $key (keys { %{$a}, %{$b} }) { # go througth united uniq keys
             if (exists $a->{$key} and exists $b->{$key}) {
                 my $tmp = diff($a->{$key}, $b->{$key}, %opts);
@@ -145,9 +164,17 @@ sub diff($$;@) {
                     }
                 }
             } elsif (exists $a->{$key}) {
-                $d->{'R'}->{$key} = $a->{$key};
+                if ($opts{'noR'}) {
+                    $hidden = 1;
+                } else {
+                    $d->{'R'}->{$key} = $a->{$key};
+                }
             } else {
-                $d->{'A'}->{$key} = $b->{$key};
+                if ($opts{'noA'}) {
+                    $hidden = 1;
+                } else {
+                    $d->{'A'}->{$key} = $b->{$key};
+                }
             }
         }
         if (keys %{$d} > 1 or $hidden) {
@@ -159,11 +186,12 @@ sub diff($$;@) {
         }
     } else { # treat others as scalars
         unless ((not defined $a and not defined $b) or ((defined $a and defined $b) and ($a eq $b))) {
-            $d->{'O'} = $a;
-            $d->{'N'} = $b;
+            $d->{'O'} = $a unless ($opts{'noO'});
+            $d->{'N'} = $b unless ($opts{'noN'});
         }
     }
-    $d->{'U'} = $a unless (keys %{$d} or $opts{'noU'}); # if passed srtucts are empty
+    $d->{'U'} = $a unless ($hidden or $opts{'noU'} or keys %{$d});
+
     return $d;
 }
 

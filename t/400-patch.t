@@ -4,7 +4,7 @@ use strict;
 use warnings FATAL => 'all';
 use Data::Compare;
 use Storable qw(freeze);
-use Test::More tests => 8;
+use Test::More tests => 10;
 
 use Struct::Diff qw(diff patch);
 
@@ -50,3 +50,16 @@ $b = { 'a' => 'a1', 'b' => { 'ba' => 'ba2', 'bb' => 'bb1' }, 'd' => 'd1' };
 
 $d = diff($a, $b);
 ok(patch($a, $d) and Compare($a, $b));
+
+### mixed structures ###
+$a = { 'a' => [ { 'aa' => { 'aaa' => [ 7, 4 ]}}, 8 ]};
+$b = { 'a' => [ { 'aa' => { 'aaa' => [ 7, 3 ]}}, 8 ]};
+
+$d = diff($a, $b);
+ok(patch($a, $d) and Compare($a, $b));
+
+$a = { 'a' => [ { 'aa' => { 'aaa' => [ 7, 4 ]}}, 8 ]}; # restore a
+
+$d = diff($a, $b, 'noO' => 1, 'noU' => 1);
+ok(patch($a, $d) and Compare($a, $b));
+

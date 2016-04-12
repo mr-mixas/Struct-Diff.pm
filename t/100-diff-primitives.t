@@ -2,7 +2,7 @@
 
 use strict;
 use warnings FATAL => 'all';
-use Test::More tests => 24;
+use Test::More tests => 26;
 
 use Struct::Diff qw(diff);
 
@@ -25,7 +25,7 @@ ok($d = diff(undef, '') and
         exists $d->{'N'} and $d->{'N'} eq ''
 );
 
-# numbers
+### numbers
 ok($d = diff(0, 0) and
     keys %{$d} == 1 and exists $d->{'U'} and $d->{'U'} == 0
 );
@@ -92,6 +92,16 @@ ok($d=diff(\$a, \$a) and
     keys %{$d} == 1 and exists $d->{'U'} and $d->{'U'} == \$a
 );
 
+ok($d=diff($a, \$a) and
+    keys %{$d} == 2 and
+        exists $d->{'O'} and $d->{'O'} == $a and
+        exists $d->{'N'} and $d->{'N'} == \$a
+);
+
+ok($d=diff($a, \$a, 'noO' => 1, 'noN' => 1) and
+    keys %{$d} == 0
+);
+
 ok($d=diff(\$a, \$b) and
     keys %{$d} == 2 and
         exists $d->{'O'} and $d->{'O'} == \$a and
@@ -133,7 +143,7 @@ ok($d = diff($coderef1, $coderef2) and
         $d->{'O'} ne $d->{'N'}
 );
 
-# blessed things
+### blessed things
 my $blessed1 = bless {}, 'SomeClassName';
 ok($d = diff($blessed1, $blessed1) and
     keys %{$d} == 1 and

@@ -3,7 +3,7 @@
 use strict;
 use warnings FATAL => 'all';
 use Storable qw(freeze);
-use Test::More tests => 16;
+use Test::More tests => 26;
 
 use Struct::Diff qw(diff);
 
@@ -15,8 +15,26 @@ ok($d = diff([], [ 1 ]) and
     keys %{$d} == 1 and exists $d->{'A'} and @{$d->{'A'}} == 1 and $d->{'A'}->[0] == 1
 );
 
+ok($d = diff([], [ 1 ], 'noA' => 1) and
+    keys %{$d} == 0
+);
+
 ok($d = diff([ 1 ], []) and
     keys %{$d} == 1 and exists $d->{'R'} and @{$d->{'R'}} == 1 and $d->{'R'}->[0] == 1
+);
+
+ok($d = diff([ 1 ], [], 'noR' => 1) and
+    keys %{$d} == 0
+);
+
+ok($d = diff([ 'a' ], [ 'b' ], 'noO' => 1) and
+    keys %{$d} == 1 and
+        exists $d->{'N'} and @{$d->{'N'}} == 1 and $d->{'N'}->[0] eq 'b'
+);
+
+ok($d = diff([ 'a' ], [ 'b' ], 'noN' => 1) and
+    keys %{$d} == 1 and
+        exists $d->{'O'} and @{$d->{'O'}} == 1 and $d->{'O'}->[0] eq 'a'
 );
 
 ok($d = diff([ 0 ], [ 0, 1 ]) and
@@ -87,6 +105,35 @@ ok($d = diff($a, $b, 'noU' => 1) and
 ok($frozen_a eq freeze($a) and $frozen_b eq freeze($b)); # original structs must remain unchanged
 
 ### hashes ###
+ok($d = diff({}, { 'a' => 'va' }) and
+    keys %{$d} == 1 and exists $d->{'A'} and keys %{$d->{'A'}} == 1 and
+        exists $d->{'A'}->{'a'} and $d->{'A'}->{'a'} eq 'va'
+);
+
+ok($d = diff({}, { 'a' => 'va' }, 'noA' => 1) and
+    keys %{$d} == 0
+);
+
+ok($d = diff({ 'a' => 'va' }, {}) and
+    keys %{$d} == 1 and exists $d->{'R'} and keys %{$d->{'R'}} == 1 and
+        exists $d->{'R'}->{'a'} and $d->{'R'}->{'a'} eq 'va'
+);
+
+ok($d = diff({ 'a' => 'va' }, {}, 'noR' => 1) and
+    keys %{$d} == 0
+);
+
+ok($d = diff({ 'a' => 'va' }, { 'a' => 'vb' }, 'noO' => 1) and
+    keys %{$d} == 1 and
+        exists $d->{'N'} and keys %{$d->{'N'}} == 1 and
+            exists $d->{'N'}->{'a'} and $d->{'N'}->{'a'} eq 'vb'
+);
+
+ok($d = diff({ 'a' => 'va' }, { 'a' => 'vb' }, 'noN' => 1) and
+    keys %{$d} == 1 and
+        exists $d->{'O'} and keys %{$d->{'O'}} == 1 and
+            exists $d->{'O'}->{'a'} and $d->{'O'}->{'a'} eq 'va'
+);
 
 $a = { 'a' => 'a1', 'b' => { 'ba' => 'ba1', 'bb' => 'bb1' }, 'c' => 'c1' };
 $b = { 'a' => 'a1', 'b' => { 'ba' => 'ba2', 'bb' => 'bb1' }, 'd' => 'd1' };
