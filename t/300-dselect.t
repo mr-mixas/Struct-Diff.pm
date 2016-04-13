@@ -3,7 +3,7 @@
 use strict;
 use warnings FATAL => 'all';
 use Storable qw(freeze);
-use Test::More tests => 21;
+use Test::More tests => 22;
 
 use Struct::Diff qw(diff dselect);
 
@@ -105,6 +105,9 @@ $frozen_d = freeze($d);
 
 @se = dselect($d, 'states' => {});
 ok(@se == 0);
+
+@se = dselect($d, 'from' => undef);
+ok(freeze($d->{'D'}) eq freeze( { map { %{$_} } @se } ));
 
 @se = dselect($d, 'from' => []);
 ok(freeze($d->{'D'}) eq freeze( { map { %{$_} } @se } ));
