@@ -3,7 +3,7 @@
 use strict;
 use warnings FATAL => 'all';
 use Storable qw(freeze);
-use Test::More tests => 26;
+use Test::More tests => 30;
 
 use Struct::Diff qw(diff);
 
@@ -25,6 +25,20 @@ ok($d = diff([ 1 ], []) and
 
 ok($d = diff([ 1 ], [], 'noR' => 1) and
     keys %{$d} == 0
+);
+
+ok($d = diff([[[[[ 0, 1 ]]]]], [], 'trimR' => 1) and
+    keys %{$d} == 1 and
+        exists $d->{'R'} and @{$d->{'R'}} == 1 and not defined $d->{'R'}->[0]
+);
+
+ok($d = diff([ 0, [[[[ 0, 1 ]]]]], [ 0 ], 'trimR' => 1) and
+    keys %{$d} == 1 and
+        exists $d->{'D'} and @{$d->{'D'}} == 2 and
+            keys %{$d->{'D'}->[0]} == 1 and
+                exists $d->{'D'}->[0]->{'U'} and $d->{'D'}->[0]->{'U'} == 0 and
+            keys %{$d->{'D'}->[1]} == 1 and
+                exists $d->{'D'}->[1]->{'R'} and not defined $d->{'D'}->[1]->{'R'}
 );
 
 ok($d = diff([ 'a' ], [ 'b' ], 'noO' => 1) and
@@ -121,6 +135,21 @@ ok($d = diff({ 'a' => 'va' }, {}) and
 
 ok($d = diff({ 'a' => 'va' }, {}, 'noR' => 1) and
     keys %{$d} == 0
+);
+
+ok($d = diff({ 'a' => { 'aa' => { 'aaa' => 'vaaaa' }}}, {}, 'trimR' => 1) and
+    keys %{$d} == 1 and
+        exists $d->{'R'} and keys %{$d->{'R'}} == 1 and
+            exists $d->{'R'}->{'a'} and not defined $d->{'R'}->{'a'}
+);
+
+ok($d = diff({ 'a' => { 'aa' => { 'aaa' => 'vaaaa' }}, 'b' => 'vb'}, { 'b' => 'vb' }, 'trimR' => 1) and
+    keys %{$d} == 1 and
+        exists $d->{'D'} and keys %{$d->{'D'}} == 2 and
+            exists $d->{'D'}->{'a'} and keys %{$d->{'D'}->{'a'}} == 1 and
+                exists $d->{'D'}->{'a'}->{'R'} and not defined $d->{'D'}->{'a'}->{'R'} and
+            exists $d->{'D'}->{'b'} and keys %{$d->{'D'}->{'b'}} == 1 and
+                exists $d->{'D'}->{'b'}->{'U'} and $d->{'D'}->{'b'}->{'U'} eq 'vb'
 );
 
 ok($d = diff({ 'a' => 'va' }, { 'a' => 'vb' }, 'noO' => 1) and

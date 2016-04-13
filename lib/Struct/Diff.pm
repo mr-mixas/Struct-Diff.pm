@@ -26,11 +26,11 @@ Struct::Diff - Recursive diff tools for nested perl structures
 
 =head1 VERSION
 
-Version 0.02
+Version 0.50
 
 =cut
 
-our $VERSION = '0.02';
+our $VERSION = '0.50';
 
 =head1 SYNOPSIS
 
@@ -51,7 +51,7 @@ Nothing exports by default
 Returns HASH reference to diff between two passed structures. Each struct layer anticipated by metadata. Be aware when
 changing diff: some of it's substructures are links to original structures.
     $diff = diff($ref1, $ref2, %opts);
-    $patch = diff($a, $b, noU => 1, noO => 1);
+    $patch = diff($a, $b, noU => 1, noO => 1, trimR => '1'); # smallest possible diff
 
 =head3 Diff's states
 
@@ -97,6 +97,10 @@ represent 'unchanged' items - common for both structures.
 
 Where X is a status (A, N, O, R, U) - such statuses will be omitted
 
+=item trimR
+
+Drop removed item's data
+
 =back
 
 =cut
@@ -132,7 +136,7 @@ sub diff($$;@) {
             if ($opts{'noR'}) {
                 $hidden = 1;
             } else {
-                map { push @{$d->{'D'}}, { 'R' => $_ } } @{$a}[@{$b}..$#{$a}];
+                map { push @{$d->{'D'}}, { 'R' => $opts{'trimR'} ? undef : $_ } } @{$a}[@{$b}..$#{$a}];
             }
         }
         if (@{$a} < @{$b}) {
@@ -146,7 +150,7 @@ sub diff($$;@) {
         my $s = { map { $_, 1 } map { keys %{$_} } exists $d->{'D'} ? @{$d->{'D'}} : { 'U' => 1 } };
         delete $s->{'I'}; # ignored -- not a status
 
-        if (keys %{$s} < 2 and not $hidden) { # all have one state - drop D and return native state
+        if (keys %{$s} == 1 and not $hidden) { # all have one state - drop D and return native state
             my ($n) = (keys(%{$s}))[0];
             map { $_ = $_->{$n} } @{$d->{'D'}};
             $d->{$n} = delete $d->{'D'};
@@ -167,7 +171,7 @@ sub diff($$;@) {
                 if ($opts{'noR'}) {
                     $hidden = 1;
                 } else {
-                    $d->{'R'}->{$key} = $a->{$key};
+                    $d->{'R'}->{$key} = $opts{'trimR'} ? undef : $a->{$key};
                 }
             } else {
                 if ($opts{'noA'}) {

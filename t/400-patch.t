@@ -4,7 +4,7 @@ use strict;
 use warnings FATAL => 'all';
 use Data::Compare;
 use Storable qw(freeze);
-use Test::More tests => 12;
+use Test::More tests => 14;
 
 use Struct::Diff qw(diff patch);
 
@@ -33,6 +33,10 @@ ok(patch($a, $d) and freeze($a) eq freeze($b));
 $d = diff($a, $b);
 ok(patch($a, $d) and freeze($a) eq freeze($b));
 
+($a, $b) = ([ 0, 1 ], [ 0 ], 'trimR' => 1);
+$d = diff($a, $b);
+ok(patch($a, $d) and freeze($a) eq freeze($b));
+
 my $sub_array = [ 0, [ 11, 12 ], 2 ];
 $a = [ 0, [[ 100 ]], [ 20, 'a' ], $sub_array, 4 ];
 $b = [ 0, [[ 100 ]], [ 20, 'b' ], $sub_array, 5 ];
@@ -53,6 +57,10 @@ ok(patch($a, $d) and freeze($a) eq freeze($b));
 $d = diff($a, $b);
 ok(patch($a, $d) and freeze($a) eq freeze($b));
 
+($a, $b) = ({ 'a' => 'av', 'b' => 'bv' }, { 'a' => 'av' });
+$d = diff($a, $b, 'trimR' => 1);
+ok(patch($a, $d) and freeze($a) eq freeze($b));
+
 $a = { 'a' => 'a1', 'b' => { 'ba' => 'ba1', 'bb' => 'bb1' }, 'c' => 'c1' };
 $b = { 'a' => 'a1', 'b' => { 'ba' => 'ba2', 'bb' => 'bb1' }, 'd' => 'd1' };
 
@@ -70,4 +78,3 @@ $a = { 'a' => [ { 'aa' => { 'aaa' => [ 7, 4 ]}}, 8 ]}; # restore a
 
 $d = diff($a, $b, 'noO' => 1, 'noU' => 1);
 ok(patch($a, $d) and Compare($a, $b));
-
