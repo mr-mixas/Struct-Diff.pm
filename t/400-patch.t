@@ -4,7 +4,7 @@ use strict;
 use warnings FATAL => 'all';
 use Data::Compare;
 use Storable qw(freeze);
-use Test::More tests => 10;
+use Test::More tests => 12;
 
 use Struct::Diff qw(diff patch);
 
@@ -45,6 +45,14 @@ $d = diff($a, $b, 'noU' => 1);
 ok(patch($a, $d) and Compare($a, $b));
 
 ### hashes ###
+($a, $b) = ({ 'a' => 'av' }, { 'a' => 'av', 'b' => 'bv' });
+$d = diff($a, $b);
+ok(patch($a, $d) and freeze($a) eq freeze($b));
+
+($a, $b) = ({ 'a' => 'av', 'b' => 'bv' }, { 'a' => 'av' });
+$d = diff($a, $b);
+ok(patch($a, $d) and freeze($a) eq freeze($b));
+
 $a = { 'a' => 'a1', 'b' => { 'ba' => 'ba1', 'bb' => 'bb1' }, 'c' => 'c1' };
 $b = { 'a' => 'a1', 'b' => { 'ba' => 'ba2', 'bb' => 'bb1' }, 'd' => 'd1' };
 
