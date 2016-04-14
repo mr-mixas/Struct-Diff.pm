@@ -202,14 +202,15 @@ sub diff($$;@) {
 =head2 dselect
 
 Returns items with desired status from diff
-    @items = dselect($diff, states => { 'A' => 1, 'U' => 1 }, 'from' => [ 'a', 'b', 'c' ]) # hashes
-    @items = dselect($diff, states => { 'D' => 1, 'N' => 1 }, 'from' => [ 0, 1, 3, 5, 9 ]) # arrays
+    @added = dselect($diff, states => { 'A' => 1 } # something added?
+    @items = dselect($diff, states => { 'A' => 1, 'U' => 1 }, 'fromD' => [ 'a', 'b', 'c' ]) # from D hashe
+    @items = dselect($diff, states => { 'D' => 1, 'N' => 1 }, 'fromD' => [ 0, 1, 3, 5, 9 ]) # from D array
 
 =head3 Available options
 
 =over 4
 
-=item from
+=item fromD
 
 Select from diff's 'D' state. Expects list of positions (indexes for arrays and keys for hashes). All items with
 specified states will be returned if opt exists, but not defined or is an empty list.
@@ -228,10 +229,10 @@ sub dselect(@) {
     _validate_meta($d);
     my @out;
 
-    if (exists $opts{'from'}) {
-        croak "'from' defined, but no 'D' state found" unless (exists $d->{'D'});
+    if (exists $opts{'fromD'}) {
+        croak "'fromD' defined, but no 'D' state found" unless (exists $d->{'D'});
         if (ref $d->{'D'} eq 'ARRAY') {
-            for my $i (($opts{'from'} and @{$opts{'from'}}) ? @{$opts{'from'}} : 0..$#{$d->{'D'}}) {
+            for my $i (($opts{'fromD'} and @{$opts{'fromD'}}) ? @{$opts{'fromD'}} : 0..$#{$d->{'D'}}) {
                 croak "Requested index $i not in diff's array range" unless ($i >= 0 and $i < @{$d->{'D'}});
                 push @out, {
                     map { $_ => $d->{'D'}->[$i]->{$_} }
@@ -240,7 +241,7 @@ sub dselect(@) {
                 };
             }
         } else { # HASH
-            for my $k (($opts{'from'} and @{$opts{'from'}}) ? @{$opts{'from'}} : keys %{$d->{'D'}}) {
+            for my $k (($opts{'fromD'} and @{$opts{'fromD'}}) ? @{$opts{'fromD'}} : keys %{$d->{'D'}}) {
                 push @out, {
                     map { $k => { $_ => $d->{'D'}->{$k}->{$_} } }
                     grep { not $opts{'states'} or exists $opts{'states'}->{$_} }

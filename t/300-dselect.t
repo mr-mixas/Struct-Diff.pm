@@ -35,18 +35,18 @@ $d = diff([ 0 ], [ 0, 1 ]);
 @se = dselect($d);
 ok(freeze($d) eq freeze($se[0])); # D returned
 
-@se = dselect($d, 'from' => undef); # empty list means from all
+@se = dselect($d, 'fromD' => undef); # empty list means from all D
 ok(
     @se == 2 and
         keys %{$se[0]} == 1 and exists $se[0]->{'U'} and $se[0]->{'U'} == 0 and
         keys %{$se[1]} == 1 and exists $se[1]->{'A'} and $se[1]->{'A'} == 1
 );
 
-@se = dselect($d, 'from' => undef, 'states' => { 'A' => 1 });
+@se = dselect($d, 'fromD' => undef, 'states' => { 'A' => 1 });
 ok(@se == 1 and keys %{$se[0]} == 1 and exists $se[0]->{'A'} and $se[0]->{'A'} == 1);
 
 $d = diff([ 0, 1 ], [ 0 ]);
-@se = dselect($d, 'from' => undef);
+@se = dselect($d, 'fromD' => undef);
 ok(
     @se == 2 and
         keys %{$se[0]} == 1 and exists $se[0]->{'U'} and $se[0]->{'U'} == 0 and
@@ -59,16 +59,16 @@ $b = [ 0, [[ 100 ]], [ 20, 'b' ], $sub_array, 5 ];
 
 $d = diff($a, $b);
 $frozen_d = freeze($d);
-@se = dselect($d, 'from' => undef);
+@se = dselect($d, 'fromD' => undef);
 ok(freeze($d->{'D'}) eq freeze(\@se)); # select here -- mere extraction from 'D'
 
 @se = dselect($d, 'states' => {});
 ok(@se == 0);
 
-@se = dselect($d, 'from' => []); # emply list in 'from' means all
+@se = dselect($d, 'fromD' => []); # emply list in 'from' means from all D
 ok(freeze($d->{'D'}) eq freeze(\@se));
 
-@se = dselect($d, 'from' => [ 0, 4 ]);
+@se = dselect($d, 'fromD' => [ 0, 4 ]);
 ok(
     @se == 2 and
     keys %{$se[0]} == 1 and exists $se[0]->{'U'} and
@@ -78,7 +78,7 @@ ok(
         exists $se[1]->{'N'} and $se[1]->{'N'} == 5
 );
 
-@se = dselect($d, 'states' => { 'N' => 1, 'U' => 1 }, 'from' => [ 0, 4 ]);
+@se = dselect($d, 'states' => { 'N' => 1, 'U' => 1 }, 'fromD' => [ 0, 4 ]);
 ok(
     @se == 2 and
     keys %{$se[0]} == 1 and exists $se[0]->{'U'} and
@@ -87,7 +87,7 @@ ok(
         $se[1]->{'N'} == 5
 );
 
-@se = dselect($d, 'states' => { 'O' => 1 }, 'from' => [ 0, 4 ]);
+@se = dselect($d, 'states' => { 'O' => 1 }, 'fromD' => [ 0, 4 ]);
 ok(
     @se == 1 and keys %{$se[0]} == 1 and
         exists $se[0]->{'O'} and $se[0]->{'O'} == 4
@@ -106,13 +106,13 @@ $frozen_d = freeze($d);
 @se = dselect($d, 'states' => {});
 ok(@se == 0);
 
-@se = dselect($d, 'from' => undef);
+@se = dselect($d, 'fromD' => undef);
 ok(freeze($d->{'D'}) eq freeze( { map { %{$_} } @se } ));
 
-@se = dselect($d, 'from' => []);
+@se = dselect($d, 'fromD' => []);
 ok(freeze($d->{'D'}) eq freeze( { map { %{$_} } @se } ));
 
-@se = dselect($d, 'from' => [ 'd', 'c']);
+@se = dselect($d, 'fromD' => [ 'd', 'c']);
 ok(
     @se == 2 and
     keys %{$se[0]} == 1 and exists $se[0]->{'d'} and
@@ -121,7 +121,7 @@ ok(
         keys %{$se[1]->{'c'}} == 1 and exists $se[1]->{'c'}->{'R'} and $se[1]->{'c'}->{'R'} eq 'c1'
 );
 
-@se = dselect($d, 'states' => { 'A' => 1, 'R' => 1 }, 'from' => [ 'd', 'c']);
+@se = dselect($d, 'states' => { 'A' => 1, 'R' => 1 }, 'fromD' => [ 'd', 'c']);
 ok(
     @se == 2 and
     keys %{$se[0]} == 1 and exists $se[0]->{'d'} and
@@ -130,7 +130,7 @@ ok(
         keys %{$se[1]->{'c'}} == 1 and exists $se[1]->{'c'}->{'R'} and $se[1]->{'c'}->{'R'} eq 'c1'
 );
 
-@se = dselect($d, 'states' => { 'A' => 1, 'D' => 1 }, 'from' => [ 'd', 'c']);
+@se = dselect($d, 'states' => { 'A' => 1, 'D' => 1 }, 'fromD' => [ 'd', 'c']);
 ok(
     @se == 1 and
     keys %{$se[0]} == 1 and exists $se[0]->{'d'} and
