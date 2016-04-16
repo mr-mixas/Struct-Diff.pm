@@ -4,7 +4,7 @@ use 5.006;
 use strict;
 use warnings FATAL => 'all';
 use base qw(Exporter);
-use Carp;
+use Carp qw(croak);
 
 BEGIN {
     our @EXPORT_OK = qw(diff dselect dsplit patch);
@@ -34,11 +34,23 @@ our $VERSION = '0.50';
 
 =head1 SYNOPSIS
 
-    use Data::Dumper;
-    use Struct::Diff qw(diff);
+    use Struct::Diff qw(diff dselect dsplit patch);
 
-    $diff = diff($ref1, $ref2);
-    print Dumper $diff;
+    $a = {x => [7,{y => 4}]};
+    $b = {x => [7,{y => 9}],z => 33};
+
+    $diff = diff($a, $b, noO => 1, noU => 1);
+    # $diff == {D => {x => {D => [{I => 1,N => {y => 9}}]},z => {A => 33}}};
+
+    @items = dselect($diff, fromD => ['z']);
+    # @items == ({z => {A => 33}});
+
+    $href = dsplit($diff);
+    # $dsplit->{a} not exists
+    # $dsplit->{b} == {x => [{y => 9}],z => 33};
+
+    patch($a, $diff);
+    # $a now equal to $b
 
 =head1 EXPORT
 
@@ -48,9 +60,9 @@ Nothing exports by default
 
 =head2 diff
 
-Returns HASH reference to diff between two passed structures. Each struct layer anticipated by metadata. Be aware when
+Returns HASH reference to diff between two passed things. Beware when
 changing diff: some of it's substructures are links to original structures.
-    $diff = diff($ref1, $ref2, %opts);
+    $diff = diff($a, $b, %opts);
     $patch = diff($a, $b, noU => 1, noO => 1, trimR => '1'); # smallest possible diff
 
 =head3 Diff's states
@@ -201,7 +213,7 @@ sub diff($$;@) {
 
 =head2 dselect
 
-Returns items with desired status from diff
+Returns items with desired status from diff's first level
     @added = dselect($diff, states => { 'A' => 1 } # something added?
     @items = dselect($diff, states => { 'A' => 1, 'U' => 1 }, 'fromD' => [ 'a', 'b', 'c' ]) # from D hashe
     @items = dselect($diff, states => { 'D' => 1, 'N' => 1 }, 'fromD' => [ 0, 1, 3, 5, 9 ]) # from D array
@@ -389,6 +401,15 @@ sub patch($$) {
 
     return 1;
 }
+
+=head1 LIMITATIONS
+
+Struct::Diff will fail on structures with self references.
+
+Only scalars, refs to scalars, ref to arrays and hashes correctly traversed. All other data types compared by their
+reference.
+
+No object oriented interface provided.
 
 =head1 AUTHOR
 
