@@ -215,7 +215,7 @@ sub diff($$;@) {
 
 Returns items with desired status from diff's first level
     @added = dselect($diff, states => { 'A' => 1 } # something added?
-    @items = dselect($diff, states => { 'A' => 1, 'U' => 1 }, 'fromD' => [ 'a', 'b', 'c' ]) # from D hashe
+    @items = dselect($diff, states => { 'A' => 1, 'U' => 1 }, 'fromD' => [ 'a', 'b', 'c' ]) # from D hash
     @items = dselect($diff, states => { 'D' => 1, 'N' => 1 }, 'fromD' => [ 0, 1, 3, 5, 9 ]) # from D array
 
 =head3 Available options
@@ -272,7 +272,8 @@ sub dselect(@) {
 
 Divide diff to pseudo original structures.
     $structs = dsplit($diff);
-    print Dumper $structs->{'a'}, $structs->{'b'};
+    # $structs->{'a'} - now contains items originated from original $a
+    # $structs->{'b'} - same for $b
 
 =cut
 
@@ -357,7 +358,7 @@ sub dsplit($) {
 =head2 patch
 
 Apply diff.
-    patch($ref, $diff);
+    patch($a, $diff);
 
 =cut
 
@@ -406,8 +407,8 @@ sub patch($$) {
 
 Struct::Diff will fail on structures with self references.
 
-Only scalars, refs to scalars, ref to arrays and hashes correctly traversed. All other data types compared by their
-reference.
+Only scalars, refs to scalars, ref to arrays and ref to hashes correctly traversed. All other data types compared
+by their reference.
 
 No object oriented interface provided.
 
