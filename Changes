@@ -1,5 +1,12 @@
 Revision history for Struct-Diff
 
+0.50    2016-04-18
+        Diff metadata format changed (and I hope stabilized)
+        diff()'s opts changed
+        strip() removed
+        dselect(), dsplit(), patch() appeared
+        tests and pod almost for everything
+
 0.01    2015-07-21
         Original version.
 
