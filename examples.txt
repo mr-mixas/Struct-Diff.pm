@@ -1,0 +1,59 @@
+
+####### Scalars #######
+$a = 'Some old value';
+$b = 'Some new value';
+
+%opts_diff = ();
+$diff = {N => 'Some new value',O => 'Some old value'};
+
+####### Arrays, one lement changed #######
+$a = [2,3,4,5,6,7];
+$b = [2,3,9,5,6,7];
+
+%opts_diff = ();
+$diff = {D => [{U => 2},{U => 3},{N => 9,O => 4},{U => 5},{U => 6},{U => 7}]};
+
+####### Arrays, one element removed #######
+$a = [2,3,4,5,6,7,8];
+$b = [2,3,4,5,6,7];
+
+%opts_diff = ();
+$diff = {D => [{U => 2},{U => 3},{U => 4},{U => 5},{U => 6},{U => 7},{R => 8}]};
+
+%opts_dselect = (fromD => [],states => {R => 1});
+$dselect = [{R => 8}];
+
+####### Same, without common #######
+$a = [2,3,4,5,6,7,8];
+$b = [2,3,4,5,6,7];
+
+%opts_diff = (noU => 1);
+$diff = {D => [{R => 8}]};
+
+####### Hashes, deep-down val changed #######
+$a = {x => {y => {z => 'v'}}};
+$b = {x => {y => {z => 'cv'}}};
+
+%opts_diff = ();
+$diff = {D => {x => {D => {y => {D => {z => {N => 'cv',O => 'v'}}}}}}};
+
+####### Mixed (ARRAYS/HASHES) structure #######
+$a = {x => [7,{y => 4}]};
+$b = {x => [7,{y => 9}],z => 33};
+
+%opts_diff = ();
+$diff = {D => {x => {D => [{U => 7},{D => {y => {N => 9,O => 4}}}]},z => {A => 33}}};
+
+####### Same, but without common items and old values #######
+$a = {x => [7,{y => 4}]};
+$b = {x => [7,{y => 9}],z => 33};
+
+%opts_diff = (noO => 1,noU => 1);
+$diff = {D => {x => {D => [{I => 1,N => {y => 9}}]},z => {A => 33}}};
+
+%opts_dselect = (fromD => ['z']);
+$dselect = [{z => {A => 33}}];
+
+$dsplit->{a} not exists
+$dsplit->{b} = {x => [{y => 9}],z => 33};
+
