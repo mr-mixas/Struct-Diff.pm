@@ -6,3 +6,5 @@
     profits: traditional text diff may be implemented for texts in leaf nodes and so on.
 
 *   LCS for array's diff: use some digest (callback?) to calculate list's contents ???
+
+*   dstatus($diff, $path)
