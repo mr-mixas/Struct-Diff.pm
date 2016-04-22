@@ -1,7 +1,6 @@
 Struct-Diff
 
-The Struct::Diff module is a simple way to get structured diff for
-nested perl structures (various mix of hashes of hashes and arrays of arrays)
+Struct::Diff - Recursive diff tools for nested perl structures
 
 INSTALLATION
 
