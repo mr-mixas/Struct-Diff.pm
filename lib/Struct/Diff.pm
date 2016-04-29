@@ -3,12 +3,10 @@ package Struct::Diff;
 use 5.006;
 use strict;
 use warnings FATAL => 'all';
-use base qw(Exporter);
+use parent qw(Exporter);
 use Carp qw(croak);
 
-BEGIN {
-    our @EXPORT_OK = qw(diff dselect dsplit patch);
-}
+BEGIN { our @EXPORT_OK = qw(diff dselect dsplit patch) }
 
 sub _validate_meta($) {
     my $d = shift;
@@ -26,11 +24,11 @@ Struct::Diff - Recursive diff tools for nested perl structures
 
 =head1 VERSION
 
-Version 0.50
+Version 0.51
 
 =cut
 
-our $VERSION = '0.50';
+our $VERSION = '0.51';
 
 =head1 SYNOPSIS
 
@@ -39,14 +37,14 @@ our $VERSION = '0.50';
     $a = {x => [7,{y => 4}]};
     $b = {x => [7,{y => 9}],z => 33};
 
-    $diff = diff($a, $b, noO => 1, noU => 1);
+    $diff = diff($a, $b, noO => 1, noU => 1);       # omit unchanged and old values for changed items
     # $diff == {D => {x => {D => [{I => 1,N => {y => 9}}]},z => {A => 33}}};
 
-    @items = dselect($diff, fromD => ['z']);
+    @items = dselect($diff, fromD => ['z']);        # get status for a particular key
     # @items == ({z => {A => 33}});
 
-    $href = dsplit($diff);
-    # $dsplit->{a} not exists
+    $href = dsplit($diff);                          # divide diff
+    # $dsplit->{a} not exists                       # because unchanged omitted and all other items originated from $b
     # $dsplit->{b} == {x => [{y => 9}],z => 33};
 
     patch($a, $diff);
@@ -65,9 +63,9 @@ changing diff: some of it's substructures are links to original structures.
     $diff = diff($a, $b, %opts);
     $patch = diff($a, $b, noU => 1, noO => 1, trimR => '1'); # smallest possible diff
 
-=head3 Diff's states
+=head3 Metadata format
 
-Diff's keys shows status of each item from passed structures.
+Diff's keys shows status of each item in passed structures.
 
 =over 4
 
@@ -107,7 +105,7 @@ represent 'unchanged' items - common for both structures.
 
 =item noX
 
-Where X is a status (A, N, O, R, U) - such statuses will be omitted
+Where X is a status (A, N, O, R, U); such status will be omitted
 
 =item trimR
 
@@ -224,7 +222,7 @@ Returns items with desired status from diff's first level
 
 =item fromD
 
-Select from diff's 'D' state. Expects list of positions (indexes for arrays and keys for hashes). All items with
+Select items from diff's 'D'. Expects list of positions (indexes for arrays and keys for hashes). All items with
 specified states will be returned if opt exists, but not defined or is an empty list.
 
 =item states
@@ -405,7 +403,7 @@ sub patch($$) {
 
 =head1 LIMITATIONS
 
-Struct::Diff will fail on structures with self references.
+Struct::Diff fails on structures with loops in references.
 
 Only scalars, refs to scalars, ref to arrays and ref to hashes correctly traversed. All other data types compared
 by their reference.
