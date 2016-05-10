@@ -24,11 +24,11 @@ Struct::Diff - Recursive diff tools for nested perl structures
 
 =head1 VERSION
 
-Version 0.51
+Version 0.52
 
 =cut
 
-our $VERSION = '0.51';
+our $VERSION = '0.52';
 
 =head1 SYNOPSIS
 
@@ -403,7 +403,8 @@ sub patch($$) {
 
 =head1 LIMITATIONS
 
-Struct::Diff fails on structures with loops in references.
+Struct::Diff fails on structures with loops in references. has_circular_ref from Data::Structure::Util can help
+to detect such structures.
 
 Only scalars, refs to scalars, ref to arrays and ref to hashes correctly traversed. All other data types compared
 by their reference.
@@ -453,7 +454,7 @@ L<http://search.cpan.org/dist/Struct-Diff/>
 L<Data::Diff>
 
 L<Array::Diff>, L<Array::Compare>, L<Algorithm::Diff>, L<Data::Compare>, L<Hash::Diff>, L<Test::Struct>,
-L<Struct::Compare>
+L<Struct::Compare> L<Data::Structure::Util>
 
 =head1 LICENSE AND COPYRIGHT
 
