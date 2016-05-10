@@ -5,6 +5,6 @@
     patch() also must provide callback interface to support such new states.
     profits: traditional text diff may be implemented for texts in leaf nodes and so on.
 
-*   LCS for array's diff: use some digest (callback?) to calculate list's contents ???
+*   LCS for array's diff: use some digest (callback?) to calculate list's contents (or signature() from Data::Structure::Util)???
 
 *   dstatus($diff, $path)
