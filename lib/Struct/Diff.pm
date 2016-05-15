@@ -24,11 +24,11 @@ Struct::Diff - Recursive diff tools for nested perl structures
 
 =head1 VERSION
 
-Version 0.52
+Version 0.53
 
 =cut
 
-our $VERSION = '0.52';
+our $VERSION = '0.53';
 
 =head1 SYNOPSIS
 
@@ -60,6 +60,7 @@ Nothing exports by default
 
 Returns HASH reference to diff between two passed things. Beware when
 changing diff: some of it's substructures are links to original structures.
+
     $diff = diff($a, $b, %opts);
     $patch = diff($a, $b, noU => 1, noO => 1, trimR => '1'); # smallest possible diff
 
@@ -212,6 +213,7 @@ sub diff($$;@) {
 =head2 dselect
 
 Returns items with desired status from diff's first level
+
     @added = dselect($diff, states => { 'A' => 1 } # something added?
     @items = dselect($diff, states => { 'A' => 1, 'U' => 1 }, 'fromD' => [ 'a', 'b', 'c' ]) # from D hash
     @items = dselect($diff, states => { 'D' => 1, 'N' => 1 }, 'fromD' => [ 0, 1, 3, 5, 9 ]) # from D array
@@ -269,6 +271,7 @@ sub dselect(@) {
 =head2 dsplit
 
 Divide diff to pseudo original structures.
+
     $structs = dsplit($diff);
     # $structs->{'a'} - now contains items originated from original $a
     # $structs->{'b'} - same for $b
@@ -356,6 +359,7 @@ sub dsplit($) {
 =head2 patch
 
 Apply diff.
+
     patch($a, $diff);
 
 =cut
