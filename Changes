@@ -1,5 +1,8 @@
 Revision history for Struct-Diff
 
+0.52    2016-05-10
+        Pod corrected, cosmetics.
+
 0.50    2016-04-18
         Diff metadata format changed (and I hope stabilized)
         diff()'s opts changed
