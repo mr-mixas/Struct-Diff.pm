@@ -1,5 +1,8 @@
 Revision history for Struct-Diff
 
+0.54    2016-06-16
+        dist corrected (tests and metadata).
+
 0.53    2016-05-15
         Pod corrected.
 
