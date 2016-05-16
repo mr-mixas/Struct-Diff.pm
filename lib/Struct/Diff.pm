@@ -24,11 +24,11 @@ Struct::Diff - Recursive diff tools for nested perl structures
 
 =head1 VERSION
 
-Version 0.54
+Version 0.55
 
 =cut
 
-our $VERSION = '0.54';
+our $VERSION = '0.55';
 
 =head1 SYNOPSIS
 
@@ -167,7 +167,7 @@ sub diff($$;@) {
             $d->{$n} = delete $d->{'D'};
         }
     } elsif ((ref $a eq 'HASH') and ($a ne $b)) {
-        for my $key (keys { %{$a}, %{$b} }) { # go througth united uniq keys
+        for my $key (keys %{{ %{$a}, %{$b} }}) { # go througth united uniq keys
             if (exists $a->{$key} and exists $b->{$key}) {
                 my $tmp = diff($a->{$key}, $b->{$key}, %opts);
                 $hidden = 1 unless (keys %{$tmp});
