@@ -19,8 +19,11 @@ WriteMakefile(
         'Storable'        => 0,
         'Test::More'      => 0,
     },
+    META_ADD => {
+        'repository'      => 'git@github.com:mr-mixas/Struct-Diff.pm.git',
+    },
     PREREQ_PM => {
-        #'Foo::Bar::Module' => 5.0401,
+        'parent'          => 0,
     },
     dist  => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean => { FILES => 'Struct-Diff-*' },
