@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 
 use strict;
-use warnings FATAL => 'all';
+use warnings;
 use Data::Compare;
 use Storable qw(freeze);
 use Test::More tests => 14;
