@@ -1,5 +1,8 @@
 Revision history for Struct-Diff
 
+0.56    2016-06-22
+        Pod and dist corrected, unused code removed.
+
 0.55    2016-06-16
         get rid of experimental feature (keys on scalars
         (not supported in Perl < 5.14 and forbidden since >= 5.20))

@@ -6,7 +6,7 @@ use warnings FATAL => 'all';
 use parent qw(Exporter);
 use Carp qw(croak);
 
-BEGIN { our @EXPORT_OK = qw(diff dselect dsplit patch) }
+our @EXPORT_OK = qw(diff dselect dsplit patch);
 
 sub _validate_meta($) {
     my $d = shift;
@@ -24,11 +24,11 @@ Struct::Diff - Recursive diff tools for nested perl structures
 
 =head1 VERSION
 
-Version 0.55
+Version 0.56
 
 =cut
 
-our $VERSION = '0.55';
+our $VERSION = '0.56';
 
 =head1 SYNOPSIS
 
@@ -44,11 +44,11 @@ our $VERSION = '0.55';
     # @items == ({z => {A => 33}});
 
     $href = dsplit($diff);                          # divide diff
-    # $dsplit->{a} not exists                       # because unchanged omitted and all other items originated from $b
+    # $dsplit->{a} not exists                       # unchanged omitted, other items originated from $b
     # $dsplit->{b} == {x => [{y => 9}],z => 33};
 
     patch($a, $diff);
-    # $a now equal to $b
+    # $a now equal to $b by structure and data
 
 =head1 EXPORT
 
@@ -458,7 +458,9 @@ L<http://search.cpan.org/dist/Struct-Diff/>
 L<Data::Diff>
 
 L<Array::Diff>, L<Array::Compare>, L<Algorithm::Diff>, L<Data::Compare>, L<Hash::Diff>, L<Test::Struct>,
-L<Struct::Compare> L<Data::Structure::Util>
+L<Struct::Compare>
+
+L<Data::Structure::Util>, L<Struct::Path>
 
 =head1 LICENSE AND COPYRIGHT
 

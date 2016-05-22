@@ -20,7 +20,7 @@ Version 0.56
     # @items == ({z => {A => 33}});
 
     $href = dsplit($diff);                          # divide diff
-    # $dsplit->{a} not exists                       # because unchanged omitted and all other items originated from $b
+    # $dsplit->{a} not exists                       # unchanged omitted, other items originated from $b
     # $dsplit->{b} == {x => [{y => 9}],z => 33};
 
     patch($a, $diff);

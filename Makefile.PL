@@ -16,15 +16,18 @@ WriteMakefile(
     },
     BUILD_REQUIRES => {
         'Data::Compare'   => 0,
+        'Pod::Markdown'   => 0,
         'Storable'        => 0,
         'Test::More'      => 0,
     },
-    META_ADD => {
-        'repository'      => 'git@github.com:mr-mixas/Struct-Diff.pm.git',
-    },
     PREREQ_PM => {
+        'Carp'            => 0,
         'parent'          => 0,
     },
-    dist  => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
+    dist  => {
+        COMPRESS => 'gzip -9f',
+        SUFFIX   => 'gz',
+        PREOP    => 'pod2markdown lib/Struct/Diff.pm > README.md',
+    },
     clean => { FILES => 'Struct-Diff-*' },
 );
