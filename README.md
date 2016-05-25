@@ -122,7 +122,7 @@ Struct::Diff fails on structures with loops in references. has\_circular\_ref fr
 to detect such structures.
 
 Only scalars, refs to scalars, ref to arrays and ref to hashes correctly traversed. All other data types compared
-by their reference.
+by their references.
 
 No object oriented interface provided.
 
