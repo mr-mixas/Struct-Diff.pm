@@ -5,7 +5,7 @@ use ExtUtils::MakeMaker;
 
 WriteMakefile(
     NAME             => 'Struct::Diff',
-    AUTHOR           => q{Michael Samoglyadov <mixas@cpan.org>},
+    AUTHOR           => 'Michael Samoglyadov <mixas@cpan.org>',
     VERSION_FROM     => 'lib/Struct/Diff.pm',
     ABSTRACT_FROM    => 'lib/Struct/Diff.pm',
     LICENSE          => 'Perl_5',
@@ -16,9 +16,13 @@ WriteMakefile(
     },
     BUILD_REQUIRES => {
         'Data::Compare'   => 0,
-        'Pod::Markdown'   => 0,
         'Storable'        => 0,
         'Test::More'      => 0,
+    },
+    META_MERGE => {
+        resources => {
+            repository  => 'https://github.com/mr-mixas/Struct-Diff.pm',
+        },
     },
     PREREQ_PM => {
         'Carp'            => 0,
@@ -27,7 +31,6 @@ WriteMakefile(
     dist  => {
         COMPRESS => 'gzip -9f',
         SUFFIX   => 'gz',
-        PREOP    => 'pod2markdown lib/Struct/Diff.pm > README.md',
     },
     clean => { FILES => 'Struct-Diff-*' },
 );
