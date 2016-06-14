@@ -162,7 +162,7 @@ You can also look for information at:
 
 # SEE ALSO
 
-[Data::Diff](https://metacpan.org/pod/Data::Diff)
+[Data::Diff](https://metacpan.org/pod/Data::Diff), [Data::Difference](https://metacpan.org/pod/Data::Difference)
 
 [Array::Diff](https://metacpan.org/pod/Array::Diff), [Array::Compare](https://metacpan.org/pod/Array::Compare), [Algorithm::Diff](https://metacpan.org/pod/Algorithm::Diff), [Data::Compare](https://metacpan.org/pod/Data::Compare), [Hash::Diff](https://metacpan.org/pod/Hash::Diff), [Test::Struct](https://metacpan.org/pod/Test::Struct),
 [Struct::Compare](https://metacpan.org/pod/Struct::Compare)

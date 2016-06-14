@@ -455,7 +455,7 @@ L<http://search.cpan.org/dist/Struct-Diff/>
 
 =head1 SEE ALSO
 
-L<Data::Diff>
+L<Data::Diff>, L<Data::Difference>
 
 L<Array::Diff>, L<Array::Compare>, L<Algorithm::Diff>, L<Data::Compare>, L<Hash::Diff>, L<Test::Struct>,
 L<Struct::Compare>
