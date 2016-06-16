@@ -46,19 +46,19 @@ Diff's keys shows status of each item in passed structures.
 
 - A
 
-    stands for 'added' (exists only in second structure), it's value - added item.
+    Stands for 'added' (exists only in second structure), it's value - added item.
 
 - D
 
-    means 'different' and contains subdiff.
+    Means 'different' and contains subdiff.
 
 - I
 
-    shows index for changed items (in arrays only).
+    Shows index for changed items (in arrays only).
 
 - N
 
-    is a new value for changed item.
+    Is a new value for changed item.
 
 - O
 
@@ -66,21 +66,21 @@ Diff's keys shows status of each item in passed structures.
 
 - R
 
-    similar for 'A', but for removed items.
+    Similar for 'A', but for removed items.
 
 - U
 
-    represent 'unchanged' items - common for both structures.
+    Represent 'unchanged' items - common for both structures.
 
 ### Available options
 
 - noX
 
-    Where X is a status (A, N, O, R, U); such status will be omitted
+    Where X is a status (A, N, O, R, U); such status will be omitted.
 
 - trimR
 
-    Drop removed item's data
+    Drop removed item's data.
 
 ## dselect
 
