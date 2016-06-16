@@ -58,7 +58,7 @@ Nothing exports by default
 
 =head2 diff
 
-Returns HASH reference to diff between two passed things. Beware when
+Returns HASH reference to recursive diff between two passed things. Beware when
 changing diff: some of it's substructures are links to original structures.
 
     $diff = diff($a, $b, %opts);
@@ -80,7 +80,7 @@ Means 'different' and contains subdiff.
 
 =item I
 
-Shows index for changed items (in arrays only).
+Shows index for changed item (arrays only).
 
 =item N
 
@@ -230,7 +230,7 @@ specified states will be returned if opt exists, but not defined or is an empty 
 =item states
 
 Expects hash with desired states as keys with values in some true value. Items with all states will be returned if
-opt not defined
+opt not defined.
 
 =back
 
@@ -270,10 +270,10 @@ sub dselect(@) {
 
 =head2 dsplit
 
-Divide diff to pseudo original structures.
+Divide diff to pseudo original structures
 
     $structs = dsplit($diff);
-    # $structs->{'a'} - now contains items originated from original $a
+    # $structs->{'a'} - now contains items originated from $a
     # $structs->{'b'} - same for $b
 
 =cut
@@ -358,7 +358,7 @@ sub dsplit($) {
 
 =head2 patch
 
-Apply diff.
+Apply diff
 
     patch($a, $diff);
 
