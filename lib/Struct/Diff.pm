@@ -72,19 +72,19 @@ Diff's keys shows status of each item in passed structures.
 
 =item A
 
-stands for 'added' (exists only in second structure), it's value - added item.
+Stands for 'added' (exists only in second structure), it's value - added item.
 
 =item D
 
-means 'different' and contains subdiff.
+Means 'different' and contains subdiff.
 
 =item I
 
-shows index for changed items (in arrays only).
+Shows index for changed items (in arrays only).
 
 =item N
 
-is a new value for changed item.
+Is a new value for changed item.
 
 =item O
 
@@ -92,11 +92,11 @@ Alike 'N', 'O' is a changed item's old value.
 
 =item R
 
-similar for 'A', but for removed items.
+Similar for 'A', but for removed items.
 
 =item U
 
-represent 'unchanged' items - common for both structures.
+Represent 'unchanged' items - common for both structures.
 
 =back
 
@@ -106,11 +106,11 @@ represent 'unchanged' items - common for both structures.
 
 =item noX
 
-Where X is a status (A, N, O, R, U); such status will be omitted
+Where X is a status (A, N, O, R, U); such status will be omitted.
 
 =item trimR
 
-Drop removed item's data
+Drop removed item's data.
 
 =back
 
@@ -162,7 +162,7 @@ sub diff($$;@) {
         delete $s->{'I'}; # ignored -- not a status
 
         if (keys %{$s} == 1 and not $hidden) { # all have one state - drop D and return native state
-            my ($n) = (keys(%{$s}))[0];
+            my $n = (keys(%{$s}))[0];
             map { $_ = $_->{$n} } @{$d->{'D'}};
             $d->{$n} = delete $d->{'D'};
         }
