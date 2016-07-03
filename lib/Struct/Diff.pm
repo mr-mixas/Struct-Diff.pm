@@ -298,58 +298,15 @@ sub dsplit($) {
                 $s->{'b'}->{$key} = $ts->{'b'} if (exists $ts->{'b'});
             }
         }
-    }
-
-    if (exists $d->{'U'}) {
-        if (ref $d->{'U'} eq 'ARRAY') {
-            push @{$s->{'a'}}, @{$d->{'U'}};
-            push @{$s->{'b'}}, @{$d->{'U'}};
-        } elsif (ref $d->{'U'} eq 'HASH') {
-            $s->{'a'} = defined $s->{'a'} ? { %{$s->{'a'}}, %{$d->{'U'}} } : { %{$d->{'U'}} };
-            $s->{'b'} = defined $s->{'b'} ? { %{$s->{'b'}}, %{$d->{'U'}} } : { %{$d->{'U'}} };
-        } else {
-            $s->{'a'} = $s->{'b'} = $d->{'U'};
-        }
-    }
-
-    if (exists $d->{'A'}) {
-        if (ref $d->{'A'} eq 'ARRAY') {
-            push @{$s->{'b'}}, @{$d->{'A'}};
-        } elsif (ref $d->{'A'} eq 'HASH') {
-            $s->{'b'} = defined $s->{'b'} ? { %{$s->{'b'}}, %{$d->{'A'}} } : { %{$d->{'A'}} };
-        } else {
-            $s->{'b'} = $d->{'A'};
-        }
-    }
-
-    if (exists $d->{'N'}) {
-        if (ref $d->{'N'} eq 'ARRAY') {
-            push @{$s->{'b'}}, $d->{'N'}, splice(@{$s->{'b'}}, $d->{'I'});
-        } elsif (ref $d->{'A'} eq 'HASH') {
-            $s->{'b'} = defined $s->{'b'} ? { %{$s->{'b'}}, %{$d->{'N'}} } : { %{$d->{'N'}} };
-        } else {
-            $s->{'b'} = $d->{'N'};
-        }
-    }
-
-    if (exists $d->{'O'}) {
-        if (ref $d->{'O'} eq 'ARRAY') {
-            push @{$s->{'b'}}, $d->{'O'}, splice(@{$s->{'b'}}, $d->{'I'});
-        } elsif (ref $d->{'O'} eq 'HASH') {
-            $s->{'a'} = defined $s->{'a'} ? { %{$s->{'a'}}, %{$d->{'O'}} } : { %{$d->{'O'}} };
-        } else {
-            $s->{'a'} = $d->{'O'};
-        }
-    }
-
-    if (exists $d->{'R'}) {
-        if (ref $d->{'R'} eq 'ARRAY') {
-            push @{$s->{'a'}}, @{$d->{'R'}};
-        } elsif (ref $d->{'R'} eq 'HASH') {
-            $s->{'a'} = defined $s->{'a'} ? { %{$s->{'a'}}, %{$d->{'R'}} } : { %{$d->{'R'}} };
-        } else {
-            $s->{'a'} = $d->{'R'};
-        }
+    } elsif (exists $d->{'U'}) {
+        $s->{'a'} = $s->{'b'} = $d->{'U'};
+    } elsif (exists $d->{'A'}) {
+        $s->{'b'} = $d->{'A'};
+    } elsif (exists $d->{'R'}) {
+        $s->{'a'} = $d->{'R'};
+    } else {
+        $s->{'b'} = $d->{'N'} if (exists $d->{'N'});
+        $s->{'a'} = $d->{'O'} if (exists $d->{'O'});
     }
 
     return $s;
