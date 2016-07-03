@@ -4,7 +4,7 @@ Struct::Diff - Recursive diff tools for nested perl structures
 
 # VERSION
 
-Version 0.56
+Version 0.57
 
 # SYNOPSIS
 
@@ -167,7 +167,7 @@ You can also look for information at:
 [Array::Diff](https://metacpan.org/pod/Array::Diff), [Array::Compare](https://metacpan.org/pod/Array::Compare), [Algorithm::Diff](https://metacpan.org/pod/Algorithm::Diff), [Data::Compare](https://metacpan.org/pod/Data::Compare), [Hash::Diff](https://metacpan.org/pod/Hash::Diff), [Test::Struct](https://metacpan.org/pod/Test::Struct),
 [Struct::Compare](https://metacpan.org/pod/Struct::Compare)
 
-[Data::Structure::Util](https://metacpan.org/pod/Data::Structure::Util), [Struct::Path](https://metacpan.org/pod/Struct::Path)
+[Data::Structure::Util](https://metacpan.org/pod/Data::Structure::Util), [Struct::Path](https://metacpan.org/pod/Struct::Path), [Struct::Path::PerlStyle](https://metacpan.org/pod/Struct::Path::PerlStyle)
 
 # LICENSE AND COPYRIGHT
 

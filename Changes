@@ -1,5 +1,9 @@
 Revision history for Struct-Diff
 
+0.57    2016-07-03
+        Unused code removed
+        More tests added, tests refactored
+
 0.56    2016-06-22
         Pod and dist corrected, unused code removed.
 
