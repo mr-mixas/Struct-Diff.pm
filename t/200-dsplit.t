@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 use Storable qw(freeze);
-use Test::More tests => 12;
+use Test::More tests => 16;
 
 use Struct::Diff qw(diff dsplit);
 
@@ -78,6 +78,51 @@ $frozen_d = freeze($d);
 ok(
     $s = dsplit($d) and
     scmp($s, {a => $a,b => $b}, "complex hashes, full diff")
+);
+
+ok($frozen_d eq freeze($d)); # original struct must remain unchanged
+
+### mixed structures ###
+
+$a = {
+    'ak' => 'av',
+    'bk' => [ 'bav', 'bbv', 'bcv', 'bdv' ],
+    'ck' => { 'ca' => 'cav', 'cb' => 'cbv', 'cc' => 'ccv', 'cd' => 'cdv', 'ce' => 'cev' },
+    'dk' => 'dav',
+    'ek' => 'eav'
+};
+$b = {
+    'ak' => 'an',
+    'bk' => [ 'bav', 'bbn', 'bcn', 'bdv' ],
+    'ck' => { 'ca' => 'can', 'cb' => 'cbv', 'cc' => 'ccv', 'cd' => 'cdn', 'cf' => 'cef' },
+    'dk' => 'dav',
+    'fk' => 'fav'
+};
+
+$d = diff($a, $b);
+$frozen_d = freeze($d);
+
+ok(
+    $s = dsplit($d) and
+    scmp($s, {a => $a,b => $b}, "complex struct, full diff")
+);
+
+ok($frozen_d eq freeze($d)); # original struct must remain unchanged
+
+
+$d = diff($a, $b, 'noU' => 1);
+$frozen_d = freeze($d);
+
+ok(
+    $s = dsplit($d) and
+    scmp(
+        $s,
+        {
+            a => {ak => 'av',bk => ['bbv','bcv'],ck => {ca => 'cav',cd => 'cdv',ce => 'cev'},ek => 'eav'},
+            b => {ak => 'an',bk => ['bbn','bcn'],ck => {ca => 'can',cd => 'cdn',cf => 'cef'},fk => 'fav'}
+        },
+        "complex struct, noU => 1"
+    )
 );
 
 ok($frozen_d eq freeze($d)); # original struct must remain unchanged
