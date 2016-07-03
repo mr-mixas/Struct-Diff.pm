@@ -24,11 +24,11 @@ Struct::Diff - Recursive diff tools for nested perl structures
 
 =head1 VERSION
 
-Version 0.56
+Version 0.57
 
 =cut
 
-our $VERSION = '0.56';
+our $VERSION = '0.57';
 
 =head1 SYNOPSIS
 
@@ -196,7 +196,7 @@ sub diff($$;@) {
             for my $s (keys %{$d}) {
                 next if ($s eq 'D');
                 map { $d->{'D'}->{$_}->{$s} = delete $d->{$s}->{$_} } keys %{$d->{$s}};
-                delete $d->{$s} unless ($s eq 'D');
+                delete $d->{$s};
             }
         }
     } else { # treat others as scalars
@@ -287,13 +287,13 @@ sub dsplit($) {
     if (exists $d->{'D'}) {
         if (ref $d->{'D'} eq 'ARRAY') {
             for my $di (@{$d->{'D'}}) {
-                my ($ts) = dsplit($di);
+                my $ts = dsplit($di);
                 push @{$s->{'a'}}, $ts->{'a'} if (exists $ts->{'a'});
                 push @{$s->{'b'}}, $ts->{'b'} if (exists $ts->{'b'});
             }
-        } elsif (ref $d->{'D'} eq 'HASH') {
+        } else { # HASH
             for my $key (keys %{$d->{'D'}}) {
-                my ($ts) = dsplit($d->{'D'}->{$key});
+                my $ts = dsplit($d->{'D'}->{$key});
                 $s->{'a'}->{$key} = $ts->{'a'} if (exists $ts->{'a'});
                 $s->{'b'}->{$key} = $ts->{'b'} if (exists $ts->{'b'});
             }
@@ -308,7 +308,6 @@ sub dsplit($) {
             $s->{'a'} = defined $s->{'a'} ? { %{$s->{'a'}}, %{$d->{'U'}} } : { %{$d->{'U'}} };
             $s->{'b'} = defined $s->{'b'} ? { %{$s->{'b'}}, %{$d->{'U'}} } : { %{$d->{'U'}} };
         } else {
-            croak "Duplicates with different status" if (defined $s->{'a'} or defined $s->{'b'});
             $s->{'a'} = $s->{'b'} = $d->{'U'};
         }
     }
@@ -386,7 +385,7 @@ sub patch($$) {
                 }
                 pop @{$s} if (exists $d->{'D'}->[$i]->{'R'});
             }
-        } else {
+        } else { # HASH
             for my $k (keys %{$d->{'D'}}) {
                 next if (exists $d->{'D'}->{$k}->{'U'});
                 if (exists $d->{'D'}->{$k}->{'D'} or exists $d->{'D'}->{$k}->{'N'}) {
@@ -460,7 +459,7 @@ L<Data::Diff>, L<Data::Difference>
 L<Array::Diff>, L<Array::Compare>, L<Algorithm::Diff>, L<Data::Compare>, L<Hash::Diff>, L<Test::Struct>,
 L<Struct::Compare>
 
-L<Data::Structure::Util>, L<Struct::Path>
+L<Data::Structure::Util>, L<Struct::Path>, L<Struct::Path::PerlStyle>
 
 =head1 LICENSE AND COPYRIGHT
 
