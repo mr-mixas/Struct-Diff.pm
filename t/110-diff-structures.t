@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 use Storable qw(freeze);
-use Test::More tests => 32;
+use Test::More tests => 34;
 
 use Struct::Diff qw(diff);
 
@@ -28,6 +28,10 @@ ok($d = diff([ 1 ], []) and
 
 ok($d = diff([ 1 ], [], 'noR' => 1) and
     scmp($d, {}, "[1] vs [], noR => 1")
+);
+
+ok($d = diff([[ 0 ]], [[ 1 ]]) and # deep single-nested changed
+    scmp($d, {D => [{D => [{N => 1,O => 0}]}]}, "[[0]] vs [[1]]")
 );
 
 ok($d = diff([], [[[[[ 0, 1 ]]]]]) and
@@ -110,6 +114,18 @@ ok($d = diff({ 'a' => 'va' }, {}) and
 
 ok($d = diff({ 'a' => 'va' }, {}, 'noR' => 1) and
     scmp($d, {}, "{a => 'va'} vs {}, noR => 1")
+);
+
+ok(
+    $d = diff(
+        {a =>{aa => {aaa => 'aaav'}}},
+        {a =>{aa => {aaa => 'aaan'}}},
+    ) and
+    scmp(
+        $d,
+        {D => {a => {D => {aa => {D => {aaa => {N => 'aaan',O => 'aaav'}}}}}}},
+        "HASH: deep single-nested changed"
+    )
 );
 
 ok($d = diff({ 'a' => { 'aa' => { 'aaa' => 'vaaaa' }}}, {}, 'trimR' => 1) and
