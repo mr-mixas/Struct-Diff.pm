@@ -24,11 +24,11 @@ Struct::Diff - Recursive diff tools for nested perl structures
 
 =head1 VERSION
 
-Version 0.57
+Version 0.58
 
 =cut
 
-our $VERSION = '0.57';
+our $VERSION = '0.58';
 
 =head1 SYNOPSIS
 
@@ -161,7 +161,7 @@ sub diff($$;@) {
         my $s = { map { $_, 1 } map { keys %{$_} } exists $d->{'D'} ? @{$d->{'D'}} : { 'U' => 1 } };
         delete $s->{'I'}; # ignored -- not a status
 
-        if (keys %{$s} == 1 and not $hidden) { # all have one state - drop D and return native state
+        if (keys %{$s} == 1 and not ($hidden or exists $s->{'D'})) { # all has same status - drop D and return as is
             my $n = (keys(%{$s}))[0];
             map { $_ = $_->{$n} } @{$d->{'D'}};
             $d->{$n} = delete $d->{'D'};
