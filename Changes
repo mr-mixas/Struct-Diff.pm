@@ -1,5 +1,9 @@
 Revision history for Struct-Diff
 
+0.58    2016-07-06
+        Diff fixed for array's nested single items,
+        example: [[ 0 ]] vs [[ 1 ]], tests for this case added.
+
 0.57    2016-07-03
         Unused code removed
         More tests added, tests refactored
