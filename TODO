@@ -1,10 +1,15 @@
-*   Recursive diff validator
+*   dvalidate($diff)
+    Recursive diff validator
 
 *   Callbacks for equal type cmp function.
     Provided function must return diff substructure with custom states.
     patch() also must provide callback interface to support such new states.
     profits: traditional text diff may be implemented for texts in leaf nodes and so on.
+        dubious - what about nodes-nonleaves?
+        pair of keys may be slightly different, but have same values
 
-*   LCS for array's diff: use some digest (callback?) to calculate list's contents (or signature() from Data::Structure::Util)???
+*   LCS for array's diff
 
-*   dstatus($diff, $path)
+*   dpath($diff, $path) as replacement for dselect()
+    must returns subdiffs specified by path
+    must returns statuses for subdiffs specified by path
