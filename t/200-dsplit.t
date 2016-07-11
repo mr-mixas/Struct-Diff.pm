@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 use Storable qw(freeze);
-use Test::More tests => 16;
+use Test::More tests => 17;
 
 use Struct::Diff qw(diff dsplit);
 
@@ -19,6 +19,11 @@ ok($@ =~ /^Unsupported diff struct passed/);
 
 eval { $s = dsplit({D => 'garbage'}) };
 ok($@ =~ /^Value for 'D' status must be hash or array/);
+
+ok(
+    $s = dsplit({garbage_as_a_status => 'garbage'}) and
+    scmp($s, {}, "diff: {garbage_as_a_status => 'garbage'}")
+);
 
 ### primitives ###
 ok(
@@ -74,7 +79,6 @@ $b = { 'a' => 'a1', 'b' => { 'ba' => 'ba2', 'bb' => 'bb1' }, 'd' => 'd1' };
 
 $d = diff($a, $b);
 $frozen_d = freeze($d);
-
 ok(
     $s = dsplit($d) and
     scmp($s, {a => $a,b => $b}, "complex hashes, full diff")
