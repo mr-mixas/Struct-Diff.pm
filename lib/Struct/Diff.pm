@@ -6,7 +6,7 @@ use warnings FATAL => 'all';
 use parent qw(Exporter);
 use Carp qw(croak);
 
-our @EXPORT_OK = qw(diff dselect dsplit patch);
+our @EXPORT_OK = qw(diff dselect dsplit dtraverse patch);
 
 sub _validate_meta($) {
     my $d = shift;
@@ -24,11 +24,11 @@ Struct::Diff - Recursive diff tools for nested perl structures
 
 =head1 VERSION
 
-Version 0.58
+Version 0.60
 
 =cut
 
-our $VERSION = '0.58';
+our $VERSION = '0.60';
 
 =head1 SYNOPSIS
 
@@ -310,6 +310,50 @@ sub dsplit($) {
     }
 
     return $s;
+}
+
+=head2 dtraverse
+
+Traverse through diff invoking callback functions for subdiff statuses. Important: path (secont argument,
+passed to callback functions) is actual for callback lifetime and will be changed afterwards.
+
+    my $opts = {
+        A => sub { print "added:", $_[0], "depth:", @{$_[1]} },
+        U => sub { print "unchaanged: ", $_[0] },
+    };
+    dtraverse($diff, $opts);
+
+=cut
+
+sub dtraverse($$;$);
+sub dtraverse($$;$) {
+    my ($d, $o, $p) = (shift, shift, shift || []);
+    _validate_meta($d);
+
+    if (exists $d->{'D'}) {
+        if (ref $d->{'D'} eq 'ARRAY') {
+            for (my $i = 0; $i < @{$d->{'D'}}; $i++) {
+                push @{$p}, [$i];
+                dtraverse($d->{'D'}->[$i], $o, $p);
+                pop @{$p};
+            }
+        } else { # HASH
+            for my $k (keys %{$d->{'D'}}) {
+                push @{$p}, { 'keys' => [$k] };
+                dtraverse($d->{'D'}->{$k}, $o, $p);
+                pop @{$p};
+            }
+        }
+    } elsif (exists $d->{'U'} and $o->{'U'}) {
+        $o->{'U'}($d->{'U'}, $p);
+    } elsif (exists $d->{'A'} and $o->{'A'}) {
+        $o->{'A'}($d->{'A'}, $p);
+    } elsif (exists $d->{'R'} and $o->{'R'}) {
+        $o->{'R'}($d->{'R'}, $p);
+    } else {
+        $o->{'N'}($d->{'N'}, $p) if (exists $d->{'N'} and $o->{'N'});
+        $o->{'O'}($d->{'O'}, $p) if (exists $d->{'O'} and $o->{'O'});
+    }
 }
 
 =head2 patch

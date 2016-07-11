@@ -4,7 +4,7 @@ Struct::Diff - Recursive diff tools for nested perl structures
 
 # VERSION
 
-Version 0.57
+Version 0.60
 
 # SYNOPSIS
 
@@ -110,6 +110,17 @@ Divide diff to pseudo original structures
     # $structs->{'a'} - now contains items originated from $a
     # $structs->{'b'} - same for $b
 
+## dtraverse
+
+Traverse through diff invoking callback functions for subdiff statuses. Important: path (secont argument,
+passed to callback functions) is actual for callback lifetime and will be changed afterwards.
+
+    my $opts = {
+        A => sub { print "added:", $_[0], "depth:", @{$_[1]} },
+        U => sub { print "unchaanged: ", $_[0] },
+    };
+    dtraverse($diff, $opts);
+
 ## patch
 
 Apply diff
@@ -162,7 +173,7 @@ You can also look for information at:
 
 # SEE ALSO
 
-[Data::Diff](https://metacpan.org/pod/Data::Diff), [Data::Difference](https://metacpan.org/pod/Data::Difference)
+[Data::Diff](https://metacpan.org/pod/Data::Diff), [Data::Difference](https://metacpan.org/pod/Data::Difference), [Data::Deep](https://metacpan.org/pod/Data::Deep)
 
 [Array::Diff](https://metacpan.org/pod/Array::Diff), [Array::Compare](https://metacpan.org/pod/Array::Compare), [Algorithm::Diff](https://metacpan.org/pod/Algorithm::Diff), [Data::Compare](https://metacpan.org/pod/Data::Compare), [Hash::Diff](https://metacpan.org/pod/Hash::Diff), [Test::Struct](https://metacpan.org/pod/Test::Struct),
 [Struct::Compare](https://metacpan.org/pod/Struct::Compare)

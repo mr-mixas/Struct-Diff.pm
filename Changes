@@ -1,5 +1,8 @@
 Revision history for Struct-Diff
 
+0.60    2016-07-11
+        dtraverse() appeared
+
 0.58    2016-07-06
         Diff fixed for array's nested single items,
         example: [[ 0 ]] vs [[ 1 ]], tests for this case added.
