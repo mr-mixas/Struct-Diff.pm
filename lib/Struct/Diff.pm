@@ -24,11 +24,11 @@ Struct::Diff - Recursive diff tools for nested perl structures
 
 =head1 VERSION
 
-Version 0.60
+Version 0.61
 
 =cut
 
-our $VERSION = '0.60';
+our $VERSION = '0.61';
 
 =head1 SYNOPSIS
 
@@ -369,37 +369,31 @@ sub patch($$) {
     my ($s, $d) = @_;
     _validate_meta($d);
 
-    ${$s} = $d->{'N'} if (exists $d->{'N'});
-
     if (exists $d->{'D'}) {
         if (ref $d->{'D'} eq 'ARRAY') {
             for my $i (0..$#{$d->{'D'}}) {
-                next if (exists $d->{'D'}->[$i]->{'U'});
                 my $si = exists $d->{'D'}->[$i]->{'I'} ? $d->{'D'}->[$i]->{'I'} : $i; # use provided index
                 if (exists $d->{'D'}->[$i]->{'D'} or exists $d->{'D'}->[$i]->{'N'}) {
                     patch(ref $s->[$si] ? $s->[$si] : \$s->[$si], $d->{'D'}->[$i]);
-                    next;
-                }
-                if (exists $d->{'D'}->[$i]->{'A'}) {
+                } elsif (exists $d->{'D'}->[$i]->{'A'}) {
                     push @{$s}, $d->{'D'}->[$i]->{'A'};
-                    next;
+                } elsif (exists $d->{'D'}->[$i]->{'R'}) {
+                    pop @{$s};
                 }
-                pop @{$s} if (exists $d->{'D'}->[$i]->{'R'});
             }
         } else { # HASH
             for my $k (keys %{$d->{'D'}}) {
-                next if (exists $d->{'D'}->{$k}->{'U'});
                 if (exists $d->{'D'}->{$k}->{'D'} or exists $d->{'D'}->{$k}->{'N'}) {
                     patch(ref $s->{$k} ? $s->{$k} : \$s->{$k}, $d->{'D'}->{$k});
-                    next;
-                }
-                if (exists $d->{'D'}->{$k}->{'A'}) {
+                } elsif (exists $d->{'D'}->{$k}->{'A'}) {
                     $s->{$k} = $d->{'D'}->{$k}->{'A'};
-                    next;
+                } elsif (exists $d->{'D'}->{$k}->{'R'}) {
+                    delete $s->{$k};
                 }
-                delete $s->{$k} if (exists $d->{'D'}->{$k}->{'R'});
             }
         }
+    } elsif (exists $d->{'N'}) {
+        ${$s} = $d->{'N'};
     }
 
     return 1;
