@@ -134,9 +134,10 @@ sub diff($$;@) {
             $d->{'N'} = $b;
         }
     } elsif ((ref $a eq 'ARRAY') and ($a ne $b)) {
+        my $s; # statuses collector
         for (my $i = 0; $i < @{$a} and $i < @{$b}; $i++) {
             my $tmp = diff($a->[$i], $b->[$i], %opts);
-            if (keys %{$tmp}) {
+            if (map { $s->{$_} = 1 } keys %{$tmp}) { # true if keys exists
                 $tmp->{'I'} = $i if ($hidden);
                 push @{$d->{'D'}}, $tmp;
             } else {
@@ -147,6 +148,7 @@ sub diff($$;@) {
             if ($opts{'noR'}) {
                 $hidden = 1;
             } else {
+                $s->{'R'} = 1;
                 map { push @{$d->{'D'}}, { 'R' => $opts{'trimR'} ? undef : $_ } } @{$a}[@{$b}..$#{$a}];
             }
         }
@@ -154,17 +156,14 @@ sub diff($$;@) {
             if ($opts{'noA'}) {
                 $hidden = 1;
             } else {
+                $s->{'A'} = 1;
                 map { push @{$d->{'D'}}, { 'A' => $_ } } @{$b}[@{$a}..$#{$b}];
             }
         }
 
-        my $s = { map { $_, 1 } map { keys %{$_} } exists $d->{'D'} ? @{$d->{'D'}} : { 'U' => 1 } };
-        delete $s->{'I'}; # ignored -- not a status
-
-        if (keys %{$s} == 1 and not ($hidden or exists $s->{'D'})) { # all has same status - drop D and return as is
-            my $n = (keys(%{$s}))[0];
-            map { $_ = $_->{$n} } @{$d->{'D'}};
-            $d->{$n} = delete $d->{'D'};
+        if ((my @k = keys %{$s}) == 1 and not ($hidden or exists $s->{'D'})) { # all have same status - return it
+            map { $_ = $_->{$k[0]} } @{$d->{'D'}};
+            $d->{$k[0]} = delete $d->{'D'};
         }
     } elsif ((ref $a eq 'HASH') and ($a ne $b)) {
         for my $key (keys %{{ %{$a}, %{$b} }}) { # go througth united uniq keys
