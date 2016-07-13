@@ -1,5 +1,9 @@
 Revision history for Struct-Diff
 
+0.61    2016-07-13
+        Refactoring
+        diff()'s speed improved (~20%) on arrays
+
 0.60    2016-07-11
         dtraverse() appeared
 
