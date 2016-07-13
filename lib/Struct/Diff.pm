@@ -199,11 +199,9 @@ sub diff($$;@) {
                 delete $d->{$s};
             }
         }
-    } else { # treat others as scalars
-        unless ((not defined $a and not defined $b) or ((defined $a and defined $b) and ($a eq $b))) {
-            $d->{'O'} = $a unless ($opts{'noO'});
-            $d->{'N'} = $b unless ($opts{'noN'});
-        }
+    } elsif (not(defined $a and defined $b and $a eq $b or not defined $a and not defined $b)) { # other types
+        $d->{'O'} = $a unless ($opts{'noO'});
+        $d->{'N'} = $b unless ($opts{'noN'});
     }
     $d->{'U'} = $a unless ($hidden or $opts{'noU'} or keys %{$d});
 
