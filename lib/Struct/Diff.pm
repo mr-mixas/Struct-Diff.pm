@@ -24,11 +24,11 @@ Struct::Diff - Recursive diff tools for nested perl structures
 
 =head1 VERSION
 
-Version 0.61
+Version 0.62
 
 =cut
 
-our $VERSION = '0.61';
+our $VERSION = '0.62';
 
 =head1 SYNOPSIS
 
@@ -64,7 +64,7 @@ changing diff: some of it's substructures are links to original structures.
     $diff = diff($a, $b, %opts);
     $patch = diff($a, $b, noU => 1, noO => 1, trimR => '1'); # smallest possible diff
 
-=head3 Metadata format
+=head3 Diff metadata format
 
 Diff's keys shows status of each item in passed structures.
 
@@ -88,11 +88,11 @@ Is a new value for changed item.
 
 =item O
 
-Alike 'N', 'O' is a changed item's old value.
+Alike C<N>, C<O> is a changed item's old value.
 
 =item R
 
-Similar for 'A', but for removed items.
+Similar for C<A>, but for removed items.
 
 =item U
 
@@ -106,7 +106,7 @@ Represent 'unchanged' items - common for both structures.
 
 =item noX
 
-Where X is a status (A, N, O, R, U); such status will be omitted.
+Where X is a status (C<A>, C<N>, C<O>, C<R>, C<U>); such status will be omitted.
 
 =item trimR
 
@@ -446,10 +446,7 @@ L<http://search.cpan.org/dist/Struct-Diff/>
 
 =head1 SEE ALSO
 
-L<Data::Diff>, L<Data::Difference>, L<Data::Deep>
-
-L<Array::Diff>, L<Array::Compare>, L<Algorithm::Diff>, L<Data::Compare>, L<Hash::Diff>, L<Test::Struct>,
-L<Struct::Compare>
+L<Data::Diff>, L<Data::Difference>, L<Data::Deep>, L<JSON::MergePatch>
 
 L<Data::Structure::Util>, L<Struct::Path>, L<Struct::Path::PerlStyle>
 

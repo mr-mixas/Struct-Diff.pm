@@ -1,5 +1,8 @@
 Revision history for Struct-Diff
 
+0.62    2016-07-15
+        Docs corrected
+
 0.61    2016-07-13
         Refactoring
         diff()'s speed improved (~20%) on arrays

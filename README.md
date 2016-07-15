@@ -4,7 +4,7 @@ Struct::Diff - Recursive diff tools for nested perl structures
 
 # VERSION
 
-Version 0.61
+Version 0.62
 
 # SYNOPSIS
 
@@ -40,7 +40,7 @@ changing diff: some of it's substructures are links to original structures.
     $diff = diff($a, $b, %opts);
     $patch = diff($a, $b, noU => 1, noO => 1, trimR => '1'); # smallest possible diff
 
-### Metadata format
+### Diff metadata format
 
 Diff's keys shows status of each item in passed structures.
 
@@ -62,11 +62,11 @@ Diff's keys shows status of each item in passed structures.
 
 - O
 
-    Alike 'N', 'O' is a changed item's old value.
+    Alike `N`, `O` is a changed item's old value.
 
 - R
 
-    Similar for 'A', but for removed items.
+    Similar for `A`, but for removed items.
 
 - U
 
@@ -76,7 +76,7 @@ Diff's keys shows status of each item in passed structures.
 
 - noX
 
-    Where X is a status (A, N, O, R, U); such status will be omitted.
+    Where X is a status (`A`, `N`, `O`, `R`, `U`); such status will be omitted.
 
 - trimR
 
@@ -173,10 +173,7 @@ You can also look for information at:
 
 # SEE ALSO
 
-[Data::Diff](https://metacpan.org/pod/Data::Diff), [Data::Difference](https://metacpan.org/pod/Data::Difference), [Data::Deep](https://metacpan.org/pod/Data::Deep)
-
-[Array::Diff](https://metacpan.org/pod/Array::Diff), [Array::Compare](https://metacpan.org/pod/Array::Compare), [Algorithm::Diff](https://metacpan.org/pod/Algorithm::Diff), [Data::Compare](https://metacpan.org/pod/Data::Compare), [Hash::Diff](https://metacpan.org/pod/Hash::Diff), [Test::Struct](https://metacpan.org/pod/Test::Struct),
-[Struct::Compare](https://metacpan.org/pod/Struct::Compare)
+[Data::Diff](https://metacpan.org/pod/Data::Diff), [Data::Difference](https://metacpan.org/pod/Data::Difference), [Data::Deep](https://metacpan.org/pod/Data::Deep), [JSON::MergePatch](https://metacpan.org/pod/JSON::MergePatch)
 
 [Data::Structure::Util](https://metacpan.org/pod/Data::Structure::Util), [Struct::Path](https://metacpan.org/pod/Struct::Path), [Struct::Path::PerlStyle](https://metacpan.org/pod/Struct::Path::PerlStyle)
 
