@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 14;
+use Test::More tests => 13;
 
 use Struct::Diff qw(diff dtraverse);
 
@@ -17,19 +17,11 @@ my $opts = {
     callback => sub { $t->{sdump($_[1])}->{$_[2]} = $_[0]; $t->{TOTAL}++ },
 };
 
-$a = { 'a' => [ { 'aa' => { 'aaa' => [ 7, 4 ]}}, 8, 11 ]};
-$b = { 'a' => [ { 'aa' => { 'aab' => [ 7, 3 ]}}, 9, 11 ]};
-my $frozen_a = freeze($a);
-my $frozen_b = freeze($b);
-
 ### no callbacks used ###
 $t = undef;
 $d = diff($a, $b);
 eval { dtraverse($d, {}) };
 ok($@ =~ /^Callback must be a code reference/);
-
-# check original structures not changed
-ok($frozen_a eq freeze($a) and $frozen_b eq freeze($b));
 
 ### primitives ###
 ($a, $b, $t) = (0, 0, undef);
