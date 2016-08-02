@@ -24,11 +24,11 @@ Struct::Diff - Recursive diff tools for nested perl structures
 
 =head1 VERSION
 
-Version 0.62
+Version 0.63
 
 =cut
 
-our $VERSION = '0.62';
+our $VERSION = '0.63';
 
 =head1 SYNOPSIS
 
@@ -52,7 +52,7 @@ our $VERSION = '0.62';
 
 =head1 EXPORT
 
-Nothing exports by default
+Nothing is exported by default.
 
 =head1 SUBROUTINES
 
@@ -311,12 +311,11 @@ sub dsplit($) {
 
 =head2 dtraverse
 
-Traverse through diff invoking callback functions for subdiff statuses. Important: path (secont argument,
-passed to callback functions) is actual for callback lifetime and will be changed afterwards.
+Traverse through diff invoking callback function for subdiff statuses. Important: path (secont argument,
+passed to callback function) is actual for callback lifetime and will be immedeately changed afterwards.
 
     my $opts = {
-        A => sub { print "added:", $_[0], "depth:", @{$_[1]} },
-        U => sub { print "unchaanged: ", $_[0] },
+        callback => sub { print "added value:", $_[0], "depth:", @{$_[1]}, "status:", $_[2] },
     };
     dtraverse($diff, $opts);
 
@@ -325,6 +324,7 @@ passed to callback functions) is actual for callback lifetime and will be change
 sub dtraverse($$;$);
 sub dtraverse($$;$) {
     my ($d, $o, $p) = (shift, shift, shift || []);
+    croak "Callback must be a code reference" unless (ref $o->{'callback'} eq 'CODE');
     _validate_meta($d);
 
     if (exists $d->{'D'}) {
@@ -341,15 +341,8 @@ sub dtraverse($$;$) {
                 pop @{$p};
             }
         }
-    } elsif (exists $d->{'U'} and $o->{'U'}) {
-        $o->{'U'}($d->{'U'}, $p);
-    } elsif (exists $d->{'A'} and $o->{'A'}) {
-        $o->{'A'}($d->{'A'}, $p);
-    } elsif (exists $d->{'R'} and $o->{'R'}) {
-        $o->{'R'}($d->{'R'}, $p);
     } else {
-        $o->{'N'}($d->{'N'}, $p) if (exists $d->{'N'} and $o->{'N'});
-        $o->{'O'}($d->{'O'}, $p) if (exists $d->{'O'} and $o->{'O'});
+        map { $o->{'callback'}($d->{$_}, $p, $_) } sort keys %{$d};
     }
 }
 

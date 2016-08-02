@@ -14,22 +14,19 @@ use _common qw(scmp sdump);
 
 my ($a, $b, $d, $t);
 my $opts = {
-    A => sub { $t->{sdump($_[1])}->{A} = $_[0]; $t->{TOTAL}++ },
-    N => sub { $t->{sdump($_[1])}->{N} = $_[0]; $t->{TOTAL}++ },
-    O => sub { $t->{sdump($_[1])}->{O} = $_[0]; $t->{TOTAL}++ },
-    R => sub { $t->{sdump($_[1])}->{R} = $_[0]; $t->{TOTAL}++ },
-    U => sub { $t->{sdump($_[1])}->{U} = $_[0]; $t->{TOTAL}++ },
+    callback => sub { $t->{sdump($_[1])}->{$_[2]} = $_[0]; $t->{TOTAL}++ },
 };
 
-### no callbacks used callbacks ###
 $a = { 'a' => [ { 'aa' => { 'aaa' => [ 7, 4 ]}}, 8, 11 ]};
 $b = { 'a' => [ { 'aa' => { 'aab' => [ 7, 3 ]}}, 9, 11 ]};
 my $frozen_a = freeze($a);
 my $frozen_b = freeze($b);
+
+### no callbacks used ###
 $t = undef;
 $d = diff($a, $b);
-dtraverse($d, {});
-ok(scmp($t, undef, "0 vs 0, nocallbacks"));
+eval { dtraverse($d, {}) };
+ok($@ =~ /^Callback must be a code reference/);
 
 # check original structures not changed
 ok($frozen_a eq freeze($a) and $frozen_b eq freeze($b));
