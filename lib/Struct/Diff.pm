@@ -47,6 +47,8 @@ our $VERSION = '0.63';
     # $dsplit->{a} not exists                       # unchanged omitted, other items originated from $b
     # $dsplit->{b} == {x => [{y => 9}],z => 33};
 
+    dtraverse($d, {callback => sub {print "val $_[0] has status $_[2]" }}); # traverse through diff
+
     patch($a, $diff);
     # $a now equal to $b by structure and data
 
