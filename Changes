@@ -1,5 +1,8 @@
 Revision history for Struct-Diff
 
+0.63    2016-08-02
+        dtraverse() opts format changed, 'sortkeys' opt added
+
 0.62    2016-07-15
         Docs corrected
 

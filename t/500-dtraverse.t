@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 13;
+use Test::More tests => 16;
 
 use Struct::Diff qw(diff dtraverse);
 
@@ -12,57 +12,57 @@ $Storable::canonical = 1;
 use lib "t";
 use _common qw(scmp sdump);
 
-my ($a, $b, $d, $t);
+my ($frst, $scnd, $d, $t);
 my $opts = {
     callback => sub { $t->{sdump($_[1])}->{$_[2]} = $_[0]; $t->{TOTAL}++ },
 };
 
 ### no callbacks used ###
 $t = undef;
-$d = diff($a, $b);
+$d = diff($frst, $scnd);
 eval { dtraverse($d, {}) };
 ok($@ =~ /^Callback must be a code reference/);
 
 ### primitives ###
-($a, $b, $t) = (0, 0, undef);
-$d = diff($a, $b);
+($frst, $scnd, $t) = (0, 0, undef);
+$d = diff($frst, $scnd);
 dtraverse($d, $opts);
 ok(scmp($t, {TOTAL => 1,'[]' => {U => 0}}, "0 vs 0"));
 
-($a, $b, $t) = (0, 0, undef);
-$d = diff($a, $b, "noU" => 1);
+($frst, $scnd, $t) = (0, 0, undef);
+$d = diff($frst, $scnd, "noU" => 1);
 dtraverse($d, $opts);
 ok(scmp($t, undef, "0 vs 0, noU => 1"));
 
-($a, $b, $t) = (0, 1, undef);
-$d = diff($a, $b);
+($frst, $scnd, $t) = (0, 1, undef);
+$d = diff($frst, $scnd);
 dtraverse($d, $opts);
 ok(scmp($t, {TOTAL => 2,'[]' => {N => 1,O => 0}}, "0 vs 1"));
 
 ### arrays ###
-($a, $b, $t) = ([ 0 ], [ 0, 1 ], undef);
-$d = diff($a, $b);
+($frst, $scnd, $t) = ([ 0 ], [ 0, 1 ], undef);
+$d = diff($frst, $scnd);
 dtraverse($d, $opts);
 ok(scmp($t, {TOTAL => 2,'[[0]]' => {U => 0},'[[1]]' => {A => 1}}, "[0] vs [0,1]"));
 
-($a, $b, $t) = ([ 0, 1 ], [ 0 ], undef);
-$d = diff($a, $b);
+($frst, $scnd, $t) = ([ 0, 1 ], [ 0 ], undef);
+$d = diff($frst, $scnd);
 dtraverse($d, $opts);
 ok(scmp($t, {TOTAL => 2,'[[0]]' => {U => 0},'[[1]]' => {R => 1}}, "[0,1] vs [0]"));
 
-$a = [[ 0, 0 ]];
-$b = [[ 1, 0 ]];
+$frst = [[ 0, 0 ]];
+$scnd = [[ 1, 0 ]];
 $t = undef;
-$d = diff($a, $b);
+$d = diff($frst, $scnd);
 dtraverse($d, $opts);
 ok(scmp($t, {TOTAL => 3,'[[0],[0]]' => {N => 1,O => 0},'[[0],[1]]' => {U => 0}}, "[[[0,0]]] vs [[[1,0]]]"));
 
 my $sub_array = [ 0, [ 11, 12 ], 2 ];
-$a = [ 0, [[ 100 ]], [ 20, 'a' ], $sub_array, 4 ];
-$b = [ 0, [[ 100 ]], [ 20, 'b' ], $sub_array, 5 ];
+$frst = [ 0, [[ 100 ]], [ 20, 'a' ], $sub_array, 4 ];
+$scnd = [ 0, [[ 100 ]], [ 20, 'b' ], $sub_array, 5 ];
 $t = undef;
 
-$d = diff($a, $b);
+$d = diff($frst, $scnd);
 dtraverse($d, $opts);
 ok(scmp(
     $t,
@@ -78,10 +78,10 @@ ok(scmp(
 ));
 
 #### hashes ###
-$a = { 'a' => 'av' };
-$b = { 'a' => 'av', 'b' => 'bv' };
+$frst = { 'a' => 'av' };
+$scnd = { 'a' => 'av', 'b' => 'bv' };
 $t = undef;
-$d = diff($a, $b);
+$d = diff($frst, $scnd);
 dtraverse($d, $opts);
 ok(scmp(
     $t,
@@ -89,10 +89,10 @@ ok(scmp(
     "HASH, key added"
 ));
 
-$a = { 'a' => 'av', 'b' => 'bv' };
-$b = { 'a' => 'av' };
+$frst = { 'a' => 'av', 'b' => 'bv' };
+$scnd = { 'a' => 'av' };
 $t = undef;
-$d = diff($a, $b);
+$d = diff($frst, $scnd);
 dtraverse($d, $opts);
 ok(scmp(
     $t,
@@ -100,10 +100,10 @@ ok(scmp(
     "HASH: removed key"
 ));
 
-$a = { 'a' => 'av', 'b' => 'bv' };
-$b = { 'a' => 'av' };
+$frst = { 'a' => 'av', 'b' => 'bv' };
+$scnd = { 'a' => 'av' };
 $t = undef;
-$d = diff($a, $b, 'trimR' => 1); # user decision (to trim and have undefs for removed items)
+$d = diff($frst, $scnd, 'trimR' => 1); # user decision (to trim and have undefs for removed items)
 dtraverse($d, $opts);
 ok(scmp(
     $t,
@@ -111,10 +111,10 @@ ok(scmp(
     "HASH: removed key, trimmedR"
 ));
 
-$a = { 'a' => 'a1', 'b' => { 'ba' => 'ba1', 'bb' => 'bb1' }, 'c' => 'c1' };
-$b = { 'a' => 'a1', 'b' => { 'ba' => 'ba2', 'bb' => 'bb1' }, 'd' => 'd1' };
+$frst = { 'a' => 'a1', 'b' => { 'ba' => 'ba1', 'bb' => 'bb1' }, 'c' => 'c1' };
+$scnd = { 'a' => 'a1', 'b' => { 'ba' => 'ba2', 'bb' => 'bb1' }, 'd' => 'd1' };
 $t = undef;
-$d = diff($a, $b);
+$d = diff($frst, $scnd);
 dtraverse($d, $opts);
 ok(scmp(
     $t,
@@ -129,12 +129,47 @@ ok(scmp(
     "HASH: complex test"
 ));
 
+### keys sort
+
+use Data::Dumper;
+$frst = { '0' => 0,  '1' => 1, '02' => 2 };
+$scnd = { '0' => '', '1' => 1, '02' => 2 };
+$t = undef;
+$d = diff($frst, $scnd);
+my $cb = sub {
+    my $key = (values(%{${$_[1]}[-1]}))[0][0];
+    push(@{$t}, "$_[2]:$key=>$_[0]");
+};
+dtraverse($d, { callback => $cb, sortkeys => 1 });
+ok(scmp(
+    $t,
+    ['N:0=>','O:0=>0','U:02=>2','U:1=>1'],
+    "HASH: default (alphabetic) keys sort"
+));
+
+
+$t = undef;
+dtraverse($d, { callback => $cb, sortkeys => sub { sort { $b cmp $a } @_ }});
+ok(scmp(
+    $t,
+    ['U:1=>1','U:02=>2','N:0=>','O:0=>0'],
+    "HASH: custom alphabetic keys sort"
+));
+
+$t = undef;
+dtraverse($d, { callback => $cb, sortkeys => sub { sort { $a <=> $b } @_ }});
+ok(scmp(
+    $t,
+    ['N:0=>','O:0=>0','U:1=>1','U:02=>2'],
+    "HASH: numeric ascending sort"
+));
+
 #### mixed structures ###
-$a = { 'a' => [ { 'aa' => { 'aaa' => [ 7, 4 ]}}, 8 ]};
-$b = { 'a' => [ { 'aa' => { 'aaa' => [ 7, 3 ]}}, 8 ]};
+$frst = { 'a' => [ { 'aa' => { 'aaa' => [ 7, 4 ]}}, 8 ]};
+$scnd = { 'a' => [ { 'aa' => { 'aaa' => [ 7, 3 ]}}, 8 ]};
 $t = undef;
 
-$d = diff($a, $b);
+$d = diff($frst, $scnd);
 dtraverse($d, $opts);
 ok(scmp(
     $t,

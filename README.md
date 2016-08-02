@@ -4,7 +4,7 @@ Struct::Diff - Recursive diff tools for nested perl structures
 
 # VERSION
 
-Version 0.62
+Version 0.63
 
 # SYNOPSIS
 
@@ -28,7 +28,7 @@ Version 0.62
 
 # EXPORT
 
-Nothing exports by default
+Nothing is exported by default.
 
 # SUBROUTINES
 
@@ -112,14 +112,28 @@ Divide diff to pseudo original structures
 
 ## dtraverse
 
-Traverse through diff invoking callback functions for subdiff statuses. Important: path (secont argument,
-passed to callback functions) is actual for callback lifetime and will be changed afterwards.
+Traverse through diff invoking callback function for subdiff statuses.
 
     my $opts = {
-        A => sub { print "added:", $_[0], "depth:", @{$_[1]} },
-        U => sub { print "unchaanged: ", $_[0] },
+        callback => sub { print "added value:", $_[0], "depth:", @{$_[1]}, "status:", $_[2] },
+        sortkeys => sub { sort { $a <=> $b } @_ }   # numeric sort for keys under diff
     };
     dtraverse($diff, $opts);
+
+### Available options
+
+- callback
+
+    Mandatory option, must contain coderef to callback fuction. Three arguments will be passed to provided
+    subroutine: value, path, status. Important: path (second argument) is actual for callback lifetime and will be
+    immedeately changed afterwards.
+
+- sortkeys
+
+    Defines how will be traversed subdiffs for hashes. Keys will be picked Randomely (depends on `keys` behavior,
+    default), sorted by provided subroutine (if value is a coderef) or lexically sorted if set to some other true value.
+
+
 
 ## patch
 

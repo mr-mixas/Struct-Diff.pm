@@ -311,13 +311,31 @@ sub dsplit($) {
 
 =head2 dtraverse
 
-Traverse through diff invoking callback function for subdiff statuses. Important: path (secont argument,
-passed to callback function) is actual for callback lifetime and will be immedeately changed afterwards.
+Traverse through diff invoking callback function for subdiff statuses.
 
     my $opts = {
         callback => sub { print "added value:", $_[0], "depth:", @{$_[1]}, "status:", $_[2] },
+        sortkeys => sub { sort { $a <=> $b } @_ }   # numeric sort for keys under diff
     };
     dtraverse($diff, $opts);
+
+=head3 Available options
+
+=over 4
+
+=item callback
+
+Mandatory option, must contain coderef to callback fuction. Three arguments will be passed to provided
+subroutine: value, path, status. Important: path (second argument) is actual for callback lifetime and will be
+immedeately changed afterwards.
+
+=item sortkeys
+
+Defines how will be traversed subdiffs for hashes. Keys will be picked Randomely (depends on C<keys> behavior,
+default), sorted by provided subroutine (if value is a coderef) or lexically sorted if set to some other true value.
+
+=back
+
 
 =cut
 
@@ -335,7 +353,9 @@ sub dtraverse($$;$) {
                 pop @{$p};
             }
         } else { # HASH
-            for my $k (keys %{$d->{'D'}}) {
+            my @keys = keys %{$d->{'D'}};
+            @keys = ref $o->{'sortkeys'} eq 'CODE' ? $o->{'sortkeys'}(@keys) : sort @keys if ($o->{'sortkeys'});
+            for my $k (@keys) {
                 push @{$p}, { 'keys' => [$k] };
                 dtraverse($d->{'D'}->{$k}, $o, $p);
                 pop @{$p};
