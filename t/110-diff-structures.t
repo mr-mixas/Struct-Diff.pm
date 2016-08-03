@@ -186,7 +186,7 @@ $b = { 'a' => [ { 'aa' => { 'aaa' => [ 7, 3 ]}}, 8 ]};
 $frozen_a = freeze($a);
 $frozen_b = freeze($b);
 
-my ($DaD, $DaD0DaaD);
+#my ($DaD, $DaD0DaaD);
 
 ok($d = diff($a, $b) and
     scmp(
