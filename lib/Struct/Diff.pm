@@ -24,11 +24,11 @@ Struct::Diff - Recursive diff tools for nested perl structures
 
 =head1 VERSION
 
-Version 0.63
+Version 0.64
 
 =cut
 
-our $VERSION = '0.63';
+our $VERSION = '0.64';
 
 =head1 SYNOPSIS
 
@@ -336,8 +336,11 @@ immedeately changed afterwards.
 Defines how will be traversed subdiffs for hashes. Keys will be picked Randomely (depends on C<keys> behavior,
 default), sorted by provided subroutine (if value is a coderef) or lexically sorted if set to some other true value.
 
-=back
+=item statuses
 
+Exact list of statuses. Sequence defines invocation priority.
+
+=back
 
 =cut
 
@@ -345,6 +348,7 @@ sub dtraverse($$;$);
 sub dtraverse($$;$) {
     my ($d, $o, $p) = (shift, shift, shift || []);
     croak "Callback must be a code reference" unless (ref $o->{'callback'} eq 'CODE');
+    croak "Statuses argument must be ARRAY" if ($o->{'statuses'} and ref $o->{'statuses'} ne 'ARRAY');
     _validate_meta($d);
 
     if (exists $d->{'D'}) {
@@ -364,7 +368,8 @@ sub dtraverse($$;$) {
             }
         }
     } else {
-        map { $o->{'callback'}($d->{$_}, $p, $_) } sort keys %{$d};
+        my @statuses = $o->{'statuses'} ? @{$o->{'statuses'}} : keys %{$d};
+        map { $o->{'callback'}($d->{$_}, $p, $_) if exists $d->{$_} } @statuses;
     }
 }
 

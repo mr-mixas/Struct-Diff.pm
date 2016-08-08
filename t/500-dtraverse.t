@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 16;
+use Test::More tests => 18;
 
 use Struct::Diff qw(diff dtraverse);
 
@@ -22,6 +22,10 @@ $t = undef;
 $d = diff($frst, $scnd);
 eval { dtraverse($d, {}) };
 ok($@ =~ /^Callback must be a code reference/);
+
+$d = diff($frst, $scnd);
+eval { dtraverse($d, {statuses => 1, %{$opts}}) };
+ok($@ =~ /^Statuses argument must be ARRAY/);
 
 ### primitives ###
 ($frst, $scnd, $t) = (0, 0, undef);
@@ -131,7 +135,6 @@ ok(scmp(
 
 ### keys sort
 
-use Data::Dumper;
 $frst = { '0' => 0,  '1' => 1, '02' => 2 };
 $scnd = { '0' => '', '1' => 1, '02' => 2 };
 $t = undef;
@@ -140,7 +143,7 @@ my $cb = sub {
     my $key = (values(%{${$_[1]}[-1]}))[0][0];
     push(@{$t}, "$_[2]:$key=>$_[0]");
 };
-dtraverse($d, { callback => $cb, sortkeys => 1 });
+dtraverse($d, { callback => $cb, sortkeys => 1, statuses => [ qw{A N O R U} ] });
 ok(scmp(
     $t,
     ['N:0=>','O:0=>0','U:02=>2','U:1=>1'],
@@ -149,7 +152,7 @@ ok(scmp(
 
 
 $t = undef;
-dtraverse($d, { callback => $cb, sortkeys => sub { sort { $b cmp $a } @_ }});
+dtraverse($d, { callback => $cb, sortkeys => sub { sort { $b cmp $a } @_ }, statuses => [ qw{A N O R U} ]});
 ok(scmp(
     $t,
     ['U:1=>1','U:02=>2','N:0=>','O:0=>0'],
@@ -157,11 +160,20 @@ ok(scmp(
 ));
 
 $t = undef;
-dtraverse($d, { callback => $cb, sortkeys => sub { sort { $a <=> $b } @_ }});
+dtraverse($d, { callback => $cb, sortkeys => sub { sort { $a <=> $b } @_ }, statuses => [ qw{A N O R U} ] });
 ok(scmp(
     $t,
     ['N:0=>','O:0=>0','U:1=>1','U:02=>2'],
     "HASH: numeric ascending sort"
+));
+
+### statuses sequence
+$t = undef;
+dtraverse($d, { callback => $cb, sortkeys => 1, statuses => [ qw{R O N A} ] });
+ok(scmp(
+    $t,
+    ['O:0=>0','N:0=>'],
+    "HASH: statuses sequence"
 ));
 
 #### mixed structures ###

@@ -4,7 +4,7 @@ Struct::Diff - Recursive diff tools for nested perl structures
 
 # VERSION
 
-Version 0.63
+Version 0.64
 
 # SYNOPSIS
 
@@ -135,7 +135,9 @@ Traverse through diff invoking callback function for subdiff statuses.
     Defines how will be traversed subdiffs for hashes. Keys will be picked Randomely (depends on `keys` behavior,
     default), sorted by provided subroutine (if value is a coderef) or lexically sorted if set to some other true value.
 
+- statuses
 
+    Exact list of statuses. Sequence defines invocation priority.
 
 ## patch
 
