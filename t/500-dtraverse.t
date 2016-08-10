@@ -140,7 +140,7 @@ $scnd = { '0' => '', '1' => 1, '02' => 2 };
 $t = undef;
 $d = diff($frst, $scnd);
 my $cb = sub {
-    my $key = (values(%{${$_[1]}[-1]}))[0][0];
+    my $key = (values(%{${$_[1]}[-1]}))[0]->[0];
     push(@{$t}, "$_[2]:$key=>$_[0]");
 };
 dtraverse($d, { callback => $cb, sortkeys => 1, statuses => [ qw{A N O R U} ] });
