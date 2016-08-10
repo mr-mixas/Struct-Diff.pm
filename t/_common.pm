@@ -14,7 +14,7 @@ sub sdump($) {
 sub scmp($$$) { # compare structures by data
     my $got = sdump(shift);
     my $exp = sdump(shift);
-    print STDERR "\nDEBUG: === " . shift . " ===\ngot: $got\nexp: $exp\n" if ($ENV{DEBUG});
+    print STDERR "\nDEBUG: === " . (shift) . " ===\ngot: $got\nexp: $exp\n" if ($ENV{DEBUG});
     return $got eq $exp;
 }
 
