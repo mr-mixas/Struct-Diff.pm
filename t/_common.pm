@@ -2,7 +2,7 @@ package _common;
 
 # common parts for Struct::Path tests
 
-use Data::Dumper 2.131;
+use Data::Dumper qw();
 use parent qw(Exporter);
 
 our @EXPORT_OK = qw(scmp sdump);

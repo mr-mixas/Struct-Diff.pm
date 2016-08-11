@@ -10,12 +10,12 @@ WriteMakefile(
     ABSTRACT_FROM    => 'lib/Struct/Diff.pm',
     LICENSE          => 'Perl_5',
     PL_FILES         => {},
-    MIN_PERL_VERSION => 5.006,
+    MIN_PERL_VERSION => 5.008,
     CONFIGURE_REQUIRES => {
         'ExtUtils::MakeMaker' => 0,
     },
     BUILD_REQUIRES => {
-        'Data::Dumper'    => 2.131,
+        'Data::Dumper'    => 0,
         'Storable'        => 2.01,
         'Test::More'      => 0,
     },
