@@ -16,7 +16,7 @@ WriteMakefile(
     },
     BUILD_REQUIRES => {
         'Data::Dumper'    => 0,
-        'Storable'        => 0,
+        'Storable'        => 2.01,
         'Test::More'      => 0,
     },
     META_MERGE => {
