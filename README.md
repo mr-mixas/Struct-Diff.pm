@@ -4,7 +4,7 @@ Struct::Diff - Recursive diff tools for nested perl structures
 
 # VERSION
 
-Version 0.65
+Version 0.66
 
 # SYNOPSIS
 
@@ -23,7 +23,7 @@ Version 0.65
     # $dsplit->{a} not exists                       # unchanged omitted, other items originated from $b
     # $dsplit->{b} == {x => [{y => 9}],z => 33};
 
-    dtraverse($d, {callback => sub {print "val $_[0] has status $_[2]" }}); # traverse through diff
+    dtraverse($d, {callback => sub {print "val $_[0] has status $_[2]"; 1}}); # traverse through diff
 
     patch($a, $diff);
     # $a now equal to $b by structure and data
@@ -117,7 +117,7 @@ Divide diff to pseudo original structures
 Traverse through diff invoking callback function for subdiff statuses.
 
     my $opts = {
-        callback => sub { print "added value:", $_[0], "depth:", @{$_[1]}, "status:", $_[2] },
+        callback => sub { print "added value:", $_[0], "depth:", @{$_[1]}, "status:", $_[2]; return 1},
         sortkeys => sub { sort { $a <=> $b } @_ }   # numeric sort for keys under diff
     };
     dtraverse($diff, $opts);
@@ -126,13 +126,13 @@ Traverse through diff invoking callback function for subdiff statuses.
 
 - callback
 
-    Mandatory option, must contain coderef to callback fuction. Three arguments will be passed to provided
-    subroutine: value, path, status. Important: path (second argument) is actual for callback lifetime and will be
-    immedeately changed afterwards.
+    Mandatory option, must contain coderef to callback fuction. Four arguments will be passed to provided
+    subroutine: value, path, status and ref to subdiff. Function must return some true value on success. Important:
+    path (second argument) is actual for callback lifetime and will be immedeately changed afterwards.
 
 - sortkeys
 
-    Defines how will be traversed subdiffs for hashes. Keys will be picked Randomely (depends on `keys` behavior,
+    Defines how will be traversed subdiffs for hashes. Keys will be picked randomely (depends on `keys` behavior,
     default), sorted by provided subroutine (if value is a coderef) or lexically sorted if set to some other true value.
 
 - statuses

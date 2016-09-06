@@ -24,11 +24,11 @@ Struct::Diff - Recursive diff tools for nested perl structures
 
 =head1 VERSION
 
-Version 0.65
+Version 0.66
 
 =cut
 
-our $VERSION = '0.65';
+our $VERSION = '0.66';
 
 =head1 SYNOPSIS
 
@@ -47,7 +47,7 @@ our $VERSION = '0.65';
     # $dsplit->{a} not exists                       # unchanged omitted, other items originated from $b
     # $dsplit->{b} == {x => [{y => 9}],z => 33};
 
-    dtraverse($d, {callback => sub {print "val $_[0] has status $_[2]" }}); # traverse through diff
+    dtraverse($d, {callback => sub {print "val $_[0] has status $_[2]"; 1}}); # traverse through diff
 
     patch($a, $diff);
     # $a now equal to $b by structure and data
@@ -316,7 +316,7 @@ sub dsplit($) {
 Traverse through diff invoking callback function for subdiff statuses.
 
     my $opts = {
-        callback => sub { print "added value:", $_[0], "depth:", @{$_[1]}, "status:", $_[2] },
+        callback => sub { print "added value:", $_[0], "depth:", @{$_[1]}, "status:", $_[2]; return 1},
         sortkeys => sub { sort { $a <=> $b } @_ }   # numeric sort for keys under diff
     };
     dtraverse($diff, $opts);
@@ -327,13 +327,13 @@ Traverse through diff invoking callback function for subdiff statuses.
 
 =item callback
 
-Mandatory option, must contain coderef to callback fuction. Three arguments will be passed to provided
-subroutine: value, path, status. Important: path (second argument) is actual for callback lifetime and will be
-immedeately changed afterwards.
+Mandatory option, must contain coderef to callback fuction. Four arguments will be passed to provided
+subroutine: value, path, status and ref to subdiff. Function must return some true value on success. Important:
+path (second argument) is actual for callback lifetime and will be immedeately changed afterwards.
 
 =item sortkeys
 
-Defines how will be traversed subdiffs for hashes. Keys will be picked Randomely (depends on C<keys> behavior,
+Defines how will be traversed subdiffs for hashes. Keys will be picked randomely (depends on C<keys> behavior,
 default), sorted by provided subroutine (if value is a coderef) or lexically sorted if set to some other true value.
 
 =item statuses
@@ -348,14 +348,14 @@ sub dtraverse($$;$);
 sub dtraverse($$;$) {
     my ($d, $o, $p) = (shift, shift, shift || []);
     croak "Callback must be a code reference" unless (ref $o->{'callback'} eq 'CODE');
-    croak "Statuses argument must be ARRAY" if ($o->{'statuses'} and ref $o->{'statuses'} ne 'ARRAY');
+    croak "Statuses argument must be an arrayref" if ($o->{'statuses'} and ref $o->{'statuses'} ne 'ARRAY');
     _validate_meta($d);
 
     if (exists $d->{'D'}) {
         if (ref $d->{'D'} eq 'ARRAY') {
             for (my $i = 0; $i < @{$d->{'D'}}; $i++) {
                 push @{$p}, [$i];
-                dtraverse($d->{'D'}->[$i], $o, $p);
+                dtraverse($d->{'D'}->[$i], $o, $p) or return undef;
                 pop @{$p};
             }
         } else { # HASH
@@ -363,14 +363,17 @@ sub dtraverse($$;$) {
             @keys = ref $o->{'sortkeys'} eq 'CODE' ? $o->{'sortkeys'}(@keys) : sort @keys if ($o->{'sortkeys'});
             for my $k (@keys) {
                 push @{$p}, { 'keys' => [$k] };
-                dtraverse($d->{'D'}->{$k}, $o, $p);
+                dtraverse($d->{'D'}->{$k}, $o, $p) or return undef;
                 pop @{$p};
             }
         }
     } else {
-        my @statuses = $o->{'statuses'} ? @{$o->{'statuses'}} : keys %{$d};
-        map { $o->{'callback'}($d->{$_}, $p, $_) if exists $d->{$_} } @statuses;
+        for ($o->{'statuses'} ? @{$o->{'statuses'}} : keys %{$d}) {
+            next unless (exists $d->{$_});
+            $o->{'callback'}($d->{$_}, $p, $_, \$d) or return undef;
+        }
     }
+    return 1;
 }
 
 =head2 patch

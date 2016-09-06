@@ -1,5 +1,9 @@
 Revision history for Struct-Diff
 
+0.66    2016-09-06
+        ref to subdiff passed as fourth arg to callback functions in dtraverse()
+        dtraverse() expects true value as callback's out value
+
 0.65    2016-08-16
         Tests fixed, min perl ver 5.008
 

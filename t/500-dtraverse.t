@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 18;
+use Test::More tests => 20;
 
 use Struct::Diff qw(diff dtraverse);
 
@@ -14,18 +14,23 @@ use _common qw(scmp sdump);
 
 my ($frst, $scnd, $d, $t);
 my $opts = {
-    callback => sub { $t->{sdump($_[1])}->{$_[2]} = $_[0]; $t->{TOTAL}++ },
+    callback => sub { $t->{sdump($_[1])}->{$_[2]} = $_[0]; $t->{TOTAL}++; 1 },
 };
 
-### no callbacks used ###
+# no callbacks used ###
 $t = undef;
 $d = diff($frst, $scnd);
 eval { dtraverse($d, {}) };
 ok($@ =~ /^Callback must be a code reference/);
 
+# wrong sratuses list format
 $d = diff($frst, $scnd);
 eval { dtraverse($d, {statuses => 1, %{$opts}}) };
-ok($@ =~ /^Statuses argument must be ARRAY/);
+ok($@ =~ /^Statuses argument must be an arrayref/);
+
+# callback with false exit code
+$d = diff($frst, $scnd);
+ok(!dtraverse($d, { callback => sub { return undef } }));
 
 ### primitives ###
 ($frst, $scnd, $t) = (0, 0, undef);
@@ -176,7 +181,7 @@ ok(scmp(
     "HASH: statuses sequence"
 ));
 
-#### mixed structures ###
+### mixed structures ###
 $frst = { 'a' => [ { 'aa' => { 'aaa' => [ 7, 4 ]}}, 8 ]};
 $scnd = { 'a' => [ { 'aa' => { 'aaa' => [ 7, 3 ]}}, 8 ]};
 $t = undef;
@@ -192,4 +197,18 @@ ok(scmp(
         '[{keys => [\'a\']},[1]]' => {U => 8}
     },
     "MIXED: complex"
+));
+
+### check subdiff ref presence ###
+$t = undef;
+$cb = sub {
+    push(@{$t}, $_[3]);
+};
+
+$d = diff($frst, $scnd);
+dtraverse($d, { callback => $cb, sortkeys => 1 });
+ok(scmp(
+    $t,
+    [\{U => 7},\{N => 3,O => 4},\{N => 3,O => 4},\{U => 8}],
+    "check subdiff ref presence"
 ));
