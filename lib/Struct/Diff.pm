@@ -6,14 +6,13 @@ use warnings FATAL => 'all';
 use parent qw(Exporter);
 use Carp qw(croak);
 
-our @EXPORT_OK = qw(diff dselect dsplit dtraverse patch);
+our @EXPORT_OK = qw(diff dsplit dtraverse patch);
 
 sub _validate_meta($) {
-    my $d = shift;
-    croak "Unsupported diff struct passed" if (ref $d ne 'HASH');
-    if (exists $d->{'D'}) {
+    croak "Unsupported diff struct passed" if (ref $_[0] ne 'HASH');
+    if (exists $_[0]->{'D'}) {
         croak "Value for 'D' status must be hash or array"
-            unless (ref $d->{'D'} eq 'HASH' or ref $d->{'D'} eq 'ARRAY');
+            unless (ref $_[0]->{'D'} eq 'HASH' or ref $_[0]->{'D'} eq 'ARRAY');
     }
     return 1;
 }
@@ -24,15 +23,15 @@ Struct::Diff - Recursive diff tools for nested perl structures
 
 =head1 VERSION
 
-Version 0.66
+Version 0.70
 
 =cut
 
-our $VERSION = '0.66';
+our $VERSION = '0.70';
 
 =head1 SYNOPSIS
 
-    use Struct::Diff qw(diff dselect dsplit patch);
+    use Struct::Diff qw(diff dsplit dtraverse patch);
 
     $a = {x => [7,{y => 4}]};
     $b = {x => [7,{y => 9}],z => 33};
@@ -40,12 +39,9 @@ our $VERSION = '0.66';
     $diff = diff($a, $b, noO => 1, noU => 1);       # omit unchanged and old values for changed items
     # $diff == {D => {x => {D => [{I => 1,N => {y => 9}}]},z => {A => 33}}};
 
-    @items = dselect($diff, fromD => ['z']);        # get status for a particular key
-    # @items == ({z => {A => 33}});
-
     $href = dsplit($diff);                          # divide diff
-    # $dsplit->{a} not exists                       # unchanged omitted, other items originated from $b
-    # $dsplit->{b} == {x => [{y => 9}],z => 33};
+    # $href->{a} not exists                         # unchanged omitted, other items originated from $b
+    # $href->{b} == {x => [{y => 9}],z => 33};
 
     dtraverse($d, {callback => sub {print "val $_[0] has status $_[2]"; 1}}); # traverse through diff
 
@@ -151,7 +147,7 @@ sub diff($$;@) {
                 $hidden = 1;
             } else {
                 $s->{'R'} = 1;
-                map { push @{$d->{'D'}}, { 'R' => $opts{'trimR'} ? undef : $_ } } @{$a}[@{$b}..$#{$a}];
+                map { push @{$d->{'D'}}, { 'R' => $opts{'trimR'} ? undef : $_ } } @{$a}[@{$b} .. $#{$a}];
             }
         }
         if (@{$a} < @{$b}) {
@@ -159,7 +155,7 @@ sub diff($$;@) {
                 $hidden = 1;
             } else {
                 $s->{'A'} = 1;
-                map { push @{$d->{'D'}}, { 'A' => $_ } } @{$b}[@{$a}..$#{$b}];
+                map { push @{$d->{'D'}}, { 'A' => $_ } } @{$b}[@{$a} .. $#{$b}];
             }
         }
 
@@ -207,64 +203,6 @@ sub diff($$;@) {
     $d->{'U'} = $a unless ($hidden or $opts{'noU'} or keys %{$d});
 
     return $d;
-}
-
-=head2 dselect
-
-Returns items with desired status from diff's first level
-
-    @added = dselect($diff, states => { 'A' => 1 } # something added?
-    @items = dselect($diff, states => { 'A' => 1, 'U' => 1 }, 'fromD' => [ 'a', 'b', 'c' ]) # from D hash
-    @items = dselect($diff, states => { 'D' => 1, 'N' => 1 }, 'fromD' => [ 0, 1, 3, 5, 9 ]) # from D array
-
-=head3 Available options
-
-=over 4
-
-=item fromD
-
-Select items from diff's 'D'. Expects list of positions (indexes for arrays and keys for hashes). All items with
-specified states will be returned if opt exists, but not defined or is an empty list.
-
-=item states
-
-Expects hash with desired states as keys with values in some true value. Items with all states will be returned if
-opt not defined.
-
-=back
-
-=cut
-
-sub dselect(@) {
-    my ($d, %opts) = @_;
-    _validate_meta($d);
-    my @out;
-
-    if (exists $opts{'fromD'}) {
-        croak "'fromD' defined, but no 'D' state found" unless (exists $d->{'D'});
-        if (ref $d->{'D'} eq 'ARRAY') {
-            for my $i (($opts{'fromD'} and @{$opts{'fromD'}}) ? @{$opts{'fromD'}} : 0..$#{$d->{'D'}}) {
-                croak "Requested index $i not in diff's array range" unless ($i >= 0 and $i < @{$d->{'D'}});
-                push @out, {
-                    map { $_ => $d->{'D'}->[$i]->{$_} }
-                    grep { not $opts{'states'} or exists $opts{'states'}->{$_} }
-                    keys %{$d->{'D'}->[$i]}
-                };
-            }
-        } else { # HASH
-            for my $k (($opts{'fromD'} and @{$opts{'fromD'}}) ? @{$opts{'fromD'}} : keys %{$d->{'D'}}) {
-                push @out, {
-                    map { $k => { $_ => $d->{'D'}->{$k}->{$_} } }
-                    grep { not $opts{'states'} or exists $opts{'states'}->{$_} }
-                    keys %{$d->{'D'}->{$k}}
-                };
-            }
-        }
-    } else {
-        @out = { map { $_ => $d->{$_} } grep { not $opts{'states'} or exists $opts{'states'}->{$_} } keys %{$d} };
-    }
-
-    return grep { keys %{$_} } @out;
 }
 
 =head2 dsplit
@@ -391,7 +329,7 @@ sub patch($$) {
 
     if (exists $d->{'D'}) {
         if (ref $d->{'D'} eq 'ARRAY') {
-            for my $i (0..$#{$d->{'D'}}) {
+            for my $i (0 .. $#{$d->{'D'}}) {
                 my $si = exists $d->{'D'}->[$i]->{'I'} ? $d->{'D'}->[$i]->{'I'} : $i; # use provided index
                 if (exists $d->{'D'}->[$i]->{'D'} or exists $d->{'D'}->[$i]->{'N'}) {
                     patch(ref $s->[$si] ? $s->[$si] : \$s->[$si], $d->{'D'}->[$i]);

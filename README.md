@@ -4,11 +4,11 @@ Struct::Diff - Recursive diff tools for nested perl structures
 
 # VERSION
 
-Version 0.66
+Version 0.70
 
 # SYNOPSIS
 
-    use Struct::Diff qw(diff dselect dsplit patch);
+    use Struct::Diff qw(diff dsplit dtraverse patch);
 
     $a = {x => [7,{y => 4}]};
     $b = {x => [7,{y => 9}],z => 33};
@@ -16,12 +16,9 @@ Version 0.66
     $diff = diff($a, $b, noO => 1, noU => 1);       # omit unchanged and old values for changed items
     # $diff == {D => {x => {D => [{I => 1,N => {y => 9}}]},z => {A => 33}}};
 
-    @items = dselect($diff, fromD => ['z']);        # get status for a particular key
-    # @items == ({z => {A => 33}});
-
     $href = dsplit($diff);                          # divide diff
-    # $dsplit->{a} not exists                       # unchanged omitted, other items originated from $b
-    # $dsplit->{b} == {x => [{y => 9}],z => 33};
+    # $href->{a} not exists                         # unchanged omitted, other items originated from $b
+    # $href->{b} == {x => [{y => 9}],z => 33};
 
     dtraverse($d, {callback => sub {print "val $_[0] has status $_[2]"; 1}}); # traverse through diff
 
@@ -83,26 +80,6 @@ Diff's keys shows status of each item in passed structures.
 - trimR
 
     Drop removed item's data.
-
-## dselect
-
-Returns items with desired status from diff's first level
-
-    @added = dselect($diff, states => { 'A' => 1 } # something added?
-    @items = dselect($diff, states => { 'A' => 1, 'U' => 1 }, 'fromD' => [ 'a', 'b', 'c' ]) # from D hash
-    @items = dselect($diff, states => { 'D' => 1, 'N' => 1 }, 'fromD' => [ 0, 1, 3, 5, 9 ]) # from D array
-
-### Available options
-
-- fromD
-
-    Select items from diff's 'D'. Expects list of positions (indexes for arrays and keys for hashes). All items with
-    specified states will be returned if opt exists, but not defined or is an empty list.
-
-- states
-
-    Expects hash with desired states as keys with values in some true value. Items with all states will be returned if
-    opt not defined.
 
 ## dsplit
 

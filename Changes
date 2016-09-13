@@ -1,5 +1,10 @@
 Revision history for Struct-Diff
 
+0.70    2016-09-13
+        dselect() removed, dtraverse() should be used instead
+        cosmetic refactoring
+        docs corrected
+
 0.66    2016-09-06
         ref to subdiff passed as fourth arg to callback functions in dtraverse()
         dtraverse() expects true value as callback's out value
