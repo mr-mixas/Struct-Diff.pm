@@ -10,6 +10,5 @@
 
 *   LCS for array's diff
 
-*   dpath($diff, $path) as replacement for dselect()
-    must returns subdiffs specified by path
-    must returns statuses for subdiffs specified by path
+*   add opt 'startpath' to dtraverse
+*   add opt 'depth' to dtraverse

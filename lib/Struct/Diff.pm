@@ -6,7 +6,12 @@ use warnings FATAL => 'all';
 use parent qw(Exporter);
 use Carp qw(croak);
 
-our @EXPORT_OK = qw(diff dsplit dtraverse patch);
+our @EXPORT_OK = qw(
+    diff
+    dsplit
+    dtraverse
+    patch
+);
 
 sub _validate_meta($) {
     croak "Unsupported diff struct passed" if (ref $_[0] ne 'HASH');
@@ -36,7 +41,7 @@ our $VERSION = '0.70';
     $a = {x => [7,{y => 4}]};
     $b = {x => [7,{y => 9}],z => 33};
 
-    $diff = diff($a, $b, noO => 1, noU => 1);       # omit unchanged and old values for changed items
+    $diff = diff($a, $b, noO => 1, noU => 1);       # omit unchanged items and old values for changed items
     # $diff == {D => {x => {D => [{I => 1,N => {y => 9}}]},z => {A => 33}}};
 
     $href = dsplit($diff);                          # divide diff
@@ -56,7 +61,7 @@ Nothing is exported by default.
 
 =head2 diff
 
-Returns HASH reference to recursive diff between two passed things. Beware when
+Returns hashref to recursive diff between two passed things. Beware when
 changing diff: some of it's substructures are links to original structures.
 
     $diff = diff($a, $b, %opts);
@@ -263,18 +268,18 @@ Traverse through diff invoking callback function for subdiff statuses.
 
 =over 4
 
-=item callback
+=item callback E<lt>subE<gt>
 
 Mandatory option, must contain coderef to callback fuction. Four arguments will be passed to provided
 subroutine: value, path, status and ref to subdiff. Function must return some true value on success. Important:
 path (second argument) is actual for callback lifetime and will be immedeately changed afterwards.
 
-=item sortkeys
+=item sortkeys E<lt>subE<gt>
 
 Defines how will be traversed subdiffs for hashes. Keys will be picked randomely (depends on C<keys> behavior,
 default), sorted by provided subroutine (if value is a coderef) or lexically sorted if set to some other true value.
 
-=item statuses
+=item statuses E<lt>listE<gt>
 
 Exact list of statuses. Sequence defines invocation priority.
 
@@ -359,7 +364,7 @@ sub patch($$) {
 
 =head1 LIMITATIONS
 
-Struct::Diff fails on structures with loops in references. has_circular_ref from Data::Structure::Util can help
+Struct::Diff fails on structures with loops in references. has_circular_ref() from Data::Structure::Util can help
 to detect such structures.
 
 Only scalars, refs to scalars, ref to arrays and ref to hashes correctly traversed. All other data types compared

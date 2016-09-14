@@ -13,7 +13,7 @@ Version 0.70
     $a = {x => [7,{y => 4}]};
     $b = {x => [7,{y => 9}],z => 33};
 
-    $diff = diff($a, $b, noO => 1, noU => 1);       # omit unchanged and old values for changed items
+    $diff = diff($a, $b, noO => 1, noU => 1);       # omit unchanged items and old values for changed items
     # $diff == {D => {x => {D => [{I => 1,N => {y => 9}}]},z => {A => 33}}};
 
     $href = dsplit($diff);                          # divide diff
@@ -33,7 +33,7 @@ Nothing is exported by default.
 
 ## diff
 
-Returns HASH reference to recursive diff between two passed things. Beware when
+Returns hashref to recursive diff between two passed things. Beware when
 changing diff: some of it's substructures are links to original structures.
 
     $diff = diff($a, $b, %opts);
@@ -101,18 +101,18 @@ Traverse through diff invoking callback function for subdiff statuses.
 
 ### Available options
 
-- callback
+- callback <sub>
 
     Mandatory option, must contain coderef to callback fuction. Four arguments will be passed to provided
     subroutine: value, path, status and ref to subdiff. Function must return some true value on success. Important:
     path (second argument) is actual for callback lifetime and will be immedeately changed afterwards.
 
-- sortkeys
+- sortkeys <sub>
 
     Defines how will be traversed subdiffs for hashes. Keys will be picked randomely (depends on `keys` behavior,
     default), sorted by provided subroutine (if value is a coderef) or lexically sorted if set to some other true value.
 
-- statuses
+- statuses <list>
 
     Exact list of statuses. Sequence defines invocation priority.
 
@@ -124,7 +124,7 @@ Apply diff
 
 # LIMITATIONS
 
-Struct::Diff fails on structures with loops in references. has\_circular\_ref from Data::Structure::Util can help
+Struct::Diff fails on structures with loops in references. has\_circular\_ref() from Data::Structure::Util can help
 to detect such structures.
 
 Only scalars, refs to scalars, ref to arrays and ref to hashes correctly traversed. All other data types compared
