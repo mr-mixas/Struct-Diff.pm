@@ -28,11 +28,11 @@ Struct::Diff - Recursive diff tools for nested perl structures
 
 =head1 VERSION
 
-Version 0.70
+Version 0.71
 
 =cut
 
-our $VERSION = '0.70';
+our $VERSION = '0.71';
 
 =head1 SYNOPSIS
 
@@ -268,6 +268,10 @@ Traverse through diff invoking callback function for subdiff statuses.
 
 =over 4
 
+=item depth E<lt>intE<gt>
+
+Don't dive deeper than defined number of levels
+
 =item callback E<lt>subE<gt>
 
 Mandatory option, must contain coderef to callback fuction. Four arguments will be passed to provided
@@ -294,7 +298,7 @@ sub dtraverse($$;$) {
     croak "Statuses argument must be an arrayref" if ($o->{'statuses'} and ref $o->{'statuses'} ne 'ARRAY');
     _validate_meta($d);
 
-    if (exists $d->{'D'}) {
+    if (exists $d->{'D'} and (not exists $o->{'depth'} or $o->{'depth'} >= @{$p})) {
         if (ref $d->{'D'} eq 'ARRAY') {
             for (my $i = 0; $i < @{$d->{'D'}}; $i++) {
                 push @{$p}, [$i];

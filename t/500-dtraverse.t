@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 20;
+use Test::More tests => 24;
 
 use Struct::Diff qw(diff dtraverse);
 
@@ -212,3 +212,52 @@ ok(scmp(
     [\{U => 7},\{N => 3,O => 4},\{N => 3,O => 4},\{U => 8}],
     "check subdiff ref presence"
 ));
+
+### depth
+$t = undef;
+$d = diff($frst, $scnd);
+dtraverse($d, { %{$opts}, depth => 0 });
+is_deeply(
+    $t,
+    {
+        TOTAL => 1,
+        '[{keys => [\'a\']}]' => {D => [{D => {aa => {D => {aaa => {D => [{U => 7},{N => 3,O => 4}]}}}}},{U => 8}]}
+    },
+    "depth => 0"
+);
+
+$t = undef;
+dtraverse($d, { %{$opts}, depth => 1 });
+is_deeply(
+    $t,
+    {
+        TOTAL => 2,
+        '[{keys => [\'a\']},[0]]' => {D => {aa => {D => {aaa => {D => [{U => 7},{N => 3,O => 4}]}}}}},
+        '[{keys => [\'a\']},[1]]' => {U => 8}
+    },
+    "depth => 1"
+);
+
+$t = undef;
+dtraverse($d, { %{$opts}, depth => -1 });
+is_deeply(
+    $t,
+    {
+        TOTAL => 1,
+        '[]' => {D => {a => {D => [{D => {aa => {D => {aaa => {D => [{U => 7},{N => 3,O => 4}]}}}}},{U => 8}]}}}
+    },
+    "depth => -1"
+);
+
+$t = undef;
+dtraverse($d, { %{$opts}, depth => 1_000_000_000 });
+is_deeply(
+    $t,
+    {
+        TOTAL => 4,
+        '[{keys => [\'a\']},[0],{keys => [\'aa\']},{keys => [\'aaa\']},[0]]' => {U => 7},
+        '[{keys => [\'a\']},[0],{keys => [\'aa\']},{keys => [\'aaa\']},[1]]' => {N => 3,O => 4},
+        '[{keys => [\'a\']},[1]]' => {U => 8}
+    },
+    "depth => 1_000_000_000"
+);

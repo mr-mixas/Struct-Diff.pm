@@ -4,7 +4,7 @@ Struct::Diff - Recursive diff tools for nested perl structures
 
 # VERSION
 
-Version 0.70
+Version 0.71
 
 # SYNOPSIS
 
@@ -100,6 +100,10 @@ Traverse through diff invoking callback function for subdiff statuses.
     dtraverse($diff, $opts);
 
 ### Available options
+
+- depth <int>
+
+    Don't dive deeper than defined number of levels
 
 - callback <sub>
 
