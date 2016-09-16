@@ -278,6 +278,10 @@ Mandatory option, must contain coderef to callback fuction. Four arguments will 
 subroutine: value, path, status and ref to subdiff. Function must return some true value on success. Important:
 path (second argument) is actual for callback lifetime and will be immedeately changed afterwards.
 
+=item path E<lt>pathE<gt>
+
+Start callbing callbacks from path only. Passed value must be a L<Struct::Path> compatible path.
+
 =item sortkeys E<lt>subE<gt>
 
 Defines how will be traversed subdiffs for hashes. Keys will be picked randomely (depends on C<keys> behavior,
