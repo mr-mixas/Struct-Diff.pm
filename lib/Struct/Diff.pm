@@ -5,6 +5,10 @@ use strict;
 use warnings FATAL => 'all';
 use parent qw(Exporter);
 use Carp qw(croak);
+use Storable qw(freeze);
+use Algorithm::Diff qw(sdiff);
+
+$Storable::canonical = 1; # to have equal fingerprints for equal by data hashes
 
 our @EXPORT_OK = qw(
     diff
@@ -28,11 +32,11 @@ Struct::Diff - Recursive diff tools for nested perl structures
 
 =head1 VERSION
 
-Version 0.71
+Version 0.80
 
 =cut
 
-our $VERSION = '0.71';
+our $VERSION = '0.80';
 
 =head1 SYNOPSIS
 
@@ -119,6 +123,12 @@ Drop removed item's data.
 
 =cut
 
+sub _freeze($) {
+    my $data = shift;
+    return $data unless ref $data;
+    freeze($data);
+}
+
 sub diff($$;@);
 sub diff($$;@) {
     my ($a, $b, %opts) = @_;
@@ -137,31 +147,26 @@ sub diff($$;@) {
             $d->{'N'} = $b;
         }
     } elsif ((ref $a eq 'ARRAY') and ($a ne $b)) {
-        my $s; # statuses collector
-        for (my $i = 0; $i < @{$a} and $i < @{$b}; $i++) {
-            my $tmp = diff($a->[$i], $b->[$i], %opts);
-            if (map { $s->{$_} = 1 } keys %{$tmp}) { # true if keys exists
-                $tmp->{'I'} = $i if ($hidden);
-                push @{$d->{'D'}}, $tmp;
-            } else {
-                $hidden = 1;
+        my @sd = sdiff($a, $b, \&_freeze);
+        my $s; # status collector
+        for (my $i = 0; $i < @sd; $i++) {
+            my $item;
+            if ($sd[$i]->[0] eq 'u') {
+                $item->{'U'} = $sd[$i]->[1] unless ($opts{'noU'});
+            } elsif ($sd[$i]->[0] eq 'c') {
+                $item = diff($sd[$i]->[1], $sd[$i]->[2], %opts);
+            } elsif ($sd[$i]->[0] eq '+') {
+                $item->{'A'} = $sd[$i]->[2] unless ($opts{'noA'});
+            } else { # '-'
+                $item->{'R'} = $opts{'trimR'} ? undef : $sd[$i]->[1] unless ($opts{'noR'});
             }
-        }
-        if (@{$a} > @{$b}) {
-            if ($opts{'noR'}) {
+            unless ($item) {
                 $hidden = 1;
-            } else {
-                $s->{'R'} = 1;
-                map { push @{$d->{'D'}}, { 'R' => $opts{'trimR'} ? undef : $_ } } @{$a}[@{$b} .. $#{$a}];
+                next;
             }
-        }
-        if (@{$a} < @{$b}) {
-            if ($opts{'noA'}) {
-                $hidden = 1;
-            } else {
-                $s->{'A'} = 1;
-                map { push @{$d->{'D'}}, { 'A' => $_ } } @{$b}[@{$a} .. $#{$b}];
-            }
+            map { $s->{$_} = 1 } keys %{$item};
+            $item->{'I'} = $i if ($hidden);
+            push @{$d->{'D'}}, $item;
         }
 
         if ((my @k = keys %{$s}) == 1 and not ($hidden or exists $s->{'D'})) { # all have same status - return it
@@ -277,10 +282,6 @@ Don't dive deeper than defined number of levels
 Mandatory option, must contain coderef to callback fuction. Four arguments will be passed to provided
 subroutine: value, path, status and ref to subdiff. Function must return some true value on success. Important:
 path (second argument) is actual for callback lifetime and will be immedeately changed afterwards.
-
-=item path E<lt>pathE<gt>
-
-Start callbing callbacks from path only. Passed value must be a L<Struct::Path> compatible path.
 
 =item sortkeys E<lt>subE<gt>
 

@@ -1,5 +1,8 @@
 Revision history for Struct-Diff
 
+0.80    2016-09-18
+        LCS for arrays diff implemented
+
 0.71    2016-09-15
         'depth' opt to dtraverse() added
 

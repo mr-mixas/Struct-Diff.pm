@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 use Storable qw(freeze);
-use Test::More tests => 34;
+use Test::More tests => 38;
 
 use Struct::Diff qw(diff);
 
@@ -58,6 +58,8 @@ ok($d = diff([ 'a' ], [ 'b' ], 'noN' => 1) and
     scmp($d, {O => ['a']}, "[a] vs [b], noN => 1")
 );
 
+
+
 ok($d = diff([ 0 ], [ 0, 1 ]) and
     scmp($d, {D => [{U => 0},{A => 1}]}, "[0] vs [0,1]")
 );
@@ -67,16 +69,79 @@ ok($d = diff([ 0, 1 ], [ 0 ]) and
 );
 
 ok($d = diff([ 0 ], [ 0, 1 ], 'noU' => 1) and
-    scmp($d, {D => [{A => 1}]}, "[0] vs [0,1], noU => 1") # absent 'I' here - ok, added means "last"
+    scmp(
+        $d,
+        {D => [{A => 1,I => 1}]},
+        "[0] vs [0,1], noU => 1"
+    )
 );
 
 ok($d = diff([ 0, 1 ], [ 0 ], 'noU' => 1) and
-    scmp($d, {D => [{R => 1}]}, "[0,1] vs [0], noU => 1")
+    scmp(
+        $d,
+        {D => [{I => 1,R => 1}]},
+        "[0,1] vs [0], noU => 1"
+    )
 );
 
-my $sub_array = [ 0, [ 11, 12 ], 2 ]; # must be considered as equal by ref (wo descending into it)
-$a = [ 0, [[ 100 ]], [ 20, 'a' ], $sub_array, 4 ];
-$b = [ 0, [[ 100 ]], [ 20, 'b' ], $sub_array, 5 ];
+# LCS
+ok(
+    $d = diff([ qw(a b c e h j l m n p) ], [ qw(b c d e f j k l m r s t) ]) and
+    scmp(
+        $d,
+        {
+            D => [
+                {R => 'a'},
+                {U => 'b'},
+                {U => 'c'},
+                {A => 'd'},
+                {U => 'e'},
+                {N => 'f',O => 'h'},
+                {U => 'j'},
+                {A => 'k'},
+                {U => 'l'},
+                {U => 'm'},
+                {N => 'r',O => 'n'},
+                {N => 's',O => 'p'},
+                {A => 't'}
+            ]
+        },
+        "qw(a b c e h j l m n p) vs qw(b c d e f j k l m r s t)"
+    )
+);
+
+ok(
+    $d = diff([ qw(a b c e h j l m n p) ], [ qw(b c d e f j k l m r s t) ], noU => 1) and
+    scmp(
+        $d,
+        {
+            D => [
+                {R => 'a'},
+                {A => 'd',I => 3},
+                {I => 5,N => 'f',O => 'h'},
+                {A => 'k',I => 7},
+                {I => 10,N => 'r',O => 'n'},
+                {I => 11,N => 's',O => 'p'},
+                {A => 't',I => 12}
+            ]
+        },
+        "qw(a b c e h j l m n p) vs qw(b c d e f j k l m r s t), noU => 1"
+    )
+);
+
+$a = [ 0, 1, 2]; # must be considered as equal by ref (wo descending into it)
+$b = $a;
+ok($d = diff($a, $b) and
+    scmp(
+        $d,
+        {U => [0,1,2]},
+        "same ref arrays"
+    )
+);
+
+my $sub_array = [ 0, [ 11, 12 ], 2 ];
+$a = [ 0, [[ 100 ]], [ 20, 'a' ], 4 ];
+$b = [ 0, [[ 100 ]], [ 20, 'b' ], 5 ];
 
 $frozen_a = freeze($a);
 $frozen_b = freeze($b);
@@ -84,7 +149,7 @@ $frozen_b = freeze($b);
 ok($d = diff($a, $b) and
     scmp(
         $d,
-        {D => [{U => 0},{U => [[100]]},{D => [{U => 20},{N => 'b',O => 'a'}]},{U => [0,[11,12],2]},{N => 5,O => 4}]},
+        {D => [{U => 0},{U => [[100]]},{D => [{U => 20},{N => 'b',O => 'a'}]},{N => 5,O => 4}]},
         "complex array diff"
     )
 );
@@ -92,7 +157,7 @@ ok($d = diff($a, $b) and
 ok($d = diff($a, $b, 'noU' => 1) and
     scmp(
         $d,
-        {D => [{D => [{I => 1,N => 'b',O => 'a'}],I => 2},{I => 4,N => 5,O => 4}]},
+        {D => [{D => [{I => 1,N => 'b',O => 'a'}],I => 2},{I => 3,N => 5,O => 4}]},
         "same array, noU => 1"
     )
 );
@@ -186,13 +251,19 @@ $b = { 'a' => [ { 'aa' => { 'aaa' => [ 7, 3 ]}}, 8 ]};
 $frozen_a = freeze($a);
 $frozen_b = freeze($b);
 
-#my ($DaD, $DaD0DaaD);
-
 ok($d = diff($a, $b) and
     scmp(
         $d,
         {D => {a => {D => [{D => {aa => {D => {aaa => {D => [{U => 7},{N => 3,O => 4}]}}}}},{U => 8}]}}},
         "mixed structure"
+    )
+);
+
+ok($d = diff($a, $b, noO => 1, noU => 1) and
+    scmp(
+        $d,
+        {D => {a => {D => [{D => {aa => {D => {aaa => {D => [{I => 1,N => 3}]}}}}}]}}},
+        "mixed structure, noO => 1, noU => 1"
     )
 );
 

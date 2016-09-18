@@ -25,8 +25,13 @@ WriteMakefile(
         },
     },
     PREREQ_PM => {
+        'Algorithm::Diff' => 1.19,
         'Carp'            => 0,
+        'Exporter'        => 0,
+        'Storable'        => 2.01,
         'parent'          => 0,
+        'strict'          => 0,
+        'warnings'        => 0,
     },
     dist  => {
         COMPRESS => 'gzip -9f',
