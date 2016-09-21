@@ -23,7 +23,6 @@ sub _validate_meta($) {
         croak "Value for 'D' status must be hash or array"
             unless (ref $_[0]->{'D'} eq 'HASH' or ref $_[0]->{'D'} eq 'ARRAY');
     }
-    return 1;
 }
 
 =head1 NAME
@@ -32,11 +31,11 @@ Struct::Diff - Recursive diff tools for nested perl structures
 
 =head1 VERSION
 
-Version 0.80
+Version 0.81
 
 =cut
 
-our $VERSION = '0.80';
+our $VERSION = '0.81';
 
 =head1 SYNOPSIS
 
@@ -124,9 +123,8 @@ Drop removed item's data.
 =cut
 
 sub _freeze($) {
-    my $data = shift;
-    return $data unless ref $data;
-    freeze($data);
+    return $_[0] unless (ref $_[0]);
+    freeze($_[0]);
 }
 
 sub diff($$;@);
@@ -146,7 +144,7 @@ sub diff($$;@) {
         } else {
             $d->{'N'} = $b;
         }
-    } elsif ((ref $a eq 'ARRAY') and ($a ne $b)) {
+    } elsif (ref $a eq 'ARRAY' and $a ne $b) {
         my @sd = sdiff($a, $b, \&_freeze);
         my $s; # status collector
         for (my $i = 0; $i < @sd; $i++) {
@@ -173,7 +171,7 @@ sub diff($$;@) {
             map { $_ = $_->{$k[0]} } @{$d->{'D'}};
             $d->{$k[0]} = delete $d->{'D'};
         }
-    } elsif ((ref $a eq 'HASH') and ($a ne $b)) {
+    } elsif (ref $a eq 'HASH' and $a ne $b) {
         for my $key (keys %{{ %{$a}, %{$b} }}) { # go througth united uniq keys
             if (exists $a->{$key} and exists $b->{$key}) {
                 my $tmp = diff($a->{$key}, $b->{$key}, %opts);
@@ -367,8 +365,6 @@ sub patch($$) {
     } elsif (exists $d->{'N'}) {
         ${$s} = $d->{'N'};
     }
-
-    return 1;
 }
 
 =head1 LIMITATIONS
