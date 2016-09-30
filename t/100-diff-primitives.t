@@ -2,161 +2,165 @@
 
 use strict;
 use warnings;
+use Struct::Diff qw(diff);
 use Test::More tests => 26;
 
-use Struct::Diff qw(diff);
+use lib "t";
+use _common qw(scmp);
 
-my $d;
+my ($got, $exp);
 
 ### undefs
-ok($d = diff(undef, undef) and
-    keys %{$d} == 1 and exists $d->{'U'} and not defined $d->{'U'}
-);
+$got = diff(undef, undef);
+$exp = {U => undef};
+is_deeply($got, $exp) || diag scmp($got, $exp);
 
-ok($d = diff(undef, 0) and
-    keys %{$d} == 2 and
-        exists $d->{'O'} and not defined $d->{'O'} and
-        exists $d->{'N'} and $d->{'N'} == 0
-);
+$got = diff(undef, 0);
+$exp = {N => 0,O => undef};
+is_deeply($got, $exp) || diag scmp($got, $exp);
 
-ok($d = diff(undef, '') and
-    keys %{$d} == 2 and
-        exists $d->{'O'} and not defined $d->{'O'} and
-        exists $d->{'N'} and $d->{'N'} eq ''
-);
+$got = diff(undef, '');
+$exp = {N => '',O => undef};
+is_deeply($got, $exp) || diag scmp($got, $exp);
 
 ### numbers
-ok($d = diff(0, 0) and
-    keys %{$d} == 1 and exists $d->{'U'} and $d->{'U'} == 0
-);
+$got = diff(0, 0);
+$exp = {U => 0};
+is_deeply($got, $exp) || diag scmp($got, $exp);
 
-ok($d = diff(0, undef) and
-    keys %{$d} == 2 and
-        exists $d->{'O'} and $d->{'O'} == 0 and
-        exists $d->{'N'} and not defined $d->{'N'}
-);
+$got = diff(0, undef);
+$exp = {N => undef,O => 0};
+is_deeply($got, $exp) || diag scmp($got, $exp);
 
-ok($d = diff(0, '') and
-    keys %{$d} == 2 and
-        exists $d->{'O'} and $d->{'O'} == 0 and
-        exists $d->{'N'} and $d->{'N'} eq ''
-);
+$got = diff(0, '');
+$exp = {N => '',O => 0};
+is_deeply($got, $exp) || diag scmp($got, $exp);
 
-ok($d = diff(1, 1.0) and
-    keys %{$d} == 1 and exists $d->{'U'} and $d->{'U'} eq 1 # deliberate eq
-);
+$got = diff(1, 1.0);
+$exp = {U => 1};
+is_deeply($got, $exp) || diag scmp($got, $exp);
 
-ok($d = diff(1.0, 1) and
-    keys %{$d} == 1 and exists $d->{'U'} and $d->{'U'} eq 1 # deliberate eq
-);
+$got = diff(1.0, 1);
+$exp = {U => '1'};
+is_deeply($got, $exp) || diag scmp($got, $exp);
 
-ok($d = diff(1, 2) and
-    keys %{$d} == 2 and
-        exists $d->{'O'} and $d->{'O'} == 1 and
-        exists $d->{'N'} and $d->{'N'} == 2
-);
+$got = diff(1, 2);
+$exp = {N => 2,O => 1};
+is_deeply($got, $exp) || diag scmp($got, $exp);
 
-ok($d = diff('2.0', 2) and
-    keys %{$d} == 2 and
-        exists $d->{'O'} and $d->{'O'} eq '2.0' and
-        exists $d->{'N'} and $d->{'N'} == 2
-);
+$got = diff('2.0', 2);
+$exp = {N => 2,O => '2.0'};
+is_deeply($got, $exp) || diag scmp($got, $exp);
 
 ### strings
-ok($d = diff('', undef) and
-    keys %{$d} == 2 and
-        exists $d->{'O'} and $d->{'O'} eq '' and
-        exists $d->{'N'} and not defined $d->{'N'}
-);
+$got = diff('', undef);
+$exp = {N => undef,O => ''};
+is_deeply($got, $exp) || diag scmp($got, $exp);
 
-ok($d = diff('', 0) and
-    keys %{$d} == 2 and
-        exists $d->{'O'} and $d->{'O'} eq '' and
-        exists $d->{'N'} and $d->{'N'} == 0
-);
+$got = diff('', 0);
+$exp = {N => 0,O => ''};
+is_deeply($got, $exp) || diag scmp($got, $exp);
 
-ok($d = diff('a', "a") and
-    keys %{$d} == 1 and exists $d->{'U'} and $d->{'U'} eq 'a'
-);
+$got = diff('a', "a");
+$exp = {U => 'a'};
+is_deeply($got, $exp) || diag scmp($got, $exp);
 
-ok($d = diff('a', 'b') and
-    keys %{$d} == 2 and
-        exists $d->{'O'} and $d->{'O'} eq 'a' and
-        exists $d->{'N'} and $d->{'N'} eq 'b'
-);
+$got = diff('a', 'b');
+$exp = {N => 'b',O => 'a'};
+is_deeply($got, $exp) || diag scmp($got, $exp);
 
 ### refs
 my ($a, $b) = (0, 0);
-
-ok($d=diff(\$a, \$a) and
-    keys %{$d} == 1 and exists $d->{'U'} and $d->{'U'} == \$a
+$got = diff(\$a, \$a);
+ok(
+    keys %{$got} == 1
+        and exists $got->{'U'}
+            and $got->{'U'} == \$a
 );
 
-ok($d=diff($a, \$a) and
-    keys %{$d} == 2 and
-        exists $d->{'O'} and $d->{'O'} == $a and
-        exists $d->{'N'} and $d->{'N'} == \$a
+$got = diff($a, \$a);
+ok(
+    keys %{$got} == 2
+        and exists $got->{'O'}
+            and $got->{'O'} == $a
+        and exists $got->{'N'}
+            and $got->{'N'} == \$a
 );
 
-ok($d=diff($a, \$a, 'noO' => 1, 'noN' => 1) and
-    keys %{$d} == 0
+my $tmp = \\$a;
+$got = diff(\$a, $tmp);
+ok(
+    keys %{$got} == 2
+        and exists $got->{'O'}
+            and $got->{'O'} == \$a
+        and exists $got->{'N'}
+            and $got->{'N'} == $tmp
 );
 
-ok($d=diff(\$a, \$b) and
-    keys %{$d} == 2 and
-        exists $d->{'O'} and $d->{'O'} == \$a and
-        exists $d->{'N'} and $d->{'N'} == \$b
+$got = diff(\$a, \$b);
+ok(
+    keys %{$got} == 2
+        and exists $got->{'O'}
+            and $got->{'O'} == \$a
+        and exists $got->{'N'}
+            and $got->{'N'} == \$b
 );
 
-ok($d = diff({}, {}) and
-    keys %{$d} == 1 and exists $d->{'U'} and keys %{$d->{'U'}} == 0
-);
+### arrays/hashes
+$got = diff({}, {});
+$exp = {U => {}};
+is_deeply($got, $exp) || diag scmp($got, $exp);
 
-ok($d = diff([], []) and
-    keys %{$d} == 1 and ref $d->{'U'} eq 'ARRAY' and @{$d->{'U'}} == 0
-);
+$got = diff([], []);
+$exp = {U => []};
+is_deeply($got, $exp) || diag scmp($got, $exp);
 
-ok($d = diff([], {}) and
-    keys %{$d} == 2 and
-        exists $d->{'O'} and ref $d->{'O'} eq 'ARRAY' and @{$d->{'O'}} == 0 and
-        exists $d->{'N'} and ref $d->{'N'} eq 'HASH' and keys %{$d->{'N'}} == 0
-);
+$got = diff([], {});
+$exp = {N => {},O => []};
+is_deeply($got, $exp) || diag scmp($got, $exp);
 
-ok($d = diff({}, []) and
-    keys %{$d} == 2 and
-        exists $d->{'O'} and ref $d->{'O'} eq 'HASH' and keys %{$d->{'O'}} == 0 and
-        exists $d->{'N'} and ref $d->{'N'} eq 'ARRAY' and @{$d->{'N'}} == 0
-);
+$got = diff({}, []);
+$exp = {N => [],O => {}};
+is_deeply($got, $exp) || diag scmp($got, $exp);
 
+### code
 my $coderef1 = sub { return 0 };
-ok($d = diff($coderef1, $coderef1) and
-    keys %{$d} == 1 and exists $d->{'U'} and $d->{'U'} eq $coderef1
+$got = diff($coderef1, $coderef1);
+ok(
+    keys %{$got} == 1
+        and exists $got->{'U'}
+        and $got->{'U'} eq $coderef1
 );
 
 my $coderef2 = sub { return 1 };
-ok($d = diff($coderef1, $coderef2) and
-    keys %{$d} == 2 and
-        exists $d->{'O'} and
-            ref $d->{'O'} eq 'CODE' and $d->{'O'} eq $coderef1 and
-        exists $d->{'N'} and
-            ref $d->{'N'} eq 'CODE' and $d->{'N'} eq $coderef2 and
-        $d->{'O'} ne $d->{'N'}
+$got = diff($coderef1, $coderef2);
+ok(
+    keys %{$got} == 2
+        and exists $got->{'O'}
+            and ref $got->{'O'} eq 'CODE' and $got->{'O'} eq $coderef1
+        and exists $got->{'N'}
+            and ref $got->{'N'} eq 'CODE' and $got->{'N'} eq $coderef2
+        and $got->{'O'} ne $got->{'N'}
 );
 
-### blessed things
+### blessed
 my $blessed1 = bless {}, 'SomeClassName';
-ok($d = diff($blessed1, $blessed1) and
-    keys %{$d} == 1 and
-        exists $d->{'U'} and
-            ref $d->{'U'} eq 'SomeClassName' and $d->{'U'} eq $blessed1
+$got = diff($blessed1, $blessed1);
+ok(
+    keys %{$got} == 1
+        and exists $got->{'U'}
+            and ref $got->{'U'} eq 'SomeClassName' and $got->{'U'} eq $blessed1
 );
 
 my $blessed2 = bless {}, 'SomeClassName';
-ok($d = diff($blessed1, $blessed2) and
-    keys %{$d} == 2 and
-        exists $d->{'O'} and
-            ref $d->{'O'} eq 'SomeClassName' and $d->{'O'} eq $blessed1 and
-        exists $d->{'N'} and
-            ref $d->{'N'} eq 'SomeClassName' and $d->{'N'} eq $blessed2 and
-        $d->{'O'} ne $d->{'N'}
+$got = diff($blessed1, $blessed2);
+ok(
+    keys %{$got} == 2
+        and exists $got->{'O'}
+            and ref $got->{'O'} eq 'SomeClassName'
+                and $got->{'O'} eq $blessed1
+        and exists $got->{'N'}
+            and ref $got->{'N'} eq 'SomeClassName'
+                and $got->{'N'} eq $blessed2
+        and $got->{'O'} ne $got->{'N'}
 );
