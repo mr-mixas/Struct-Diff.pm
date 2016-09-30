@@ -5,10 +5,5 @@
     Provided function must return diff substructure with custom states.
     patch() also must provide callback interface to support such new states.
     profits: traditional text diff may be implemented for texts in leaf nodes and so on.
-        dubious - what about nodes-nonleaves?
-        pair of keys may be slightly different, but have same values
 
-*   LCS for array's diff
-
-*   add opt 'startpath' to dtraverse
-*   add opt 'depth' to dtraverse
+*   add opt 'path' to dtraverse
