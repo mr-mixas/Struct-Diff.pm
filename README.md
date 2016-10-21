@@ -4,7 +4,7 @@ Struct::Diff - Recursive diff tools for nested perl structures
 
 # VERSION
 
-Version 0.81
+Version 0.82
 
 # SYNOPSIS
 
@@ -29,19 +29,9 @@ Version 0.81
 
 Nothing is exported by default.
 
-# SUBROUTINES
+# DIFF METADATA FORMAT
 
-## diff
-
-Returns hashref to recursive diff between two passed things. Beware when
-changing diff: some of it's substructures are links to original structures.
-
-    $diff = diff($a, $b, %opts);
-    $patch = diff($a, $b, noU => 1, noO => 1, trimR => '1'); # smallest possible diff
-
-### Diff metadata format
-
-Diff's keys shows status of each item in passed structures.
+Diff is simply a HASH whose keys shows status for each item in passed structures.
 
 - A
 
@@ -53,7 +43,7 @@ Diff's keys shows status of each item in passed structures.
 
 - I
 
-    Shows index for changed item (arrays only).
+    Shows index for changed array item.
 
 - N
 
@@ -69,7 +59,17 @@ Diff's keys shows status of each item in passed structures.
 
 - U
 
-    Represent 'unchanged' items - common for both structures.
+    Represent unchanged items.
+
+# SUBROUTINES
+
+## diff
+
+Returns hashref to recursive diff between two passed things. Beware when
+changing diff: some of it's substructures are links to original structures.
+
+    $diff = diff($a, $b, %opts);
+    $patch = diff($a, $b, noU => 1, noO => 1, trimR => '1'); # smallest possible diff
 
 ### Available options
 
@@ -172,7 +172,7 @@ You can also look for information at:
 
 # SEE ALSO
 
-[Data::Diff](https://metacpan.org/pod/Data::Diff), [Data::Difference](https://metacpan.org/pod/Data::Difference), [Data::Deep](https://metacpan.org/pod/Data::Deep), [JSON::MergePatch](https://metacpan.org/pod/JSON::MergePatch)
+[Algorithm::Diff](https://metacpan.org/pod/Algorithm::Diff), [Data::Deep](https://metacpan.org/pod/Data::Deep), [Data::Diff](https://metacpan.org/pod/Data::Diff), [Data::Difference](https://metacpan.org/pod/Data::Difference), [JSON::MergePatch](https://metacpan.org/pod/JSON::MergePatch)
 
 [Data::Structure::Util](https://metacpan.org/pod/Data::Structure::Util), [Struct::Path](https://metacpan.org/pod/Struct::Path), [Struct::Path::PerlStyle](https://metacpan.org/pod/Struct::Path::PerlStyle)
 

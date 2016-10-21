@@ -31,11 +31,11 @@ Struct::Diff - Recursive diff tools for nested perl structures
 
 =head1 VERSION
 
-Version 0.81
+Version 0.82
 
 =cut
 
-our $VERSION = '0.81';
+our $VERSION = '0.82';
 
 =head1 SYNOPSIS
 
@@ -60,19 +60,9 @@ our $VERSION = '0.81';
 
 Nothing is exported by default.
 
-=head1 SUBROUTINES
+=head1 DIFF METADATA FORMAT
 
-=head2 diff
-
-Returns hashref to recursive diff between two passed things. Beware when
-changing diff: some of it's substructures are links to original structures.
-
-    $diff = diff($a, $b, %opts);
-    $patch = diff($a, $b, noU => 1, noO => 1, trimR => '1'); # smallest possible diff
-
-=head3 Diff metadata format
-
-Diff's keys shows status of each item in passed structures.
+Diff is simply a HASH whose keys shows status for each item in passed structures.
 
 =over 4
 
@@ -86,7 +76,7 @@ Means 'different' and contains subdiff.
 
 =item I
 
-Shows index for changed item (arrays only).
+Shows index for changed array item.
 
 =item N
 
@@ -102,9 +92,19 @@ Similar for C<A>, but for removed items.
 
 =item U
 
-Represent 'unchanged' items - common for both structures.
+Represent unchanged items.
 
 =back
+
+=head1 SUBROUTINES
+
+=head2 diff
+
+Returns hashref to recursive diff between two passed things. Beware when
+changing diff: some of it's substructures are links to original structures.
+
+    $diff = diff($a, $b, %opts);
+    $patch = diff($a, $b, noU => 1, noO => 1, trimR => '1'); # smallest possible diff
 
 =head3 Available options
 
@@ -417,7 +417,7 @@ L<http://search.cpan.org/dist/Struct-Diff/>
 
 =head1 SEE ALSO
 
-L<Data::Diff>, L<Data::Difference>, L<Data::Deep>, L<JSON::MergePatch>
+L<Algorithm::Diff>, L<Data::Deep>, L<Data::Diff>, L<Data::Difference>, L<JSON::MergePatch>
 
 L<Data::Structure::Util>, L<Struct::Path>, L<Struct::Path::PerlStyle>
 
