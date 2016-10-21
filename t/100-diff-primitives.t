@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 use Struct::Diff qw(diff);
-use Test::More tests => 26;
+use Test::More tests => 27;
 
 use lib "t";
 use _common qw(scmp);
@@ -86,6 +86,9 @@ ok(
         and exists $got->{'N'}
             and $got->{'N'} == \$a
 );
+
+$got = diff($a, \$a, 'noO' => 1, 'noN' => 1);
+is_deeply($got, {});
 
 my $tmp = \\$a;
 $got = diff(\$a, $tmp);
