@@ -31,11 +31,11 @@ Struct::Diff - Recursive diff tools for nested perl structures
 
 =head1 VERSION
 
-Version 0.82
+Version 0.83
 
 =cut
 
-our $VERSION = '0.82';
+our $VERSION = '0.83';
 
 =head1 SYNOPSIS
 
@@ -346,9 +346,12 @@ sub patch($$) {
                 if (exists $d->{'D'}->[$i]->{'D'} or exists $d->{'D'}->[$i]->{'N'}) {
                     patch(ref $s->[$si] ? $s->[$si] : \$s->[$si], $d->{'D'}->[$i]);
                 } elsif (exists $d->{'D'}->[$i]->{'A'}) {
-                    push @{$s}, $d->{'D'}->[$i]->{'A'};
+                    splice @{$s}, $si, 1,
+                        (@{$s} > $si ?
+                            ($d->{'D'}->[$i]->{'A'}, $s->[$si]) :
+                            $d->{'D'}->[$i]->{'A'});
                 } elsif (exists $d->{'D'}->[$i]->{'R'}) {
-                    pop @{$s};
+                    splice @{$s}, $si, 1;
                 }
             }
         } else { # HASH

@@ -1,5 +1,8 @@
 Revision history for Struct-Diff
 
+0.83    2016-12-04
+        patch() fixed (A/R in the middle of arrays)
+
 0.82    2016-10-21
         docs corrected
 

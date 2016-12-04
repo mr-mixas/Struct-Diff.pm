@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 use Struct::Diff qw(diff patch);
-use Test::More tests => 14;
+use Test::More tests => 16;
 
 ### primitives ###
 my ($a, $b) = (0, 0);
@@ -21,11 +21,19 @@ ok($a == $b);
 ### arrays ###
 ($a, $b) = ([ 0 ], [ 0, 1 ]);
 patch($a, diff($a, $b));
-is_deeply($a, $b, "ARRAY: Added item");
+is_deeply($a, $b, "ARRAY: item added to the end");
 
 ($a, $b) = ([ 0, 1 ], [ 0 ]);
 patch($a, diff($a, $b));
-is_deeply($a, $b, "ARRAY: removed item");
+is_deeply($a, $b, "ARRAY: item removed from the end");
+
+($a, $b) = ([ 0, 2 ], [ 0, 1, 2 ]);
+patch($a, diff($a, $b));
+is_deeply($a, $b, "ARRAY: item inserted to the middle");
+
+($a, $b) = ([ 0, 1, 2 ], [ 0, 2 ]);
+patch($a, diff($a, $b));
+is_deeply($a, $b, "ARRAY: item removed from the middle");
 
 ($a, $b) = ([ 0, 1 ], [ 0 ]);
 patch($a, diff($a, $b, trimR => 1));
