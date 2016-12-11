@@ -76,7 +76,7 @@ Means 'different' and contains subdiff.
 
 =item I
 
-Shows index for changed array item.
+Index for changed array item.
 
 =item N
 
@@ -104,7 +104,7 @@ Returns hashref to recursive diff between two passed things. Beware when
 changing diff: some of it's substructures are links to original structures.
 
     $diff = diff($a, $b, %opts);
-    $patch = diff($a, $b, noU => 1, noO => 1, trimR => '1'); # smallest possible diff
+    $patch = diff($a, $b, noU => 1, noO => 1, trimR => 1); # smallest possible diff
 
 =head3 Available options
 
@@ -218,8 +218,8 @@ sub diff($$;@) {
 Divide diff to pseudo original structures
 
     $structs = dsplit($diff);
-    # $structs->{'a'} - now contains items originated from $a
-    # $structs->{'b'} - same for $b
+    # $structs->{a} - now contains items originated from $a
+    # $structs->{b} - same for $b
 
 =cut
 
