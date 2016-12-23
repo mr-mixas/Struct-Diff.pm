@@ -31,11 +31,11 @@ Struct::Diff - Recursive diff tools for nested perl structures
 
 =head1 VERSION
 
-Version 0.83
+Version 0.84
 
 =cut
 
-our $VERSION = '0.83';
+our $VERSION = '0.84';
 
 =head1 SYNOPSIS
 
@@ -304,7 +304,7 @@ sub dtraverse($$;$) {
     if (exists $d->{'D'} and (not exists $o->{'depth'} or $o->{'depth'} >= @{$p})) {
         if (ref $d->{'D'} eq 'ARRAY') {
             for (my $i = 0; $i < @{$d->{'D'}}; $i++) {
-                push @{$p}, [$i];
+                push @{$p}, [ exists $d->{'D'}->[$i]->{I} ? $d->{'D'}->[$i]->{I} : $i ];
                 dtraverse($d->{'D'}->[$i], $o, $p) or return undef;
                 pop @{$p};
             }

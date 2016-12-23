@@ -1,5 +1,8 @@
 Revision history for Struct-Diff
 
+0.84    2016-12-23
+        arrays path indexes fixed in dtraverse() for noU diffs
+
 0.83    2016-12-04
         patch() fixed (A/R in the middle of arrays)
 

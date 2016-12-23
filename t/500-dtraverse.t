@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 24;
+use Test::More tests => 25;
 use Struct::Diff qw(diff dtraverse);
 use Storable qw(dclone freeze);
 
@@ -64,6 +64,13 @@ $t = undef;
 $d = diff($frst, $scnd);
 dtraverse($d, $opts);
 is_deeply($t, {TOTAL => 3,'[[0],[0]]' => {N => 1,O => 0},'[[0],[1]]' => {U => 0}}, "[[[0,0]]] vs [[[1,0]]]");
+
+$frst = [0, 0, 1];
+$scnd = [0, 1, 1];
+$t = undef;
+$d = diff($frst, $scnd, noU => 1);
+dtraverse($d, $opts);
+is_deeply($t, {TOTAL => 3,'[[1]]' => {I => 1,N => 1,O => 0}}, "check indexes for 'noU' array diff");
 
 my $sub_array = [ 0, [ 11, 12 ], 2 ];
 $frst = [ 0, [[ 100 ]], [ 20, 'a' ], $sub_array, 4 ];
