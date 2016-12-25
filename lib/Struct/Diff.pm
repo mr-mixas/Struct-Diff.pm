@@ -6,7 +6,7 @@ use warnings FATAL => 'all';
 use parent qw(Exporter);
 use Carp qw(croak);
 use Storable qw(freeze);
-use Algorithm::Diff qw(sdiff);
+use Algorithm::Diff qw(LCS_length sdiff);
 
 $Storable::canonical = 1; # to have equal fingerprints for equal by data hashes
 
@@ -31,11 +31,11 @@ Struct::Diff - Recursive diff tools for nested perl structures
 
 =head1 VERSION
 
-Version 0.84
+Version 0.85
 
 =cut
 
-our $VERSION = '0.84';
+our $VERSION = '0.85';
 
 =head1 SYNOPSIS
 
@@ -204,7 +204,10 @@ sub diff($$;@) {
                 delete $d->{$s};
             }
         }
-    } elsif (not(defined $a and defined $b and $a eq $b or not defined $a and not defined $b)) { # other types
+    } elsif (not( # other types
+        defined $a and defined $b and LCS_length([$a], [$b])
+        or not defined $a and not defined $b
+    )) {
         $d->{'O'} = $a unless ($opts{'noO'});
         $d->{'N'} = $b unless ($opts{'noN'});
     }

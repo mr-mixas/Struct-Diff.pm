@@ -4,7 +4,7 @@ Struct::Diff - Recursive diff tools for nested perl structures
 
 # VERSION
 
-Version 0.84
+Version 0.85
 
 # SYNOPSIS
 

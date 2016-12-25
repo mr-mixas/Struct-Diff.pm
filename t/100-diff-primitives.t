@@ -2,8 +2,9 @@
 
 use strict;
 use warnings;
+use Storable qw(freeze);
 use Struct::Diff qw(diff);
-use Test::More tests => 27;
+use Test::More tests => 29;
 
 use lib "t";
 use _common qw(scmp);
@@ -51,6 +52,14 @@ is_deeply($got, $exp) || diag scmp($got, $exp);
 $got = diff('2.0', 2);
 $exp = {N => 2,O => '2.0'};
 is_deeply($got, $exp) || diag scmp($got, $exp);
+
+$got = diff('2', 2);
+$exp = {U => '2'}; # FIXME: don't know how to distinuish one from the other =(
+is_deeply($got, $exp) || diag scmp($got, $exp);
+
+$got = diff(10, 20);
+$exp = {N => 20,O => 10};
+ok(freeze($got) eq freeze($exp)); # almost the same as above, cehck result doesn't mangled
 
 ### strings
 $got = diff('', undef);
