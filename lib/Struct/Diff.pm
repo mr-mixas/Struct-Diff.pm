@@ -169,6 +169,16 @@ sub diff($$;@) {
     } elsif (ref $a eq 'HASH' and $a ne $b) {
         for my $key (keys %{{ %{$a}, %{$b} }}) { # go througth united uniq keys
             if (exists $a->{$key} and exists $b->{$key}) {
+                if (freeze(ref $a->{$key} ? $a->{$key} : \$a->{$key}) eq
+                    freeze(ref $b->{$key} ? $b->{$key} : \$b->{$key})
+                ) {
+                    if ($opts{'noU'}) {
+                        $hidden = 1;
+                    } else {
+                        $d->{'U'}->{$key} = $a->{$key};
+                    }
+                    next;
+                }
                 my $tmp = diff($a->{$key}, $b->{$key}, %opts);
                 $hidden = 1 unless (keys %{$tmp});
                 while (my ($s, $v) = each(%{$tmp})) {
