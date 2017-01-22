@@ -54,7 +54,7 @@ $exp = {N => 2,O => '2.0'};
 is_deeply($got, $exp) || diag scmp($got, $exp);
 
 $got = diff('2', 2);
-$exp = {U => '2'}; # FIXME: don't know how to distinuish one from the other =(
+$exp = {N => 2,O => '2'};
 is_deeply($got, $exp) || diag scmp($got, $exp);
 
 $got = diff(10, 20);

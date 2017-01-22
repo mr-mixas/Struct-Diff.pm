@@ -4,7 +4,7 @@ Struct::Diff - Recursive diff tools for nested perl structures
 
 # VERSION
 
-Version 0.85
+Version 0.86
 
 # SYNOPSIS
 
@@ -178,7 +178,7 @@ You can also look for information at:
 
 # LICENSE AND COPYRIGHT
 
-Copyright 2015-2016 Michael Samoglyadov.
+Copyright 2015-2017 Michael Samoglyadov.
 
 This program is free software; you can redistribute it and/or modify it
 under the terms of either: the GNU General Public License as published

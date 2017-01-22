@@ -6,7 +6,7 @@ use warnings FATAL => 'all';
 use parent qw(Exporter);
 use Carp qw(croak);
 use Storable qw(freeze);
-use Algorithm::Diff qw(LCS_length sdiff);
+use Algorithm::Diff qw(sdiff);
 
 $Storable::canonical = 1; # to have equal fingerprints for equal by data hashes
 
@@ -31,11 +31,11 @@ Struct::Diff - Recursive diff tools for nested perl structures
 
 =head1 VERSION
 
-Version 0.85
+Version 0.86
 
 =cut
 
-our $VERSION = '0.85';
+our $VERSION = '0.86';
 
 =head1 SYNOPSIS
 
@@ -122,11 +122,6 @@ Drop removed item's data.
 
 =cut
 
-sub _freeze($) {
-    return $_[0] unless (ref $_[0]);
-    freeze($_[0]);
-}
-
 sub diff($$;@);
 sub diff($$;@) {
     my ($a, $b, %opts) = @_;
@@ -145,7 +140,7 @@ sub diff($$;@) {
             $d->{'N'} = $b;
         }
     } elsif (ref $a eq 'ARRAY' and $a ne $b) {
-        my @sd = sdiff($a, $b, \&_freeze);
+        my @sd = sdiff($a, $b, sub { freeze(ref $_[0] ? $_[0] : \$_[0]) });
         my $s; # status collector
         for (my $i = 0; $i < @sd; $i++) {
             my $item;
@@ -205,7 +200,7 @@ sub diff($$;@) {
             }
         }
     } elsif (not( # other types
-        defined $a and defined $b and LCS_length([$a], [$b])
+        defined $a and defined $b and (ref $a ? $a == $b : freeze(\$a) eq freeze(\$b))
         or not defined $a and not defined $b
     )) {
         $d->{'O'} = $a unless ($opts{'noO'});
@@ -429,7 +424,7 @@ L<Data::Structure::Util>, L<Struct::Path>, L<Struct::Path::PerlStyle>
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2015-2016 Michael Samoglyadov.
+Copyright 2015-2017 Michael Samoglyadov.
 
 This program is free software; you can redistribute it and/or modify it
 under the terms of either: the GNU General Public License as published
