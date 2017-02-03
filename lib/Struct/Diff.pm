@@ -209,10 +209,7 @@ sub diff($$;@) {
                 delete $d->{$s};
             }
         }
-    } elsif (not( # other types
-        defined $a and defined $b and (ref $a ? $a == $b : freeze(\$a) eq freeze(\$b))
-        or not defined $a and not defined $b
-    )) {
+    } elsif (ref $a ? $a != $b : freeze(\$a) ne freeze(\$b)) {
         $d->{'O'} = $a unless ($opts{'noO'});
         $d->{'N'} = $b unless ($opts{'noN'});
     }
