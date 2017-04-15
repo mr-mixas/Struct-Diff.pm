@@ -31,11 +31,11 @@ Struct::Diff - Recursive diff tools for nested perl structures
 
 =head1 VERSION
 
-Version 0.86
+Version 0.87
 
 =cut
 
-our $VERSION = '0.86';
+our $VERSION = '0.87';
 
 =head1 SYNOPSIS
 
@@ -139,8 +139,8 @@ sub diff($$;@) {
         } else {
             $d->{'N'} = $b;
         }
-    } elsif (ref $a eq 'ARRAY' and $a ne $b) {
-        my @sd = sdiff($a, $b, sub { freeze(ref $_[0] ? $_[0] : \$_[0]) });
+    } elsif (ref $a eq 'ARRAY' and $a != $b) {
+        my @sd = sdiff($a, $b, sub { freeze(\$_[0]) });
         my $s; # status collector
         for (my $i = 0; $i < @sd; $i++) {
             my $item;
@@ -166,12 +166,10 @@ sub diff($$;@) {
             map { $_ = $_->{$k[0]} } @{$d->{'D'}};
             $d->{$k[0]} = delete $d->{'D'};
         }
-    } elsif (ref $a eq 'HASH' and $a ne $b) {
+    } elsif (ref $a eq 'HASH' and $a != $b) {
         for my $key (keys %{{ %{$a}, %{$b} }}) { # go througth united uniq keys
             if (exists $a->{$key} and exists $b->{$key}) {
-                if (freeze(ref $a->{$key} ? $a->{$key} : \$a->{$key}) eq
-                    freeze(ref $b->{$key} ? $b->{$key} : \$b->{$key})
-                ) {
+                if (freeze(\$a->{$key}) eq freeze(\$b->{$key})) {
                     if ($opts{'noU'}) {
                         $hidden = 1;
                     } else {
