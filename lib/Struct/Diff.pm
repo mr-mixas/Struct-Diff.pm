@@ -126,92 +126,80 @@ sub diff($$;@);
 sub diff($$;@) {
     my ($a, $b, %opts) = @_;
     my $d = {};
-    my $hidden;
 
     if (ref $a ne ref $b) {
-        if ($opts{'noO'}) {
-            $hidden = 1;
-        } else {
-            $d->{'O'} = $a;
-        }
-        if ($opts{'noN'}) {
-            $hidden = 1;
-        } else {
-            $d->{'N'} = $b;
-        }
-    } elsif (ref $a eq 'ARRAY' and $a != $b) {
-        my @sd = sdiff($a, $b, sub { freeze(\$_[0]) });
-        my $s; # status collector
-        for (my $i = 0; $i < @sd; $i++) {
+        $d->{O} = $a unless ($opts{noO});
+        $d->{N} = $b unless ($opts{noN});
+    } elsif (ref $a eq 'ARRAY') {
+        return $opts{noU} ? {} : { U => $a } if ($a == $b);
+
+        my @sd = sdiff($a, $b, sub { freeze \$_[0] });
+        my ($s, $hidden); # status collector
+        for my $i (0 .. $#sd) {
             my $item;
             if ($sd[$i]->[0] eq 'u') {
-                $item->{'U'} = $sd[$i]->[1] unless ($opts{'noU'});
+                $item->{U} = $sd[$i]->[1] unless ($opts{noU});
             } elsif ($sd[$i]->[0] eq 'c') {
                 $item = diff($sd[$i]->[1], $sd[$i]->[2], %opts);
             } elsif ($sd[$i]->[0] eq '+') {
-                $item->{'A'} = $sd[$i]->[2] unless ($opts{'noA'});
+                $item->{A} = $sd[$i]->[2] unless ($opts{noA});
             } else { # '-'
-                $item->{'R'} = $opts{'trimR'} ? undef : $sd[$i]->[1] unless ($opts{'noR'});
+                $item->{R} = $opts{trimR} ? undef : $sd[$i]->[1]
+                    unless ($opts{noR});
             }
-            unless ($item) {
+
+            if ($item) {
+                map { $s->{$_} = 1 } keys %{$item};
+                $item->{I} = $i if ($hidden);
+                push @{$d->{D}}, $item;
+            } else {
                 $hidden = 1;
-                next;
             }
-            map { $s->{$_} = 1 } keys %{$item};
-            $item->{'I'} = $i if ($hidden);
-            push @{$d->{'D'}}, $item;
         }
 
-        if ((my @k = keys %{$s}) == 1 and not ($hidden or exists $s->{'D'})) { # all have same status - return it
-            map { $_ = $_->{$k[0]} } @{$d->{'D'}};
-            $d->{$k[0]} = delete $d->{'D'};
+        if ((my @k = keys %{$s}) == 1 and not ($hidden or exists $s->{D})) { # all have same status - return it
+            map { $_ = $_->{$k[0]} } @{$d->{D}};
+            $d->{$k[0]} = delete $d->{D};
         }
-    } elsif (ref $a eq 'HASH' and $a != $b) {
-        for my $key (keys %{{ %{$a}, %{$b} }}) { # go througth united uniq keys
+
+        $d->{U} = $a unless ($hidden or keys %{$d});
+    } elsif (ref $a eq 'HASH') {
+        return $opts{noU} ? {} : { U => $a } if ($a == $b);
+
+        my @keys = keys %{{ %{$a}, %{$b} }}; # united uniq keys
+        return $opts{noU} ? {} : { U => {} } unless (@keys);
+
+        my ($alt, $sd);
+        for my $key (@keys) {
             if (exists $a->{$key} and exists $b->{$key}) {
                 if (freeze(\$a->{$key}) eq freeze(\$b->{$key})) {
-                    if ($opts{'noU'}) {
-                        $hidden = 1;
+                    $d->{U}->{$key} = $alt->{D}->{$key}->{U} = $a->{$key}
+                        unless ($opts{noU});
+                } else {
+                    $sd = diff($a->{$key}, $b->{$key}, %opts);
+                    if (exists $sd->{D}) {
+                        $d->{D}->{$key} = $alt->{D}->{$key} = $sd;
                     } else {
-                        $d->{'U'}->{$key} = $a->{$key};
-                    }
-                    next;
-                }
-                my $tmp = diff($a->{$key}, $b->{$key}, %opts);
-                $hidden = 1 unless (keys %{$tmp});
-                while (my ($s, $v) = each(%{$tmp})) {
-                    if ($s eq 'D') {
-                        $d->{'D'}->{$key} = $tmp;
-                    } else {
-                        $d->{$s}->{$key} = $v;
+                        map { $d->{$_}->{$key} = $alt->{D}->{$key}->{$_} = $sd->{$_} } keys %{$sd};
                     }
                 }
             } elsif (exists $a->{$key}) {
-                if ($opts{'noR'}) {
-                    $hidden = 1;
-                } else {
-                    $d->{'R'}->{$key} = $opts{'trimR'} ? undef : $a->{$key};
-                }
+                $d->{R}->{$key} = $alt->{D}->{$key}->{R} =
+                    $opts{trimR} ? undef : $a->{$key}
+                        unless ($opts{noR});
             } else {
-                if ($opts{'noA'}) {
-                    $hidden = 1;
-                } else {
-                    $d->{'A'}->{$key} = $b->{$key};
-                }
+                $d->{A}->{$key} = $alt->{D}->{$key}->{A} = $b->{$key}
+                    unless ($opts{noA});
             }
         }
-        if (keys %{$d} > 1 or $hidden) {
-            for my $s (keys %{$d}) {
-                next if ($s eq 'D');
-                map { $d->{'D'}->{$_}->{$s} = delete $d->{$s}->{$_} } keys %{$d->{$s}};
-                delete $d->{$s};
-            }
-        }
-    } elsif (ref $a ? $a != $b : freeze(\$a) ne freeze(\$b)) {
-        $d->{'O'} = $a unless ($opts{'noO'});
-        $d->{'N'} = $b unless ($opts{'noN'});
+
+        $d = $alt if (keys %{$d} > 1); # return 'D' version of diff
+    } else {
+        return $opts{noU} ? {} : { U => $a }
+            if (ref $a ? $a == $b : freeze(\$a) eq freeze(\$b));
+        $d->{O} = $a unless ($opts{noO});
+        $d->{N} = $b unless ($opts{noN});
     }
-    $d->{'U'} = $a unless ($hidden or $opts{'noU'} or keys %{$d});
 
     return $d;
 }
