@@ -8,7 +8,7 @@ use Carp qw(croak);
 use Storable qw(freeze);
 use Algorithm::Diff qw(sdiff);
 
-$Storable::canonical = 1; # to have equal fingerprints for equal by data hashes
+local $Storable::canonical = 1; # to have equal snapshots for equal by data hashes
 
 our @EXPORT_OK = qw(
     diff

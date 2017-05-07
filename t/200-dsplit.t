@@ -6,7 +6,7 @@ use Storable qw(freeze);
 use Struct::Diff qw(diff dsplit);
 use Test::More tests => 17;
 
-$Storable::canonical = 1;
+local $Storable::canonical = 1; # to have equal snapshots for equal by data hashes
 
 my ($a, $b, $d, $frozen_d, $s);
 
