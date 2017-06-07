@@ -11,6 +11,7 @@ t/200-dsplit.t
 t/400-patch.t
 t/500-dtraverse.t
 t/_common.pm
+t/list_diff.t
 t/manifest.t
 t/pod-coverage.t
 t/pod.t

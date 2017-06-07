@@ -12,6 +12,7 @@ local $Storable::canonical = 1; # to have equal snapshots for equal by data hash
 
 our @EXPORT_OK = qw(
     diff
+    list_diff
     dsplit
     dtraverse
     patch
@@ -202,6 +203,59 @@ sub diff($$;@) {
     }
 
     return $d;
+}
+
+=head2 list_diff
+
+List pairs (path, ref_to_subdiff) for provided diff. See
+L<Struct::Path/ADDRESSING SCHEME> for path format specification.
+
+    @list = list_diff(diff($frst, $scnd);
+
+=head3 Available options
+
+=over 4
+
+=item depth E<lt>intE<gt>
+
+Don't dive deeper than defined number of levels.
+
+=item sort E<lt>sub|true|falseE<gt>
+
+Defines how to traverse hash subdiffs. Keys will be picked randomely (C<keys>
+behavior, default), sorted by provided subroutine (if value is a coderef) or
+lexically sorted if set to some other true value.
+
+=back
+
+=cut
+
+sub list_diff($;@) {
+    my ($tmp, %opts) = @_;
+    $opts{depth} = 0 unless ($opts{depth});
+
+    my @stack = ([], \$tmp); # init: (path, diff)
+    my ($diff, @list, $path);
+
+    while (@stack) {
+        ($path, $diff) = splice @stack, 0, 2;
+
+        if (!exists ${$diff}->{D} or $opts{depth} and @{$path} >= $opts{depth}) {
+            push @list, $path, $diff;
+        } elsif (ref ${$diff}->{D} eq 'ARRAY') {
+            map { unshift @stack, [@{$path}, [$_]], \${$diff}->{D}->[$_] }
+                reverse 0 .. $#{${$diff}->{D}};
+        } else { # HASH
+            map { unshift @stack, [@{$path}, {keys => [$_]}], \${$diff}->{D}->{$_} }
+                $opts{sort}
+                    ? (ref $opts{sort} eq 'CODE'
+                        ? reverse $opts{sort}(keys %{${$diff}->{D}})
+                        : reverse sort keys %{${$diff}->{D}})
+                    : keys %{${$diff}->{D}};
+        }
+    }
+
+    return @list;
 }
 
 =head2 dsplit
