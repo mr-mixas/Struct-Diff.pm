@@ -8,8 +8,6 @@ use Carp qw(croak);
 use Storable qw(freeze);
 use Algorithm::Diff qw(sdiff);
 
-local $Storable::canonical = 1; # to have equal snapshots for equal by data hashes
-
 our @EXPORT_OK = qw(
     diff
     list_diff
@@ -126,7 +124,9 @@ Drop removed item's data.
 sub diff($$;@);
 sub diff($$;@) {
     my ($a, $b, %opts) = @_;
+
     my $d = {};
+    local $Storable::canonical = 1; # for equal snapshots for equal by data hashes
 
     if (ref $a ne ref $b) {
         $d->{O} = $a unless ($opts{noO});
