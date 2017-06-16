@@ -38,22 +38,22 @@ our $VERSION = '0.87';
 
 =head1 SYNOPSIS
 
-    use Struct::Diff qw(diff dsplit dtraverse patch);
+    use Struct::Diff qw(diff dsplit list_diff patch);
 
     $a = {x => [7,{y => 4}]};
     $b = {x => [7,{y => 9}],z => 33};
 
-    $diff = diff($a, $b, noO => 1, noU => 1);       # omit unchanged items and old values for changed items
-    # $diff == {D => {x => {D => [{I => 1,N => {y => 9}}]},z => {A => 33}}};
+    $diff = diff($a, $b, noO => 1, noU => 1); # omit unchanged items and old values
+    # $diff == {D => {x => {D => [{I => 1,N => {y => 9}}]},z => {A => 33}}}
 
-    $href = dsplit($diff);                          # divide diff
-    # $href->{a} not exists                         # unchanged omitted, other items originated from $b
-    # $href->{b} == {x => [{y => 9}],z => 33};
+    $splitted = dsplit($diff);
+    # $splitted->{a} # not exists
+    # $splitted->{b} == {x => [{y => 9}],z => 33}
 
-    dtraverse($d, {callback => sub {print "val $_[0] has status $_[2]"; 1}}); # traverse through diff
+    @list_diff = list_diff($diff); # list (path and ref pairs) all diff entries
+    # $list_diff == [[{keys => ['z']}],\{A => 33},[{keys => ['x']},[0]],\{I => 1,N => {y => 9}}]
 
-    patch($a, $diff);
-    # $a now equal to $b by structure and data
+    patch($a, $diff); # $a now equal to $b by structure and data
 
 =head1 EXPORT
 
@@ -105,7 +105,7 @@ changing diff: some of it's substructures are links to original structures.
     $diff = diff($a, $b, %opts);
     $patch = diff($a, $b, noU => 1, noO => 1, trimR => 1); # smallest possible diff
 
-=head3 Available options
+=head3 Options
 
 =over 4
 
@@ -135,7 +135,7 @@ sub diff($$;@) {
         return $opts{noU} ? {} : { U => $a } if ($a == $b);
 
         my @sd = sdiff($a, $b, sub { freeze \$_[0] });
-        my ($s, $hidden); # status collector
+        my ($s, $hidden);
         for my $i (0 .. $#sd) {
             my $item;
             if ($sd[$i]->[0] eq 'u') {
@@ -212,7 +212,7 @@ L<Struct::Path/ADDRESSING SCHEME> for path format specification.
 
     @list = list_diff(diff($frst, $scnd);
 
-=head3 Available options
+=head3 Options
 
 =over 4
 
@@ -263,7 +263,7 @@ sub list_diff($;@) {
 Divide diff to pseudo original structures
 
     $structs = dsplit($diff);
-    # $structs->{a} - now contains items originated from $a
+    # $structs->{a} - contains items originated from $a
     # $structs->{b} - same for $b
 
 =cut
@@ -304,6 +304,8 @@ sub dsplit($) {
 
 =head2 dtraverse
 
+Deprecated. L</list_diff> should be used instead.
+
 Traverse through diff invoking callback function for subdiff statuses.
 
     my $opts = {
@@ -312,7 +314,7 @@ Traverse through diff invoking callback function for subdiff statuses.
     };
     dtraverse($diff, $opts);
 
-=head3 Available options
+=head3 Options
 
 =over 4
 
@@ -417,11 +419,11 @@ sub patch($$) {
 
 =head1 LIMITATIONS
 
-Struct::Diff fails on structures with loops in references. has_circular_ref() from Data::Structure::Util can help
-to detect such structures.
+Struct::Diff fails on structures with loops in references. C<has_circular_ref>
+from L<Data::Structure::Util> can help to detect such structures.
 
-Only scalars, refs to scalars, ref to arrays and ref to hashes correctly traversed. All other data types compared
-by their references.
+Only scalars, refs to scalars, ref to arrays and ref to hashes correctly traversed.
+All other data types compared by their references.
 
 No object oriented interface provided.
 
@@ -431,9 +433,11 @@ Michael Samoglyadov, C<< <mixas at cpan.org> >>
 
 =head1 BUGS
 
-Please report any bugs or feature requests to C<bug-struct-diff at rt.cpan.org>, or through
-the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Struct-Diff>. I will be notified, and then you'll
-automatically be notified of progress on your bug as I make changes.
+Please report any bugs or feature requests to C<bug-struct-diff at rt.cpan.org>,
+or through the web interface at
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Struct-Diff>. I will be notified,
+and then you'll automatically be notified of progress on your bug as I make
+changes.
 
 =head1 SUPPORT
 
@@ -465,7 +469,8 @@ L<http://search.cpan.org/dist/Struct-Diff/>
 
 =head1 SEE ALSO
 
-L<Algorithm::Diff>, L<Data::Deep>, L<Data::Diff>, L<Data::Difference>, L<JSON::MergePatch>
+L<Algorithm::Diff>, L<Data::Deep>, L<Data::Diff>, L<Data::Difference>,
+L<JSON::MergePatch>
 
 L<Data::Structure::Util>, L<Struct::Path>, L<Struct::Path::PerlStyle>
 

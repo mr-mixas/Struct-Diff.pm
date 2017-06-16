@@ -4,26 +4,26 @@ Struct::Diff - Recursive diff tools for nested perl structures
 
 # VERSION
 
-Version 0.86
+Version 0.87
 
 # SYNOPSIS
 
-    use Struct::Diff qw(diff dsplit dtraverse patch);
+    use Struct::Diff qw(diff dsplit list_diff patch);
 
     $a = {x => [7,{y => 4}]};
     $b = {x => [7,{y => 9}],z => 33};
 
-    $diff = diff($a, $b, noO => 1, noU => 1);       # omit unchanged items and old values for changed items
-    # $diff == {D => {x => {D => [{I => 1,N => {y => 9}}]},z => {A => 33}}};
+    $diff = diff($a, $b, noO => 1, noU => 1); # omit unchanged items and old values
+    # $diff == {D => {x => {D => [{I => 1,N => {y => 9}}]},z => {A => 33}}}
 
-    $href = dsplit($diff);                          # divide diff
-    # $href->{a} not exists                         # unchanged omitted, other items originated from $b
-    # $href->{b} == {x => [{y => 9}],z => 33};
+    $splitted = dsplit($diff);
+    # $splitted->{a} # not exists
+    # $splitted->{b} == {x => [{y => 9}],z => 33}
 
-    dtraverse($d, {callback => sub {print "val $_[0] has status $_[2]"; 1}}); # traverse through diff
+    @list_diff = list_diff($diff); # list (path and ref pairs) all diff entries
+    # $list_diff == [[{keys => ['z']}],\{A => 33},[{keys => ['x']},[0]],\{I => 1,N => {y => 9}}]
 
-    patch($a, $diff);
-    # $a now equal to $b by structure and data
+    patch($a, $diff); # $a now equal to $b by structure and data
 
 # EXPORT
 
@@ -71,7 +71,7 @@ changing diff: some of it's substructures are links to original structures.
     $diff = diff($a, $b, %opts);
     $patch = diff($a, $b, noU => 1, noO => 1, trimR => 1); # smallest possible diff
 
-### Available options
+### Options
 
 - noX
 
@@ -81,15 +81,36 @@ changing diff: some of it's substructures are links to original structures.
 
     Drop removed item's data.
 
+## list\_diff
+
+List pairs (path, ref\_to\_subdiff) for provided diff. See
+["ADDRESSING SCHEME" in Struct::Path](https://metacpan.org/pod/Struct::Path#ADDRESSING-SCHEME) for path format specification.
+
+    @list = list_diff(diff($frst, $scnd);
+
+### Options
+
+- depth <int>
+
+    Don't dive deeper than defined number of levels.
+
+- sort <sub|true|false>
+
+    Defines how to traverse hash subdiffs. Keys will be picked randomely (`keys`
+    behavior, default), sorted by provided subroutine (if value is a coderef) or
+    lexically sorted if set to some other true value.
+
 ## dsplit
 
 Divide diff to pseudo original structures
 
     $structs = dsplit($diff);
-    # $structs->{a} - now contains items originated from $a
+    # $structs->{a} - contains items originated from $a
     # $structs->{b} - same for $b
 
 ## dtraverse
+
+Deprecated. ["list_diff"](#list_diff) should be used instead.
 
 Traverse through diff invoking callback function for subdiff statuses.
 
@@ -99,7 +120,7 @@ Traverse through diff invoking callback function for subdiff statuses.
     };
     dtraverse($diff, $opts);
 
-### Available options
+### Options
 
 - depth <int>
 
@@ -128,11 +149,11 @@ Apply diff
 
 # LIMITATIONS
 
-Struct::Diff fails on structures with loops in references. has\_circular\_ref() from Data::Structure::Util can help
-to detect such structures.
+Struct::Diff fails on structures with loops in references. `has_circular_ref`
+from [Data::Structure::Util](https://metacpan.org/pod/Data::Structure::Util) can help to detect such structures.
 
-Only scalars, refs to scalars, ref to arrays and ref to hashes correctly traversed. All other data types compared
-by their references.
+Only scalars, refs to scalars, ref to arrays and ref to hashes correctly traversed.
+All other data types compared by their references.
 
 No object oriented interface provided.
 
@@ -142,9 +163,11 @@ Michael Samoglyadov, `<mixas at cpan.org>`
 
 # BUGS
 
-Please report any bugs or feature requests to `bug-struct-diff at rt.cpan.org`, or through
-the web interface at [http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Struct-Diff](http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Struct-Diff). I will be notified, and then you'll
-automatically be notified of progress on your bug as I make changes.
+Please report any bugs or feature requests to `bug-struct-diff at rt.cpan.org`,
+or through the web interface at
+[http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Struct-Diff](http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Struct-Diff). I will be notified,
+and then you'll automatically be notified of progress on your bug as I make
+changes.
 
 # SUPPORT
 
@@ -172,7 +195,8 @@ You can also look for information at:
 
 # SEE ALSO
 
-[Algorithm::Diff](https://metacpan.org/pod/Algorithm::Diff), [Data::Deep](https://metacpan.org/pod/Data::Deep), [Data::Diff](https://metacpan.org/pod/Data::Diff), [Data::Difference](https://metacpan.org/pod/Data::Difference), [JSON::MergePatch](https://metacpan.org/pod/JSON::MergePatch)
+[Algorithm::Diff](https://metacpan.org/pod/Algorithm::Diff), [Data::Deep](https://metacpan.org/pod/Data::Deep), [Data::Diff](https://metacpan.org/pod/Data::Diff), [Data::Difference](https://metacpan.org/pod/Data::Difference),
+[JSON::MergePatch](https://metacpan.org/pod/JSON::MergePatch)
 
 [Data::Structure::Util](https://metacpan.org/pod/Data::Structure::Util), [Struct::Path](https://metacpan.org/pod/Struct::Path), [Struct::Path::PerlStyle](https://metacpan.org/pod/Struct::Path::PerlStyle)
 
