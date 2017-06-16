@@ -195,9 +195,9 @@ sub diff($$;@) {
         }
 
         $d = $alt if (keys %{$d} > 1); # return 'D' version of diff
+    } elsif (ref $a ? $a == $b : freeze(\$a) eq freeze(\$b)) {
+        $d->{U} = $a unless ($opts{noU});
     } else {
-        return $opts{noU} ? {} : { U => $a }
-            if (ref $a ? $a == $b : freeze(\$a) eq freeze(\$b));
         $d->{O} = $a unless ($opts{noO});
         $d->{N} = $b unless ($opts{noN});
     }
