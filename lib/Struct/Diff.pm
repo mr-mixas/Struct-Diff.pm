@@ -131,13 +131,12 @@ sub diff($$;@) {
     if (ref $a ne ref $b) {
         $d->{O} = $a unless ($opts{noO});
         $d->{N} = $b unless ($opts{noN});
-    } elsif (ref $a eq 'ARRAY') {
-        return $opts{noU} ? {} : { U => $a } if ($a == $b);
-
+    } elsif (ref $a eq 'ARRAY' and $a != $b) {
         my @sd = sdiff($a, $b, sub { freeze \$_[0] });
-        my ($s, $hidden);
+        my ($s, $hidden, $item);
+
         for my $i (0 .. $#sd) {
-            my $item;
+            undef $item;
             if ($sd[$i]->[0] eq 'u') {
                 $item->{U} = $sd[$i]->[1] unless ($opts{noU});
             } elsif ($sd[$i]->[0] eq 'c') {
@@ -158,16 +157,14 @@ sub diff($$;@) {
             }
         }
 
-        if ((my @k = keys %{$s}) == 1 and not ($hidden or exists $s->{D})) { # all have same status - return it
+        if ((my @k = keys %{$s}) == 1 and not ($hidden or exists $s->{D})) { # all items have same status
             map { $_ = $_->{$k[0]} } @{$d->{D}};
             $d->{$k[0]} = delete $d->{D};
         }
 
         $d->{U} = $a unless ($hidden or keys %{$d});
-    } elsif (ref $a eq 'HASH') {
-        return $opts{noU} ? {} : { U => $a } if ($a == $b);
-
-        my @keys = keys %{{ %{$a}, %{$b} }}; # united uniq keys
+    } elsif (ref $a eq 'HASH' and $a != $b) {
+        my @keys = keys %{{ %{$a}, %{$b} }}; # uniq keys for both hashes
         return $opts{noU} ? {} : { U => {} } unless (@keys);
 
         my ($alt, $sd);
@@ -181,7 +178,9 @@ sub diff($$;@) {
                     if (exists $sd->{D}) {
                         $d->{D}->{$key} = $alt->{D}->{$key} = $sd;
                     } else {
-                        map { $d->{$_}->{$key} = $alt->{D}->{$key}->{$_} = $sd->{$_} } keys %{$sd};
+                        map {
+                            $d->{$_}->{$key} = $alt->{D}->{$key}->{$_} = $sd->{$_}
+                        } keys %{$sd};
                     }
                 }
             } elsif (exists $a->{$key}) {
@@ -254,12 +253,13 @@ sub list_diff($;@) {
                     \${$diff}->{D}->[$_]
             } reverse 0 .. $#{${$diff}->{D}};
         } else { # HASH
-            map { unshift @stack, [@{$path}, {keys => [$_]}], \${$diff}->{D}->{$_} }
-                $opts{sort}
-                    ? (ref $opts{sort} eq 'CODE'
-                        ? reverse $opts{sort}(keys %{${$diff}->{D}})
-                        : reverse sort keys %{${$diff}->{D}})
-                    : keys %{${$diff}->{D}};
+            map {
+                unshift @stack, [@{$path}, {keys => [$_]}], \${$diff}->{D}->{$_}
+            } $opts{sort}
+                ? ref $opts{sort} eq 'CODE'
+                    ? reverse $opts{sort}(keys %{${$diff}->{D}})
+                    : reverse sort keys %{${$diff}->{D}}
+                : keys %{${$diff}->{D}};
         }
     }
 
