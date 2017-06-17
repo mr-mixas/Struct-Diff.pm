@@ -11,6 +11,7 @@ use Algorithm::Diff qw(sdiff);
 our @EXPORT_OK = qw(
     diff
     list_diff
+    split_diff
     dsplit
     dtraverse
     patch
@@ -38,7 +39,7 @@ our $VERSION = '0.88';
 
 =head1 SYNOPSIS
 
-    use Struct::Diff qw(diff dsplit list_diff patch);
+    use Struct::Diff qw(diff list_diff split_diff patch);
 
     $a = {x => [7,{y => 4}]};
     $b = {x => [7,{y => 9}],z => 33};
@@ -46,12 +47,12 @@ our $VERSION = '0.88';
     $diff = diff($a, $b, noO => 1, noU => 1); # omit unchanged items and old values
     # $diff == {D => {x => {D => [{I => 1,N => {y => 9}}]},z => {A => 33}}}
 
-    $splitted = dsplit($diff);
-    # $splitted->{a} # not exists
-    # $splitted->{b} == {x => [{y => 9}],z => 33}
-
     @list_diff = list_diff($diff); # list (path and ref pairs) all diff entries
     # $list_diff == [[{keys => ['z']}],\{A => 33},[{keys => ['x']},[0]],\{I => 1,N => {y => 9}}]
+
+    $splitted = split_diff($diff);
+    # $splitted->{a} # not exists
+    # $splitted->{b} == {x => [{y => 9}],z => 33}
 
     patch($a, $diff); # $a now equal to $b by structure and data
 
@@ -204,6 +205,15 @@ sub diff($$;@) {
     return $d;
 }
 
+=head2 dsplit
+
+Is an alias for L</split_diff>. Deprecated, will be removed in future
+releases. L</split_diff> should be used instead.
+
+=cut
+
+*dsplit = \&split_diff;
+
 =head2 list_diff
 
 List pairs (path, ref_to_subdiff) for provided diff. See
@@ -266,18 +276,18 @@ sub list_diff($;@) {
     return @list;
 }
 
-=head2 dsplit
+=head2 split_diff
 
 Divide diff to pseudo original structures
 
-    $structs = dsplit($diff);
-    # $structs->{a} - contains items originated from $a
-    # $structs->{b} - same for $b
+    $structs = split_diff(diff($a, $b));
+    # $structs->{a}: items originated from $a
+    # $structs->{b}: same for $b
 
 =cut
 
-sub dsplit($);
-sub dsplit($) {
+sub split_diff($);
+sub split_diff($) {
     my $d = shift;
     _validate_meta($d);
     my $s = {};
@@ -285,13 +295,13 @@ sub dsplit($) {
     if (exists $d->{'D'}) {
         if (ref $d->{'D'} eq 'ARRAY') {
             for my $di (@{$d->{'D'}}) {
-                my $ts = dsplit($di);
+                my $ts = split_diff($di);
                 push @{$s->{'a'}}, $ts->{'a'} if (exists $ts->{'a'});
                 push @{$s->{'b'}}, $ts->{'b'} if (exists $ts->{'b'});
             }
         } else { # HASH
             for my $key (keys %{$d->{'D'}}) {
-                my $ts = dsplit($d->{'D'}->{$key});
+                my $ts = split_diff($d->{'D'}->{$key});
                 $s->{'a'}->{$key} = $ts->{'a'} if (exists $ts->{'a'});
                 $s->{'b'}->{$key} = $ts->{'b'} if (exists $ts->{'b'});
             }

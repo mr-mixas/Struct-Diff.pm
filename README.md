@@ -4,11 +4,11 @@ Struct::Diff - Recursive diff tools for nested perl structures
 
 # VERSION
 
-Version 0.87
+Version 0.88
 
 # SYNOPSIS
 
-    use Struct::Diff qw(diff dsplit list_diff patch);
+    use Struct::Diff qw(diff list_diff split_diff patch);
 
     $a = {x => [7,{y => 4}]};
     $b = {x => [7,{y => 9}],z => 33};
@@ -16,12 +16,12 @@ Version 0.87
     $diff = diff($a, $b, noO => 1, noU => 1); # omit unchanged items and old values
     # $diff == {D => {x => {D => [{I => 1,N => {y => 9}}]},z => {A => 33}}}
 
-    $splitted = dsplit($diff);
-    # $splitted->{a} # not exists
-    # $splitted->{b} == {x => [{y => 9}],z => 33}
-
     @list_diff = list_diff($diff); # list (path and ref pairs) all diff entries
     # $list_diff == [[{keys => ['z']}],\{A => 33},[{keys => ['x']},[0]],\{I => 1,N => {y => 9}}]
+
+    $splitted = split_diff($diff);
+    # $splitted->{a} # not exists
+    # $splitted->{b} == {x => [{y => 9}],z => 33}
 
     patch($a, $diff); # $a now equal to $b by structure and data
 
@@ -81,6 +81,11 @@ changing diff: some of it's substructures are links to original structures.
 
     Drop removed item's data.
 
+## dsplit
+
+Is an alias for ["split_diff"](#split_diff). Deprecated, will be removed in future
+releases. ["split_diff"](#split_diff) should be used instead.
+
 ## list\_diff
 
 List pairs (path, ref\_to\_subdiff) for provided diff. See
@@ -100,13 +105,13 @@ List pairs (path, ref\_to\_subdiff) for provided diff. See
     behavior, default), sorted by provided subroutine (if value is a coderef) or
     lexically sorted if set to some other true value.
 
-## dsplit
+## split\_diff
 
 Divide diff to pseudo original structures
 
-    $structs = dsplit($diff);
-    # $structs->{a} - contains items originated from $a
-    # $structs->{b} - same for $b
+    $structs = split_diff(diff($a, $b));
+    # $structs->{a}: items originated from $a
+    # $structs->{b}: same for $b
 
 ## dtraverse
 

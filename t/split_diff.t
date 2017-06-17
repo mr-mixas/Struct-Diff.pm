@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 use Storable qw(freeze);
-use Struct::Diff qw(diff dsplit);
+use Struct::Diff qw(diff split_diff);
 use Test::More tests => 17;
 
 local $Storable::canonical = 1; # to have equal snapshots for equal by data hashes
@@ -11,29 +11,29 @@ local $Storable::canonical = 1; # to have equal snapshots for equal by data hash
 my ($a, $b, $d, $frozen_d, $s);
 
 ### garbage ###
-eval { dsplit(undef) };
+eval { split_diff(undef) };
 ok($@ =~ /^Unsupported diff struct passed/);
 
-eval { dsplit({D => 'garbage'}) };
+eval { split_diff({D => 'garbage'}) };
 ok($@ =~ /^Value for 'D' status must be hash or array/);
 
-$s = dsplit({garbage_as_a_status => 'garbage'});
+$s = split_diff({garbage_as_a_status => 'garbage'});
 is_deeply($s, {}, "diff: {garbage_as_a_status => 'garbage'}");
 
 ### primitives ###
-$s = dsplit(diff(0, 0));
+$s = split_diff(diff(0, 0));
 is_deeply($s, {a => 0,b => 0}, "0 vs 0");
 
-$s = dsplit(diff(0, 1));
+$s = split_diff(diff(0, 1));
 is_deeply($s, {a => 0,b => 1}, "0 vs 1");
 
 ### arrays ###
 $d = diff([ 0 ], [ 0, 1 ]);
 
-$s = dsplit($d);
+$s = split_diff($d);
 is_deeply($s, {a => [0],b => [0,1]}, "[0] vs [0,1]");
 
-$s = dsplit(diff([ 0, 1 ], [ 0 ]));
+$s = split_diff(diff([ 0, 1 ], [ 0 ]));
 is_deeply($s, {a => [0,1],b => [0]}, "[0,1] vs [0]");
 
 my $sub_array = [ 0, [ 11, 12 ], 2 ];
@@ -43,7 +43,7 @@ $b = [ 0, [[ 100 ]], [ 20, 'b' ], $sub_array, 5 ];
 $d = diff($a, $b, noU => 0);
 $frozen_d = freeze($d);
 
-$s = dsplit($d);
+$s = split_diff($d);
 is_deeply($s, {a => $a,b => $b}, "complex arrays, noU => 0");
 
 is($frozen_d, freeze($d), "original struct must remain unchanged");
@@ -51,7 +51,7 @@ is($frozen_d, freeze($d), "original struct must remain unchanged");
 $d = diff($a, $b, noU => 1);
 $frozen_d = freeze($d);
 
-$s = dsplit($d);
+$s = split_diff($d);
 is_deeply($s, {a => [['a'],4],b => [['b'],5]}, "complex arrays, noU => 1");
 
 is($frozen_d, freeze($d), "original struct must remain unchanged");
@@ -64,7 +64,7 @@ $b = { 'a' => 'a1', 'b' => { 'ba' => 'ba2', 'bb' => 'bb1' }, 'd' => 'd1' };
 $d = diff($a, $b);
 $frozen_d = freeze($d);
 
-$s = dsplit($d);
+$s = split_diff($d);
 is_deeply($s, {a => $a,b => $b}, "complex hashes, full diff");
 
 is($frozen_d, freeze($d), "original struct must remain unchanged");
@@ -89,7 +89,7 @@ $b = {
 $d = diff($a, $b);
 $frozen_d = freeze($d);
 
-$s = dsplit($d);
+$s = split_diff($d);
 is_deeply($s, {a => $a,b => $b}, "complex struct, full diff");
 
 is($frozen_d, freeze($d), "original struct must remain unchanged");
@@ -97,7 +97,7 @@ is($frozen_d, freeze($d), "original struct must remain unchanged");
 $d = diff($a, $b, noU => 1);
 $frozen_d = freeze($d);
 
-$s = dsplit($d);
+$s = split_diff($d);
 is_deeply(
     $s,
     {
