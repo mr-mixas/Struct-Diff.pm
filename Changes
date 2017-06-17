@@ -1,5 +1,9 @@
 Revision history for Struct-Diff
 
+0.88    2017-06-17
+        paths in list_diff() fixed for arrays in noU diffs
+        rename dsplit => split_diff(), old name is deprecated (alias)
+
 0.87    2017-06-16
         list_diff() added
         get rid of global $Storable::canonical
