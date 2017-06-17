@@ -6,7 +6,7 @@ use warnings;
 use Struct::Diff qw(diff list_diff);
 use Storable qw(freeze);
 
-use Test::More tests => 8;
+use Test::More tests => 9;
 
 local $Storable::canonical = 1; # to have equal snapshots for equal by data hashes
 
@@ -14,6 +14,19 @@ use lib "t";
 use _common qw(sdump);
 
 my ($frst, $scnd, @list, $frozen);
+
+### arrays ###
+$frst = [0, [1]];
+$scnd = [0, [0]];
+@list = list_diff(diff($frst, $scnd, noU => 1));
+is_deeply(
+    \@list,
+    [
+        [[1],[0]],
+            \{N => 0,O => 1}
+    ],
+    "provided index must be picked for path, when common items omitted"
+) or diag sdump \@list;
 
 ### keys sort ###
 $frst = { '0' => 0,  '1' => 1, '02' => 2 };

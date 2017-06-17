@@ -30,11 +30,11 @@ Struct::Diff - Recursive diff tools for nested perl structures
 
 =head1 VERSION
 
-Version 0.87
+Version 0.88
 
 =cut
 
-our $VERSION = '0.87';
+our $VERSION = '0.88';
 
 =head1 SYNOPSIS
 
@@ -243,8 +243,16 @@ sub list_diff($;@) {
         if (!exists ${$diff}->{D} or $opts{depth} and @{$path} >= $opts{depth}) {
             push @list, $path, $diff;
         } elsif (ref ${$diff}->{D} eq 'ARRAY') {
-            map { unshift @stack, [@{$path}, [$_]], \${$diff}->{D}->[$_] }
-                reverse 0 .. $#{${$diff}->{D}};
+            map {
+                unshift @stack,
+                    [@{$path},
+                        [exists ${$diff}->{D}->[$_]->{I}
+                            ? ${$diff}->{D}->[$_]->{I} # use provided index
+                            : $_
+                        ]
+                    ],
+                    \${$diff}->{D}->[$_]
+            } reverse 0 .. $#{${$diff}->{D}};
         } else { # HASH
             map { unshift @stack, [@{$path}, {keys => [$_]}], \${$diff}->{D}->{$_} }
                 $opts{sort}
