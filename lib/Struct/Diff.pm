@@ -31,11 +31,11 @@ Struct::Diff - Recursive diff tools for nested perl structures
 
 =head1 VERSION
 
-Version 0.88
+Version 0.89
 
 =cut
 
-our $VERSION = '0.88';
+our $VERSION = '0.89';
 
 =head1 SYNOPSIS
 
@@ -194,7 +194,8 @@ sub diff($$;@) {
             }
         }
 
-        $d = $alt if (keys %{$d} > 1); # return 'D' version of diff
+        $d = $alt # return 'D' version of diff
+            if (keys %{$d} > 1 or ($sd) = values %{$d} and keys %{$sd} != @keys);
     } elsif (ref $a ? $a == $b : freeze(\$a) eq freeze(\$b)) {
         $d->{U} = $a unless ($opts{noU});
     } else {
