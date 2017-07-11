@@ -1,10 +1,10 @@
 # NAME
 
-Struct::Diff - Recursive diff tools for nested perl structures
+Struct::Diff - Recursive diff for nested perl structures
 
 # VERSION
 
-Version 0.88
+Version 0.89
 
 # SYNOPSIS
 

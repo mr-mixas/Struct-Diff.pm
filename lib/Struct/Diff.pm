@@ -27,7 +27,7 @@ sub _validate_meta($) {
 
 =head1 NAME
 
-Struct::Diff - Recursive diff tools for nested perl structures
+Struct::Diff - Recursive diff for nested perl structures
 
 =head1 VERSION
 
