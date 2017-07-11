@@ -289,36 +289,36 @@ Divide diff to pseudo original structures
 
 sub split_diff($);
 sub split_diff($) {
-    my $d = shift;
+    my $d = $_[0];
     _validate_meta($d);
-    my $s = {};
+    my (%out, $sd);
 
-    if (exists $d->{'D'}) {
-        if (ref $d->{'D'} eq 'ARRAY') {
-            for my $di (@{$d->{'D'}}) {
-                my $ts = split_diff($di);
-                push @{$s->{'a'}}, $ts->{'a'} if (exists $ts->{'a'});
-                push @{$s->{'b'}}, $ts->{'b'} if (exists $ts->{'b'});
+    if (exists $d->{D}) {
+        if (ref $d->{D} eq 'ARRAY') {
+            for (@{$d->{D}}) {
+                $sd = split_diff($_);
+                push @{$out{a}}, $sd->{a} if (exists $sd->{a});
+                push @{$out{b}}, $sd->{b} if (exists $sd->{b});
             }
         } else { # HASH
-            for my $key (keys %{$d->{'D'}}) {
-                my $ts = split_diff($d->{'D'}->{$key});
-                $s->{'a'}->{$key} = $ts->{'a'} if (exists $ts->{'a'});
-                $s->{'b'}->{$key} = $ts->{'b'} if (exists $ts->{'b'});
+            for (keys %{$d->{D}}) {
+                $sd = split_diff($d->{D}->{$_});
+                $out{a}->{$_} = $sd->{a} if (exists $sd->{a});
+                $out{b}->{$_} = $sd->{b} if (exists $sd->{b});
             }
         }
-    } elsif (exists $d->{'U'}) {
-        $s->{'a'} = $s->{'b'} = $d->{'U'};
-    } elsif (exists $d->{'A'}) {
-        $s->{'b'} = $d->{'A'};
-    } elsif (exists $d->{'R'}) {
-        $s->{'a'} = $d->{'R'};
+    } elsif (exists $d->{U}) {
+        $out{a} = $out{b} = $d->{U};
+    } elsif (exists $d->{A}) {
+        $out{b} = $d->{A};
+    } elsif (exists $d->{R}) {
+        $out{a} = $d->{R};
     } else {
-        $s->{'b'} = $d->{'N'} if (exists $d->{'N'});
-        $s->{'a'} = $d->{'O'} if (exists $d->{'O'});
+        $out{b} = $d->{N} if (exists $d->{N});
+        $out{a} = $d->{O} if (exists $d->{O});
     }
 
-    return $s;
+    return \%out;
 }
 
 =head2 dtraverse
