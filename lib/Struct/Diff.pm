@@ -400,39 +400,44 @@ Apply diff
 
 =cut
 
-sub patch($$);
 sub patch($$) {
-    my ($s, $d) = @_;
-    _validate_meta($d);
+    my @stack = @_;
+    my ($s, $d, $i);
 
-    if (exists $d->{'D'}) {
-        if (ref $d->{'D'} eq 'ARRAY') {
-            for my $i (0 .. $#{$d->{'D'}}) {
-                my $si = exists $d->{'D'}->[$i]->{'I'} ? $d->{'D'}->[$i]->{'I'} : $i; # use provided index
-                if (exists $d->{'D'}->[$i]->{'D'} or exists $d->{'D'}->[$i]->{'N'}) {
-                    patch(ref $s->[$si] ? $s->[$si] : \$s->[$si], $d->{'D'}->[$i]);
-                } elsif (exists $d->{'D'}->[$i]->{'A'}) {
-                    splice @{$s}, $si, 1,
-                        (@{$s} > $si ?
-                            ($d->{'D'}->[$i]->{'A'}, $s->[$si]) :
-                            $d->{'D'}->[$i]->{'A'});
-                } elsif (exists $d->{'D'}->[$i]->{'R'}) {
-                    splice @{$s}, $si, 1;
+    while (@stack) {
+        ($s, $d) = splice @stack, 0, 2;
+        _validate_meta($d);
+
+        if (exists $d->{D}) {
+            if (ref $d->{D} eq 'ARRAY') {
+                for (0 .. $#{$d->{D}}) {
+                    $i = exists $d->{D}->[$_]->{I} ? $d->{D}->[$_]->{I} : $_; # use provided index
+                    if (exists $d->{D}->[$_]->{D} or exists $d->{D}->[$_]->{N}) {
+                        push @stack,
+                            (ref $s->[$i] ? $s->[$i] : \$s->[$i]), $d->{D}->[$_];
+                    } elsif (exists $d->{D}->[$_]->{A}) {
+                        splice @{$s}, $i, 1, (@{$s} > $i
+                            ? ($d->{D}->[$_]->{A}, $s->[$i])
+                            : $d->{D}->[$_]->{A});
+                    } elsif (exists $d->{D}->[$_]->{R}) {
+                        splice @{$s}, $i, 1;
+                    }
+                }
+            } else { # HASH
+                for (keys %{$d->{D}}) {
+                    if (exists $d->{D}->{$_}->{D} or exists $d->{D}->{$_}->{N}) {
+                        push @stack,
+                            (ref $s->{$_} ? $s->{$_} : \$s->{$_}), $d->{D}->{$_};
+                    } elsif (exists $d->{D}->{$_}->{A}) {
+                        $s->{$_} = $d->{D}->{$_}->{A};
+                    } elsif (exists $d->{D}->{$_}->{R}) {
+                        delete $s->{$_};
+                    }
                 }
             }
-        } else { # HASH
-            for my $k (keys %{$d->{'D'}}) {
-                if (exists $d->{'D'}->{$k}->{'D'} or exists $d->{'D'}->{$k}->{'N'}) {
-                    patch(ref $s->{$k} ? $s->{$k} : \$s->{$k}, $d->{'D'}->{$k});
-                } elsif (exists $d->{'D'}->{$k}->{'A'}) {
-                    $s->{$k} = $d->{'D'}->{$k}->{'A'};
-                } elsif (exists $d->{'D'}->{$k}->{'R'}) {
-                    delete $s->{$k};
-                }
-            }
+        } elsif (exists $d->{N}) {
+            ${$s} = $d->{N};
         }
-    } elsif (exists $d->{'N'}) {
-        ${$s} = $d->{'N'};
     }
 }
 
