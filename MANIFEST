@@ -7,7 +7,6 @@ t/000-load.t
 t/100-diff-primitives.t
 t/110-diff-structures.t
 t/400-patch.t
-t/500-dtraverse.t
 t/_common.pm
 t/list_diff.t
 t/manifest.t

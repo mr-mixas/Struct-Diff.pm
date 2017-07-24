@@ -12,8 +12,6 @@ our @EXPORT_OK = qw(
     diff
     list_diff
     split_diff
-    dsplit
-    dtraverse
     patch
 );
 
@@ -31,11 +29,11 @@ Struct::Diff - Recursive diff for nested perl structures
 
 =head1 VERSION
 
-Version 0.89
+Version 0.90
 
 =cut
 
-our $VERSION = '0.89';
+our $VERSION = '0.90';
 
 =head1 SYNOPSIS
 
@@ -206,15 +204,6 @@ sub diff($$;@) {
     return $d;
 }
 
-=head2 dsplit
-
-Is an alias for L</split_diff>. Deprecated, will be removed in future
-releases. L</split_diff> should be used instead.
-
-=cut
-
-*dsplit = \&split_diff;
-
 =head2 list_diff
 
 List pairs (path, ref_to_subdiff) for provided diff. See
@@ -232,8 +221,8 @@ Don't dive deeper than defined number of levels.
 
 =item sort E<lt>sub|true|falseE<gt>
 
-Defines how to traverse hash subdiffs. Keys will be picked randomely (C<keys>
-behavior, default), sorted by provided subroutine (if value is a coderef) or
+Defines how to handle hash subdiffs. Keys will be picked randomely (default
+C<keys> behavior), sorted by provided subroutine (if value is a coderef) or
 lexically sorted if set to some other true value.
 
 =back
@@ -319,77 +308,6 @@ sub split_diff($) {
     }
 
     return \%out;
-}
-
-=head2 dtraverse
-
-Deprecated. L</list_diff> should be used instead.
-
-Traverse through diff invoking callback function for subdiff statuses.
-
-    my $opts = {
-        callback => sub { print "added value:", $_[0], "depth:", @{$_[1]}, "status:", $_[2]; return 1},
-        sortkeys => sub { sort { $a <=> $b } @_ }   # numeric sort for keys under diff
-    };
-    dtraverse($diff, $opts);
-
-=head3 Options
-
-=over 4
-
-=item depth E<lt>intE<gt>
-
-Don't dive deeper than defined number of levels
-
-=item callback E<lt>subE<gt>
-
-Mandatory option, must contain coderef to callback fuction. Four arguments will be passed to provided
-subroutine: value, path, status and ref to subdiff. Function must return some true value on success. Important:
-path (second argument) is actual for callback lifetime and will be immedeately changed afterwards.
-
-=item sortkeys E<lt>subE<gt>
-
-Defines how will be traversed subdiffs for hashes. Keys will be picked randomely (depends on C<keys> behavior,
-default), sorted by provided subroutine (if value is a coderef) or lexically sorted if set to some other true value.
-
-=item statuses E<lt>listE<gt>
-
-Exact list of statuses. Sequence defines invocation priority.
-
-=back
-
-=cut
-
-sub dtraverse($$;$);
-sub dtraverse($$;$) {
-    my ($d, $o, $p) = (shift, shift, shift || []);
-    croak "Callback must be a code reference" unless (ref $o->{'callback'} eq 'CODE');
-    croak "Statuses argument must be an arrayref" if ($o->{'statuses'} and ref $o->{'statuses'} ne 'ARRAY');
-    _validate_meta($d);
-
-    if (exists $d->{'D'} and (not exists $o->{'depth'} or $o->{'depth'} >= @{$p})) {
-        if (ref $d->{'D'} eq 'ARRAY') {
-            for (my $i = 0; $i < @{$d->{'D'}}; $i++) {
-                push @{$p}, [ exists $d->{'D'}->[$i]->{I} ? $d->{'D'}->[$i]->{I} : $i ];
-                dtraverse($d->{'D'}->[$i], $o, $p) or return undef;
-                pop @{$p};
-            }
-        } else { # HASH
-            my @keys = keys %{$d->{'D'}};
-            @keys = ref $o->{'sortkeys'} eq 'CODE' ? $o->{'sortkeys'}(@keys) : sort @keys if ($o->{'sortkeys'});
-            for my $k (@keys) {
-                push @{$p}, { 'keys' => [$k] };
-                dtraverse($d->{'D'}->{$k}, $o, $p) or return undef;
-                pop @{$p};
-            }
-        }
-    } else {
-        for ($o->{'statuses'} ? @{$o->{'statuses'}} : keys %{$d}) {
-            next unless (exists $d->{$_});
-            $o->{'callback'}($d->{$_}, $p, $_, \$d) or return undef;
-        }
-    }
-    return 1;
 }
 
 =head2 patch

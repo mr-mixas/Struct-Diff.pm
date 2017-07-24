@@ -4,7 +4,7 @@ Struct::Diff - Recursive diff for nested perl structures
 
 # VERSION
 
-Version 0.89
+Version 0.90
 
 # SYNOPSIS
 
@@ -81,11 +81,6 @@ changing diff: some of it's substructures are links to original structures.
 
     Drop removed item's data.
 
-## dsplit
-
-Is an alias for ["split_diff"](#split_diff). Deprecated, will be removed in future
-releases. ["split_diff"](#split_diff) should be used instead.
-
 ## list\_diff
 
 List pairs (path, ref\_to\_subdiff) for provided diff. See
@@ -101,8 +96,8 @@ List pairs (path, ref\_to\_subdiff) for provided diff. See
 
 - sort <sub|true|false>
 
-    Defines how to traverse hash subdiffs. Keys will be picked randomely (`keys`
-    behavior, default), sorted by provided subroutine (if value is a coderef) or
+    Defines how to handle hash subdiffs. Keys will be picked randomely (default
+    `keys` behavior), sorted by provided subroutine (if value is a coderef) or
     lexically sorted if set to some other true value.
 
 ## split\_diff
@@ -112,39 +107,6 @@ Divide diff to pseudo original structures
     $structs = split_diff(diff($a, $b));
     # $structs->{a}: items originated from $a
     # $structs->{b}: same for $b
-
-## dtraverse
-
-Deprecated. ["list_diff"](#list_diff) should be used instead.
-
-Traverse through diff invoking callback function for subdiff statuses.
-
-    my $opts = {
-        callback => sub { print "added value:", $_[0], "depth:", @{$_[1]}, "status:", $_[2]; return 1},
-        sortkeys => sub { sort { $a <=> $b } @_ }   # numeric sort for keys under diff
-    };
-    dtraverse($diff, $opts);
-
-### Options
-
-- depth <int>
-
-    Don't dive deeper than defined number of levels
-
-- callback <sub>
-
-    Mandatory option, must contain coderef to callback fuction. Four arguments will be passed to provided
-    subroutine: value, path, status and ref to subdiff. Function must return some true value on success. Important:
-    path (second argument) is actual for callback lifetime and will be immedeately changed afterwards.
-
-- sortkeys <sub>
-
-    Defines how will be traversed subdiffs for hashes. Keys will be picked randomely (depends on `keys` behavior,
-    default), sorted by provided subroutine (if value is a coderef) or lexically sorted if set to some other true value.
-
-- statuses <list>
-
-    Exact list of statuses. Sequence defines invocation priority.
 
 ## patch
 
