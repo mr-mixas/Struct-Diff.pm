@@ -5,7 +5,7 @@ use strict;
 use warnings FATAL => 'all';
 use parent qw(Exporter);
 use Carp qw(croak);
-use Storable qw(freeze);
+use Storable 2.05 qw(freeze);
 use Algorithm::Diff qw(sdiff);
 
 our @EXPORT_OK = qw(
@@ -126,6 +126,7 @@ sub diff($$;@) {
 
     my $d = {};
     local $Storable::canonical = 1; # for equal snapshots for equal by data hashes
+    local $Storable::Deparse = 1;
 
     if (ref $a ne ref $b) {
         $d->{O} = $a unless ($opts{noO});
@@ -194,7 +195,7 @@ sub diff($$;@) {
 
         $d = $alt # return 'D' version of diff
             if (keys %{$d} > 1 or ($sd) = values %{$d} and keys %{$sd} != @keys);
-    } elsif (ref $a ? $a == $b : freeze(\$a) eq freeze(\$b)) {
+    } elsif (ref $a ? $a == $b || freeze($a) eq freeze($b) : freeze(\$a) eq freeze(\$b)) {
         $d->{U} = $a unless ($opts{noU});
     } else {
         $d->{O} = $a unless ($opts{noO});
@@ -364,8 +365,8 @@ sub patch($$) {
 Struct::Diff fails on structures with loops in references. C<has_circular_ref>
 from L<Data::Structure::Util> can help to detect such structures.
 
-Only scalars, refs to scalars, ref to arrays and ref to hashes correctly traversed.
-All other data types compared by their references.
+Only arrays and hashes traversed. All other data types compared by their
+references or content.
 
 No object oriented interface provided.
 
