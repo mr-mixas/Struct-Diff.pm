@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use Storable qw(freeze);
 use Struct::Diff qw(diff);
-use Test::More tests => 34;
+use Test::More tests => 35;
 
 use lib "t";
 use _common qw(scmp);
@@ -59,8 +59,8 @@ $got = diff('2', 2);
 $exp = {N => 2,O => '2'};
 is_deeply($got, $exp) || diag scmp($got, $exp);
 
-$got = diff(10, 20);
-$exp = {N => 20,O => 10};
+$got = diff('10', 20);
+$exp = {N => 20,O => '10'};
 ok(freeze($got) eq freeze($exp)); # almost the same as above, cehck result doesn't mangled
 
 ### strings
@@ -83,33 +83,19 @@ is_deeply($got, $exp) || diag scmp($got, $exp);
 ### refs
 my ($a, $b) = (0, 0);
 $got = diff(\$a, \$a);
-ok(
-    keys %{$got} == 1
-        and exists $got->{'U'}
-            and $got->{'U'} == \$a
-);
+$exp = {U => \$a};
+is_deeply($got, $exp) || diag scmp($got, $exp);
 
 $got = diff($a, \$a);
-ok(
-    keys %{$got} == 2
-        and exists $got->{'O'}
-            and $got->{'O'} == $a
-        and exists $got->{'N'}
-            and $got->{'N'} == \$a
-);
+$exp = {N => \$a,O => $a};
+is_deeply($got, $exp) || diag scmp($got, $exp);
 
 $got = diff($a, \$a, 'noO' => 1, 'noN' => 1);
 is_deeply($got, {});
 
-my $tmp = \\$a;
-$got = diff(\$a, $tmp);
-ok(
-    keys %{$got} == 2
-        and exists $got->{'O'}
-            and $got->{'O'} == \$a
-        and exists $got->{'N'}
-            and $got->{'N'} == $tmp
-);
+$got = diff(\$a, \\$a);
+$exp = {O => \$a,N => \\$a};
+is_deeply($got, $exp) || diag scmp($got, $exp);
 
 $got = diff(\$a, \$b);
 $exp = {U => \0};
@@ -135,31 +121,26 @@ is_deeply($got, $exp) || diag scmp($got, $exp);
 ### code
 my $coderef1 = sub { return 0 };
 $got = diff($coderef1, $coderef1);
-ok(
-    keys %{$got} == 1
-        and exists $got->{'U'}
-        and $got->{'U'} eq $coderef1
-);
+$exp = {U => $coderef1};
+is_deeply($got, $exp) || diag scmp($got, $exp);
 
 my $coderef2 = sub { return 1 };
 $got = diff($coderef1, $coderef2);
-ok(
-    keys %{$got} == 2
-        and exists $got->{'O'}
-            and ref $got->{'O'} eq 'CODE' and $got->{'O'} eq $coderef1
-        and exists $got->{'N'}
-            and ref $got->{'N'} eq 'CODE' and $got->{'N'} eq $coderef2
-        and $got->{'O'} ne $got->{'N'}
-);
+$exp = $exp = {N => $coderef2,O => $coderef1};;
+is_deeply($got, $exp) || diag scmp($got, $exp);
 
 $got = diff($coderef1, sub { return 0 });
 $exp = {U => $coderef1};
 is_deeply($got, $exp) || diag scmp($got, $exp);
 
+$got = diff($coderef1, sub { return 00 });
+$exp = {U => $coderef1};
+is_deeply($got, $exp) || diag scmp($got, $exp);
+
 $coderef2 = sub { 0 };
 $got = diff($coderef1, $coderef2);
-$exp = {O => $coderef1,N => $coderef2};
-is_deeply($got, $exp, "Deparse has limitations") || diag scmp($got, $exp);
+$exp = {N => $coderef2,O => $coderef1};
+is_deeply($got, $exp) || diag scmp($got, $exp);
 
 ### blessed
 my $blessed1 = bless {}, 'SomeClassName';
@@ -174,17 +155,17 @@ is_deeply($got, $exp, "Equal by data objects") || diag scmp($got, $exp);
 
 $blessed2 = bless [], 'SomeClassName';
 $got = diff($blessed1, $blessed2);
-$exp = {O => $blessed1,N => $blessed2};
+$exp = {N => $blessed2,O => $blessed1};
 is_deeply($got, $exp) || diag scmp($got, $exp);
 
 $blessed2 = bless {}, 'OtherClassName';
 $got = diff($blessed1, $blessed2);
-$exp = {O => $blessed1,N => $blessed2};
+$exp = {N => $blessed2,O => $blessed1};
 is_deeply($got, $exp) || diag scmp($got, $exp);
 
 $blessed1 = bless { a => 0 }, 'SomeClassName';
 $blessed2 = bless { a => 1 }, 'SomeClassName';
 $got = diff($blessed1, $blessed2);
-$exp = {O => $blessed1,N => $blessed2};
+$exp = {N => $blessed2,O => $blessed1};
 is_deeply($got, $exp, "No deep diff for objects") || diag scmp($got, $exp);
 

@@ -57,7 +57,7 @@ $d = diff([ 0, 1 ], [ 0 ], 'noU' => 1);
 is_deeply($d, {D => [{I => 1,R => 1}]}, "[0,1] vs [0], noU => 1" );
 
 # LCS
-$d = diff([ qw(a b c e h j l m n p) ], [ qw(b c d e f j k l m r s t) ]) and
+$d = diff([ qw(a b c e h j l m n p) ], [ qw(b c d e f j k l m r s t) ]);
 is_deeply(
     $d,
     {
@@ -80,7 +80,7 @@ is_deeply(
         "qw(a b c e h j l m n p) vs qw(b c d e f j k l m r s t)"
 );
 
-$d = diff([ qw(a b c e h j l m n p) ], [ qw(b c d e f j k l m r s t) ], noU => 1) and
+$d = diff([ qw(a b c e h j l m n p) ], [ qw(b c d e f j k l m r s t) ], noU => 1);
 is_deeply(
     $d,
     {
@@ -102,7 +102,6 @@ $b = $a;
 $d = diff($a, $b);
 is_deeply($d, {U => [0,1,2]}, "same ref arrays");
 
-my $sub_array = [ 0, [ 11, 12 ], 2 ];
 $a = [ 0, [[ 100 ]], [ 20, 'a' ], 4 ];
 $b = [ 0, [[ 100 ]], [ 20, 'b' ], 5 ];
 
@@ -162,7 +161,7 @@ is_deeply(
 $d = diff({ 'a' => { 'aa' => { 'aaa' => 'vaaaa' }}}, {}, 'trimR' => 1);
 is_deeply($d, {R => {a => undef}}, "{a => {aa => {aaa => 'vaaaa'}}} vs {}, trimR => 1");
 
-$d = diff({ 'a' => { 'aa' => { 'aaa' => 'vaaaa' }}, 'b' => 'vb'}, { 'b' => 'vb' }, 'trimR' => 1) and
+$d = diff({ 'a' => { 'aa' => { 'aaa' => 'vaaaa' }}, 'b' => 'vb'}, { 'b' => 'vb' }, 'trimR' => 1);
 is_deeply(
     $d,
     {D => {a => {R => undef},b => {U => 'vb'}}},
