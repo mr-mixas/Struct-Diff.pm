@@ -8,7 +8,7 @@ Version 0.90
 
 # SYNOPSIS
 
-    use Struct::Diff qw(diff list_diff split_diff patch);
+    use Struct::Diff qw(diff list_diff patch split_diff valid_diff);
 
     $a = {x => [7,{y => 4}]};
     $b = {x => [7,{y => 9}],z => 33};
@@ -24,6 +24,8 @@ Version 0.90
     # $splitted->{b} == {x => [{y => 9}],z => 33}
 
     patch($a, $diff); # $a now equal to $b by structure and data
+
+    @errors = valid_diff($diff);
 
 # EXPORT
 
@@ -114,13 +116,25 @@ Apply diff
 
     patch($a, $diff);
 
+## valid\_diff
+
+Validate diff structure. In scalar context returns `1` for valid diff, `undef`
+otherwise. In list context returns list of pairs (path, type) for each error. See
+["ADDRESSING SCHEME" in Struct::Path](https://metacpan.org/pod/Struct::Path#ADDRESSING-SCHEME) for path format specification.
+
+    @errors_list = valid_diff($diff); # list context
+
+or
+
+    $is_valid = valid_diff($diff); # scalar context
+
 # LIMITATIONS
 
 Struct::Diff fails on structures with loops in references. `has_circular_ref`
 from [Data::Structure::Util](https://metacpan.org/pod/Data::Structure::Util) can help to detect such structures.
 
-Only scalars, refs to scalars, ref to arrays and ref to hashes correctly traversed.
-All other data types compared by their references.
+Only arrays and hashes traversed. All other data types compared by their
+references or content.
 
 No object oriented interface provided.
 

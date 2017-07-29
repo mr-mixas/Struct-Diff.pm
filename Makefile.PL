@@ -25,8 +25,8 @@ WriteMakefile(
     },
     PREREQ_PM => {
         'Algorithm::Diff' => 1.19,
-        'Carp'            => 0,
         'Exporter'        => 0,
+        'Scalar::Util'    => 0,
         'Storable'        => 2.05,
         'parent'          => 0,
         'strict'          => 0,

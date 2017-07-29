@@ -4,7 +4,8 @@ use 5.006;
 use strict;
 use warnings FATAL => 'all';
 use parent qw(Exporter);
-use Carp qw(croak);
+
+use Scalar::Util qw(looks_like_number);
 use Storable 2.05 qw(freeze);
 use Algorithm::Diff qw(sdiff);
 
@@ -13,15 +14,8 @@ our @EXPORT_OK = qw(
     list_diff
     split_diff
     patch
+    valid_diff
 );
-
-sub _validate_meta($) {
-    croak "Unsupported diff struct passed" if (ref $_[0] ne 'HASH');
-    if (exists $_[0]->{'D'}) {
-        croak "Value for 'D' status must be hash or array"
-            unless (ref $_[0]->{'D'} eq 'HASH' or ref $_[0]->{'D'} eq 'ARRAY');
-    }
-}
 
 =head1 NAME
 
@@ -37,7 +31,7 @@ our $VERSION = '0.90';
 
 =head1 SYNOPSIS
 
-    use Struct::Diff qw(diff list_diff split_diff patch);
+    use Struct::Diff qw(diff list_diff patch split_diff valid_diff);
 
     $a = {x => [7,{y => 4}]};
     $b = {x => [7,{y => 9}],z => 33};
@@ -53,6 +47,8 @@ our $VERSION = '0.90';
     # $splitted->{b} == {x => [{y => 9}],z => 33}
 
     patch($a, $diff); # $a now equal to $b by structure and data
+
+    @errors = valid_diff($diff);
 
 =head1 EXPORT
 
@@ -280,7 +276,6 @@ Divide diff to pseudo original structures
 sub split_diff($);
 sub split_diff($) {
     my $d = $_[0];
-    _validate_meta($d);
     my (%out, $sd);
 
     if (exists $d->{D}) {
@@ -325,7 +320,6 @@ sub patch($$) {
 
     while (@stack) {
         ($s, $d) = splice @stack, 0, 2;
-        _validate_meta($d);
 
         if (exists $d->{D}) {
             if (ref $d->{D} eq 'ARRAY') {
@@ -358,6 +352,64 @@ sub patch($$) {
             ${$s} = $d->{N};
         }
     }
+}
+
+=head2 valid_diff
+
+Validate diff structure. In scalar context returns C<1> for valid diff, C<undef>
+otherwise. In list context returns list of pairs (path, type) for each error. See
+L<Struct::Path/ADDRESSING SCHEME> for path format specification.
+
+    @errors_list = valid_diff($diff); # list context
+
+or
+
+    $is_valid = valid_diff($diff); # scalar context
+
+=cut
+
+sub valid_diff($) {
+    my @stack = ([], shift); # (path, diff)
+    my ($diff, @errs, $path);
+
+    while (@stack) {
+        ($path, $diff) = splice @stack, 0, 2;
+
+        unless (ref $diff eq 'HASH') {
+            return undef unless wantarray;
+            push @errs, $path, 'BAD_DIFF_TYPE';
+            next;
+        }
+
+        if (exists $diff->{D}) {
+            if (ref $diff->{D} eq 'ARRAY') {
+                map {
+                    unshift @stack, [@{$path}, [$_]], $diff->{D}->[$_]
+                } 0 .. $#{$diff->{D}};
+            } elsif (ref $diff->{D} eq 'HASH') {
+                map {
+                    unshift @stack, [@{$path}, {keys => [$_]}], $diff->{D}->{$_}
+                } sort keys %{$diff->{D}};
+            } else {
+                return undef unless wantarray;
+                unshift @errs, $path, 'BAD_D_TYPE';
+            }
+        }
+
+        if (exists $diff->{I}) {
+            if (!looks_like_number($diff->{I}) or int($diff->{I}) != $diff->{I}) {
+                return undef unless wantarray;
+                unshift @errs, $path, 'BAD_I_TYPE';
+            }
+
+            if (keys %{$diff} < 2) {
+                return undef unless wantarray;
+                unshift @errs, $path, 'LONESOME_I';
+            }
+        }
+    }
+
+    return wantarray ? @errs : 1;
 }
 
 =head1 LIMITATIONS

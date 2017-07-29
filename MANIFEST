@@ -13,3 +13,4 @@ t/patch.t
 t/pod-coverage.t
 t/pod.t
 t/split_diff.t
+t/valid_diff.t
