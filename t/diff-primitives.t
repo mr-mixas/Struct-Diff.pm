@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use Storable qw(freeze);
 use Struct::Diff qw(diff);
-use Test::More tests => 35;
+use Test::More tests => 36;
 
 use lib "t";
 use _common qw(scmp);
@@ -99,6 +99,10 @@ is_deeply($got, $exp) || diag scmp($got, $exp);
 
 $got = diff(\$a, \$b);
 $exp = {U => \0};
+is_deeply($got, $exp) || diag scmp($got, $exp);
+
+$got = diff({x => \{y => \$a}}, {x => \{y => \$b}});
+$exp = {U => {x => \{y => \0}}};
 is_deeply($got, $exp) || diag scmp($got, $exp);
 
 ### arrays/hashes
