@@ -199,6 +199,13 @@ sub diff($$;@) {
 
         $d = $alt # return 'D' version of diff
             if (keys %{$d} > 1 or ($sd) = values %{$d} and keys %{$sd} != @keys);
+    } elsif (ref $a eq 'Regexp' and $a != $b) {
+        if ($a eq $b) {
+            $d->{U} = $a unless ($opts{noU});
+        } else {
+            $d->{O} = $a unless ($opts{noO});
+            $d->{N} = $b unless ($opts{noN});
+        }
     } elsif (ref $a ? $a == $b || freeze($a) eq freeze($b) : freeze(\$a) eq freeze(\$b)) {
         $d->{U} = $a unless ($opts{noU});
     } else {
