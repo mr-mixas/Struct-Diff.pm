@@ -31,11 +31,11 @@ Struct::Diff - Recursive diff for nested perl structures
 
 =head1 VERSION
 
-Version 0.91
+Version 0.92
 
 =cut
 
-our $VERSION = '0.91';
+our $VERSION = '0.92';
 
 =head1 SYNOPSIS
 
@@ -171,12 +171,13 @@ sub diff($$;@) {
         my @keys = keys %{{ %{$a}, %{$b} }}; # uniq keys for both hashes
         return $opts{noU} ? {} : { U => {} } unless (@keys);
 
-        my ($alt, $sd);
+        my ($alt, $sd, $same);
         for my $key (@keys) {
             if (exists $a->{$key} and exists $b->{$key}) {
                 if (freeze(\$a->{$key}) eq freeze(\$b->{$key})) {
                     $d->{U}->{$key} = $alt->{D}->{$key}->{U} = $a->{$key}
                         unless ($opts{noU});
+                    $same++;
                 } else {
                     $sd = diff($a->{$key}, $b->{$key}, %opts);
                     if (exists $sd->{D}) {
@@ -197,8 +198,7 @@ sub diff($$;@) {
             }
         }
 
-        $d = $alt # return 'D' version of diff
-            if (keys %{$d} > 1 or ($sd) = values %{$d} and keys %{$sd} != @keys);
+        return $alt if ($alt and ($sd or $same and $same != @keys)); # 'D' version of diff
     } elsif (ref $a eq 'Regexp' and $a != $b) {
         if ($a eq $b) {
             $d->{U} = $a unless ($opts{noU});

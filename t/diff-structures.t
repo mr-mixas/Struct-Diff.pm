@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use Storable qw(freeze);
 use Struct::Diff qw(diff);
-use Test::More tests => 39;
+use Test::More tests => 42;
 
 local $Storable::canonical = 1; # to have equal snapshots for equal by data hashes
 
@@ -138,6 +138,37 @@ $d = diff({ 'a' => 'va' }, {}, 'noR' => 1);
 is_deeply($d, {}, "{a => 'va'} vs {}, noR => 1");
 
 $d = diff(
+    {one => {two => 2}},
+    {one => {}},
+);
+is_deeply(
+    $d,
+    {D => {one => {R => {two => 2}}}},
+    "Subhash emptied"
+);
+
+$d = diff(
+    {one => {}},
+    {one => {two => 2}},
+);
+is_deeply(
+    $d,
+    {D => {one => {A => {two => 2}}}},
+    "Subhash filled"
+);
+
+$d = diff(
+    {one => {}},
+    {one => {two => 2}},
+    noA => 1
+);
+is_deeply(
+    $d,
+    {},
+    "Subhash filled, but noA used"
+);
+
+$d = diff(
     {a =>{aa => {aaa => 'aaav'}}},
     {a =>{aa => {aaa => 'aaan'}}},
 );
@@ -169,10 +200,10 @@ is_deeply(
 );
 
 $d = diff({ 'a' => 'va' }, { 'a' => 'vb' }, 'noO' => 1);
-is_deeply($d, {N => {a => 'vb'}}, "{a => 'va'} vs {a => 'vb'}, noO => 1");
+is_deeply($d, {D => {a => {N=> 'vb'}}}, "{a => 'va'} vs {a => 'vb'}, noO => 1");
 
 $d = diff({ 'a' => 'va' }, { 'a' => 'vb' }, 'noN' => 1);
-is_deeply($d, {O => {a => 'va'}}, "{a => 'va'} vs {a => 'vb'}, noN => 1");
+is_deeply($d, {D => {a => {O=>'va'}}}, "{a => 'va'} vs {a => 'vb'}, noN => 1");
 
 $a = { 'a' => 'a1', 'b' => { 'ba' => 'ba1', 'bb' => 'bb1' }, 'c' => 'c1' };
 $b = { 'a' => 'a1', 'b' => { 'ba' => 'ba2', 'bb' => 'bb1' }, 'd' => 'd1' };
