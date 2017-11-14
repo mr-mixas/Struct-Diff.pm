@@ -330,6 +330,11 @@ Apply diff.
 =cut
 
 sub patch($$) {
+    if (exists $_[1]->{N} and ref $_[0] ne 'SCALAR') {
+        ${\$_[0]} = $_[1]->{N};
+        return;
+    }
+
     my @stack = @_;
     my ($s, $d, $i);
 
