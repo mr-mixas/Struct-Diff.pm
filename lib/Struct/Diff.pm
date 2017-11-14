@@ -221,7 +221,7 @@ sub diff($$;@) {
 List pairs (path, ref_to_subdiff) for provided diff. See
 L<Struct::Path/ADDRESSING SCHEME> for path format specification.
 
-    @list = list_diff(diff($frst, $scnd);
+    @list = list_diff($diff);
 
 =head3 Options
 
@@ -229,7 +229,8 @@ L<Struct::Path/ADDRESSING SCHEME> for path format specification.
 
 =item depth E<lt>intE<gt>
 
-Don't dive deeper than defined number of levels.
+Don't dive deeper than defined number of levels. C<undef> used by default
+(unlimited).
 
 =item sort E<lt>sub|true|falseE<gt>
 
@@ -242,10 +243,8 @@ lexically sorted if set to some other true value.
 =cut
 
 sub list_diff($;@) {
-    my ($tmp, %opts) = @_;
-    $opts{depth} = 0 unless ($opts{depth});
-
-    my @stack = ([], \$tmp); # init: (path, diff)
+    my @stack = ([], \shift); # init: (path, diff)
+    my %opts = @_;
     my ($diff, @list, $path);
 
     while (@stack) {

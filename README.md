@@ -92,13 +92,14 @@ changing diff: some of it's substructures are links to original structures.
 List pairs (path, ref\_to\_subdiff) for provided diff. See
 ["ADDRESSING SCHEME" in Struct::Path](https://metacpan.org/pod/Struct::Path#ADDRESSING-SCHEME) for path format specification.
 
-    @list = list_diff(diff($frst, $scnd);
+    @list = list_diff($diff);
 
 ### Options
 
 - depth <int>
 
-    Don't dive deeper than defined number of levels.
+    Don't dive deeper than defined number of levels. `undef` used by default
+    (unlimited).
 
 - sort <sub|true|false>
 
