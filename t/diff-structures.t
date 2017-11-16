@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use Storable qw(freeze);
 use Struct::Diff qw(diff);
-use Test::More tests => 42;
+use Test::More tests => 44;
 
 local $Storable::canonical = 1; # to have equal snapshots for equal by data hashes
 
@@ -12,37 +12,43 @@ my ($a, $b, $d, $frozen_a, $frozen_b);
 
 ### arrays ###
 $d = diff([], [ 1 ]);
-is_deeply($d, {A => [1]}, "[] vs [1]");
+is_deeply($d, {D => [{A => 1}]}, "[] vs [1]");
 
 $d = diff([], [ 1 ], 'noA' => 1);
 is_deeply($d, {}, "[] vs [1], noA => 1");
 
 $d = diff([ 1 ], []);
-is_deeply($d, {R => [1]}, "[1] vs []");
+is_deeply($d, {D => [{R => 1}]}, "[1] vs []");
 
 $d = diff([ 1 ], [], 'noR' => 1);
 is_deeply($d, {}, "[1] vs [], noR => 1");
+
+$d = diff([[ 0 ]], [[ 0 ]]); # deep single-nested unchanged
+is_deeply($d, {U => [[ 0 ]]}, "[[0]] vs [[0]]");
+
+$d = diff([[ 0 ]], [[ 0 ]], noU => 1); # deep single-nested unchanged, noU
+is_deeply($d, {}, "[[0]] vs [[0]], noU");
 
 $d = diff([[ 0 ]], [[ 1 ]]); # deep single-nested changed
 is_deeply($d, {D => [{D => [{N => 1,O => 0}]}]}, "[[0]] vs [[1]]");
 
 $d = diff([], [[[[[ 0, 1 ]]]]]);
-is_deeply($d, {A => [[[[[0,1]]]]]}, "[] vs [[[[[0,1]]]]]");
+is_deeply($d, {D => [{A => [[[[0,1]]]]}]}, "[] vs [[[[[0,1]]]]]");
 
 $d = diff([[[[[ 0, 1 ]]]]], []);
-is_deeply($d, {R => [[[[[0,1]]]]]}, "[[[[[0,1]]]]] vs []");
+is_deeply($d, {D => [{R => [[[[0,1]]]]}]}, "[[[[[0,1]]]]] vs []");
 
 $d = diff([[[[[ 0, 1 ]]]]], [], 'trimR' => 1);
-is_deeply($d, {R => [undef]}, "[[[[[0,1]]]]] vs [], trimR => 1");
+is_deeply($d, {D => [{R => undef}]}, "[[[[[0,1]]]]] vs [], trimR => 1");
 
 $d = diff([ 0, [[[[ 0, 1 ]]]]], [ 0 ], 'trimR' => 1);
 is_deeply($d, {D => [{U => 0},{R => undef}]}, "[ 0, [[[[ 0, 1 ]]]]] vs [ 0 ], trimR => 1");
 
 $d = diff([ 'a' ], [ 'b' ], 'noO' => 1);
-is_deeply($d, {N => ['b']}, "[a] vs [b], noO => 1");
+is_deeply($d, {D => [{N => 'b'}]}, "[a] vs [b], noO => 1");
 
 $d = diff([ 'a' ], [ 'b' ], 'noN' => 1);
-is_deeply($d, {O => ['a']}, "[a] vs [b], noN => 1");
+is_deeply($d, {D => [{O => 'a'}]}, "[a] vs [b], noN => 1");
 
 $d = diff([ 0 ], [ 0, 1 ]);
 is_deeply($d, {D => [{U => 0},{A => 1}]}, "[0] vs [0,1]");

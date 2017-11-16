@@ -136,37 +136,35 @@ sub diff($$;@) {
         $d->{O} = $a unless ($opts{noO});
         $d->{N} = $b unless ($opts{noN});
     } elsif (ref $a eq 'ARRAY' and $a != $b) {
+        return $opts{noU} ? {} : { U => [] } unless (@{$a} or @{$b});
+
         my @sd = sdiff($a, $b, sub { freeze \$_[0] });
-        my ($s, $hidden, $item);
 
         for my $i (0 .. $#sd) {
-            undef $item;
             if ($sd[$i]->[0] eq 'u') {
-                $item->{U} = $sd[$i]->[1] unless ($opts{noU});
-            } elsif ($sd[$i]->[0] eq 'c') {
-                $item = diff($sd[$i]->[1], $sd[$i]->[2], %opts);
+                unless ($opts{noU}) {
+                    if (exists $d->{D}) {
+                        push @{$d->{D}}, { U => $sd[$i]->[1] };
+                    } else { # nobody else - fill U version
+                        push @{$d->{U}}, $sd[$i]->[1];
+                    }
+                }
+                next;
+            } elsif (exists $d->{U}) { # diff should be converted to D type
+                map { push @{$d->{D}}, { U => $_ } } @{delete $d->{U}};
+            }
+
+            if ($sd[$i]->[0] eq 'c') {
+                push @{$d->{D}}, diff($sd[$i]->[1], $sd[$i]->[2], %opts);
             } elsif ($sd[$i]->[0] eq '+') {
-                $item->{A} = $sd[$i]->[2] unless ($opts{noA});
+                push @{$d->{D}}, { A => $sd[$i]->[2] } unless ($opts{noA});
             } else { # '-'
-                $item->{R} = $opts{trimR} ? undef : $sd[$i]->[1]
+                push @{$d->{D}}, { R => $opts{trimR} ? undef : $sd[$i]->[1] }
                     unless ($opts{noR});
             }
 
-            if ($item) {
-                map { $s->{$_} = 1 } keys %{$item};
-                $item->{I} = $i if ($hidden);
-                push @{$d->{D}}, $item;
-            } else {
-                $hidden = 1;
-            }
+            $d->{D}->[-1]->{I} = $i if (exists $d->{D} and $#{$d->{D}} != $i);
         }
-
-        if ((my @k = keys %{$s}) == 1 and not ($hidden or exists $s->{D})) { # all items have same status
-            map { $_ = $_->{$k[0]} } @{$d->{D}};
-            $d->{$k[0]} = delete $d->{D};
-        }
-
-        $d->{U} = $a unless ($hidden or keys %{$d});
     } elsif (ref $a eq 'HASH' and $a != $b) {
         my @keys = keys %{{ %{$a}, %{$b} }}; # uniq keys for both hashes
         return $opts{noU} ? {} : { U => {} } unless (@keys);
