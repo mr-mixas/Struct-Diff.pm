@@ -169,34 +169,29 @@ sub diff($$;@) {
         my @keys = keys %{{ %{$a}, %{$b} }}; # uniq keys for both hashes
         return $opts{noU} ? {} : { U => {} } unless (@keys);
 
-        my ($alt, $sd, $same);
-        for my $key (@keys) {
-            if (exists $a->{$key} and exists $b->{$key}) {
-                if (freeze(\$a->{$key}) eq freeze(\$b->{$key})) {
-                    $d->{U}->{$key} = $alt->{D}->{$key}->{U} = $a->{$key}
-                        unless ($opts{noU});
-                    $same++;
+        for my $k (@keys) {
+            if (exists $a->{$k} and exists $b->{$k}) {
+                if (freeze(\$a->{$k}) eq freeze(\$b->{$k})) {
+                    $d->{U}->{$k} = $b->{$k} unless ($opts{noU});
                 } else {
-                    $sd = diff($a->{$key}, $b->{$key}, %opts);
-                    if (exists $sd->{D}) {
-                        $d->{D}->{$key} = $alt->{D}->{$key} = $sd;
-                    } else {
-                        map {
-                            $d->{$_}->{$key} = $alt->{D}->{$key}->{$_} = $sd->{$_}
-                        } keys %{$sd};
-                    }
+                    my $sd = diff($a->{$k}, $b->{$k}, %opts);
+                    $d->{D}->{$k} = $sd if (keys %{$sd});
                 }
-            } elsif (exists $a->{$key}) {
-                $d->{R}->{$key} = $alt->{D}->{$key}->{R} =
-                    $opts{trimR} ? undef : $a->{$key}
-                        unless ($opts{noR});
+                next;
+            }
+
+            if (exists $a->{$k}) {
+                $d->{D}->{$k}->{R} = $opts{trimR} ? undef : $a->{$k}
+                    unless ($opts{noR});
             } else {
-                $d->{A}->{$key} = $alt->{D}->{$key}->{A} = $b->{$key}
-                    unless ($opts{noA});
+                $d->{D}->{$k}->{A} = $b->{$k} unless ($opts{noA});
             }
         }
 
-        return $alt if ($alt and ($sd or $same and $same != @keys)); # 'D' version of diff
+        if (exists $d->{U} and exists $d->{D}) {
+            map { $d->{D}->{$_}->{U} = $d->{U}->{$_} } keys %{$d->{U}};
+            delete $d->{U};
+        }
     } elsif (ref $a eq 'Regexp' and $a != $b) {
         if ($a eq $b) {
             $d->{U} = $a unless ($opts{noU});

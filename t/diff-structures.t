@@ -131,14 +131,14 @@ is_deeply(
 ok($frozen_a eq freeze($a) and $frozen_b eq freeze($b)); # original structs must remain unchanged
 
 ### hashes ###
-$d = diff({}, { 'a' => 'va' });
-is_deeply($d, {A => {a => 'va'}}, "{} vs {a => 'va'}");
+$d = diff({}, { one => 1 });
+is_deeply($d, {D => {one => {A => 1}}}, "{} vs {one => 1}");
 
 $d = diff({}, { 'a' => 'va' }, 'noA' => 1);
 is_deeply($d, {}, "{} vs {a => 'va'}, noA => 1");
 
-$d = diff({ 'a' => 'va' }, {});
-is_deeply($d, {R => {a => 'va'}}, "{a => 'va'} vs {}");
+$d = diff({ one => 1 }, {});
+is_deeply($d, {D => {one => {R => 1}}}, "{one => 1} vs {}");
 
 $d = diff({ 'a' => 'va' }, {}, 'noR' => 1);
 is_deeply($d, {}, "{a => 'va'} vs {}, noR => 1");
@@ -149,7 +149,7 @@ $d = diff(
 );
 is_deeply(
     $d,
-    {D => {one => {R => {two => 2}}}},
+    {D => {one => {D => {two => {R => 2}}}}},
     "Subhash emptied"
 );
 
@@ -159,7 +159,7 @@ $d = diff(
 );
 is_deeply(
     $d,
-    {D => {one => {A => {two => 2}}}},
+    {D => {one => {D => {two => {A => 2}}}}},
     "Subhash filled"
 );
 
@@ -195,8 +195,8 @@ is_deeply(
     "HASH: one subkey unchanged, one added, noU"
 );
 
-$d = diff({ 'a' => { 'aa' => { 'aaa' => 'vaaaa' }}}, {}, 'trimR' => 1);
-is_deeply($d, {R => {a => undef}}, "{a => {aa => {aaa => 'vaaaa'}}} vs {}, trimR => 1");
+$d = diff({ one => { two => { three => 3 }}}, {}, 'trimR' => 1);
+is_deeply($d, {D => {one => { R => undef } }}, "{one => {two => {three => 3}}} vs {}, trimR => 1");
 
 $d = diff({ 'a' => { 'aa' => { 'aaa' => 'vaaaa' }}, 'b' => 'vb'}, { 'b' => 'vb' }, 'trimR' => 1);
 is_deeply(
