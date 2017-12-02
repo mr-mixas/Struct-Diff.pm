@@ -1,7 +1,7 @@
 #!perl -T
 
 use strict;
-use warnings;
+use warnings FATAL => 'all';
 use Storable qw(freeze);
 use Struct::Diff qw(diff split_diff);
 use Test::More tests => 15;
