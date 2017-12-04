@@ -337,28 +337,32 @@ sub patch($$) {
 
         if (exists $d->{D}) {
             if (ref $d->{D} eq 'ARRAY') {
-                for (0 .. $#{$d->{D}}) {
-                    $i = exists $d->{D}->[$_]->{I} ? $d->{D}->[$_]->{I} : $_; # use provided index
-                    if (exists $d->{D}->[$_]->{D} or exists $d->{D}->[$_]->{N}) {
-                        push @stack,
-                            (ref $s->[$i] ? $s->[$i] : \$s->[$i]), $d->{D}->[$_];
-                    } elsif (exists $d->{D}->[$_]->{A}) {
-                        splice @{$s}, $i, 1, (@{$s} > $i
-                            ? ($d->{D}->[$_]->{A}, $s->[$i])
-                            : $d->{D}->[$_]->{A});
-                    } elsif (exists $d->{D}->[$_]->{R}) {
+                my $i = -1;
+
+                for (@{$d->{D}}) {
+                    if (exists $_->{I}) {
+                        $i = $_->{I}; # use provided index
+                    } else {
+                        $i++;
+                    }
+
+                    if (exists $_->{D} or exists $_->{N}) {
+                        push @stack, (ref $s->[$i] ? $s->[$i] : \$s->[$i]), $_;
+                    } elsif (exists $_->{A}) {
+                        splice @{$s}, $i, 1,
+                            (@{$s} > $i ? ($_->{A}, $s->[$i]) : $_->{A});
+                    } elsif (exists $_->{R}) {
                         splice @{$s}, $i, 1;
                     }
                 }
             } else { # HASH
-                for (keys %{$d->{D}}) {
-                    if (exists $d->{D}->{$_}->{D} or exists $d->{D}->{$_}->{N}) {
-                        push @stack,
-                            (ref $s->{$_} ? $s->{$_} : \$s->{$_}), $d->{D}->{$_};
-                    } elsif (exists $d->{D}->{$_}->{A}) {
-                        $s->{$_} = $d->{D}->{$_}->{A};
-                    } elsif (exists $d->{D}->{$_}->{R}) {
-                        delete $s->{$_};
+                while (my ($k, $v) = each %{$d->{D}}) {
+                    if (exists $v->{D} or exists $v->{N}) {
+                        push @stack, (ref $s->{$k} ? $s->{$k} : \$s->{$k}), $v;
+                    } elsif (exists $v->{A}) {
+                        $s->{$k} = $v->{A};
+                    } elsif (exists $v->{R}) {
+                        delete $s->{$k};
                     }
                 }
             }
