@@ -214,7 +214,7 @@ my @TESTS = (
         a       => [[0]],
         b       => [[]],
         name    => 'sublist_emptied_noR',
-        diff    => {D => [{}]}, # FIXME: should be {}
+        diff    => {},
         opts    => {noR => 1},
     },
     {
@@ -227,7 +227,7 @@ my @TESTS = (
         a       => [[]],
         b       => [[0]],
         name    => 'sublist_filled_noA',
-        diff    => {D => [{}]}, # FIXME: should be {}
+        diff    => {},
         opts    => {noA => 1},
     },
     {

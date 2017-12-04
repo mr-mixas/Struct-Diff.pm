@@ -156,7 +156,8 @@ sub diff($$;@) {
             }
 
             if ($_->[0] eq 'c') {
-                push @{$d->{D}}, diff($_->[1], $_->[2], %opts);
+                my $sd = diff($_->[1], $_->[2], %opts);
+                push @{$d->{D}}, $sd if (keys %{$sd});
             } elsif ($_->[0] eq '+') {
                 push @{$d->{D}}, { A => $_->[2] } unless ($opts{noA});
             } else { # '-'
