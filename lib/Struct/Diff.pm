@@ -138,15 +138,16 @@ sub diff($$;@) {
     } elsif (ref $a eq 'ARRAY' and $a != $b) {
         return $opts{noU} ? {} : { U => [] } unless (@{$a} or @{$b});
 
-        my @sd = sdiff($a, $b, sub { freeze \$_[0] });
+        my $i = -1;
+        for (sdiff($a, $b, sub { freeze \$_[0] })) {
+            $i++;
 
-        for my $i (0 .. $#sd) {
-            if ($sd[$i]->[0] eq 'u') {
+            if ($_->[0] eq 'u') {
                 unless ($opts{noU}) {
                     if (exists $d->{D}) {
-                        push @{$d->{D}}, { U => $sd[$i]->[1] };
+                        push @{$d->{D}}, { U => $_->[1] };
                     } else { # nobody else - fill U version
-                        push @{$d->{U}}, $sd[$i]->[1];
+                        push @{$d->{U}}, $_->[1];
                     }
                 }
                 next;
@@ -154,12 +155,12 @@ sub diff($$;@) {
                 map { push @{$d->{D}}, { U => $_ } } @{delete $d->{U}};
             }
 
-            if ($sd[$i]->[0] eq 'c') {
-                push @{$d->{D}}, diff($sd[$i]->[1], $sd[$i]->[2], %opts);
-            } elsif ($sd[$i]->[0] eq '+') {
-                push @{$d->{D}}, { A => $sd[$i]->[2] } unless ($opts{noA});
+            if ($_->[0] eq 'c') {
+                push @{$d->{D}}, diff($_->[1], $_->[2], %opts);
+            } elsif ($_->[0] eq '+') {
+                push @{$d->{D}}, { A => $_->[2] } unless ($opts{noA});
             } else { # '-'
-                push @{$d->{D}}, { R => $opts{trimR} ? undef : $sd[$i]->[1] }
+                push @{$d->{D}}, { R => $opts{trimR} ? undef : $_->[1] }
                     unless ($opts{noR});
             }
 
