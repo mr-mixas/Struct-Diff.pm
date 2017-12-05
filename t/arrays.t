@@ -231,9 +231,120 @@ my @TESTS = (
         opts    => {noA => 1},
     },
     {
+        a       => [    2,3,  5,   ],
+        b       => [0,1,2,3,4,5,6,7],
+        name    => 'lists_LCS_added_items',
+        diff    => {
+            D => [
+                {A => 0},
+                {A => 1},
+                {U => 2},
+                {U => 3},
+                {A => 4},
+                {U => 5},
+                {A => 6},
+                {A => 7}
+            ]
+        },
+        opts    => {},
+    },
+    {
+        a       => [    2,3,  5,   ],
+        b       => [0,1,2,3,4,5,6,7],
+        name    => 'lists_LCS_added_items_noU',
+        diff    => {
+            D => [
+                {A => 0},
+                {A => 1},
+                {A => 4,I => 4},
+                {A => 6,I => 6},
+                {A => 7,I => 7}
+            ]
+        },
+        opts    => {noU => 1},
+    },
+
+    {
+        a       => [0,1,2,3,4,5,6,7],
+        b       => [0,1,9,9,4,9,6,7],
+        name    => 'lists_LCS_changed_items',
+        diff    => {
+            D => [
+                {U => 0},
+                {U => 1},
+                {N => 9,O => 2},
+                {N => 9,O => 3},
+                {U => 4},
+                {N => 9,O => 5},
+                {U => 6},
+                {U => 7}
+            ]
+        },
+        opts    => {},
+    },
+    {
+        a       => [0,1,2,3,4,5,6,7],
+        b       => [0,1,9,9,4,9,6,7],
+        name    => 'lists_LCS_changed_items_noU',
+        diff    => {
+            D => [
+                {I => 2,N => 9,O => 2},
+                {I => 3,N => 9,O => 3},
+                {I => 5,N => 9,O => 5}
+            ]
+        },
+        opts    => {noU => 1},
+    },
+    {
+        a       => [0,1,2,3,4,5,6,7],
+        b       => [0,1,9,9,4,9,6,7],
+        name    => 'lists_LCS_changed_items_noOU',
+        diff    => {
+            D => [
+                {I => 2,N => 9},
+                {I => 3,N => 9},
+                {I => 5,N => 9}
+            ]
+        },
+        opts    => {noO =>1,noU => 1},
+    },
+    {
+        a       => [0,1,2,3,4,5,6,7],
+        b       => [    2,3,  5,   ],
+        name    => 'lists_LCS_removed_items',
+        diff    => {
+            D => [
+                {R => 0},
+                {R => 1},
+                {U => 2},
+                {U => 3},
+                {R => 4},
+                {U => 5},
+                {R => 6},
+                {R => 7}
+            ]
+        },
+        opts    => {},
+    },
+    {
+        a       => [0,1,2,3,4,5,6,7],
+        b       => [    2,3,  5,   ],
+        name    => 'lists_LCS_removed_items_noU',
+        diff    => {
+            D => [
+                {R => 0},
+                {R => 1},
+                {I => 4,R => 4},
+                {I => 6,R => 6},
+                {I => 7,R => 7}
+            ]
+        },
+        opts    => {noU => 1},
+    },
+    {
         a       => [ qw(a b c e h j l m n p) ],
         b       => [ qw(b c d e f j k l m r s t) ],
-        name    => 'list_LCS',
+        name    => 'lists_LCS_complex',
         diff    => {
             D => [
                 {R => 'a'},
@@ -251,12 +362,11 @@ my @TESTS = (
                 {A => 't'}
             ]
         },
-        skip_patch => 1 # FIXME
     },
     {
         a       => [ qw(a b c e h j l m n p) ],
         b       => [ qw(b c d e f j k l m r s t) ],
-        name    => 'list_LCS_noU',
+        name    => 'lists_LCS_complex_noU',
         diff    => {
             D => [
                 {R => 'a'},
@@ -269,7 +379,6 @@ my @TESTS = (
             ]
         },
         opts    => {noU => 1},
-        skip_patch => 1 # FIXME
     },
     {
         a       => $one = [ 0, 1, 2 ],

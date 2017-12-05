@@ -330,21 +330,16 @@ sub patch($$) {
     }
 
     my @stack = @_;
-    my ($s, $d, $i);
 
     while (@stack) {
-        ($s, $d) = splice @stack, 0, 2;
+        my ($s, $d) = splice @stack, 0, 2; # struct, subdiff
 
         if (exists $d->{D}) {
             if (ref $d->{D} eq 'ARRAY') {
-                my $i = -1;
+                my ($i, $r) = (0, 0); # struct array idx, removed items counter
 
                 for (@{$d->{D}}) {
-                    if (exists $_->{I}) {
-                        $i = $_->{I}; # use provided index
-                    } else {
-                        $i++;
-                    }
+                    $i = $_->{I} - $r if (exists $_->{I});
 
                     if (exists $_->{D} or exists $_->{N}) {
                         push @stack, (ref $s->[$i] ? $s->[$i] : \$s->[$i]), $_;
@@ -353,7 +348,11 @@ sub patch($$) {
                             (@{$s} > $i ? ($_->{A}, $s->[$i]) : $_->{A});
                     } elsif (exists $_->{R}) {
                         splice @{$s}, $i, 1;
+                        $r++;
+                        next; # don't increment $i
                     }
+
+                    $i++;
                 }
             } else { # HASH
                 while (my ($k, $v) = each %{$d->{D}}) {
