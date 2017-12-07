@@ -27,21 +27,30 @@ my @TESTS = (
         b       => \'two',
         name    => 'different_refs_different_data',
         diff    => {N => \'two',O => \$one},
-        skip_patch => 1 # FIXME
     },
     {
         a       => \$one,
         b       => $one,
         name    => 'scalar_ref_vs_scalar',
         diff    => {N => $one,O => \$one},
-        skip_patch => 1 # FIXME
     },
     {
         a       => \$one,
         b       => \\$one,
         name    => 'scalar_ref_vs_refref',
         diff    => {N => \\$one,O => \$one},
-        skip_patch => 1 # FIXME
+    },
+    {
+        a       => [ \$one ],
+        b       => [ \'two' ],
+        name    => 'nested_different_refs_different_data',
+        diff    => {D => [{N => \'two',O => \$one}]},
+    },
+    {
+        a       => [ \$one ],
+        b       => [ \\$one ],
+        name    => 'nested_scalar_ref_vs_refref',
+        diff    => {D => [{N => \\$one,O => \$one}]},
     },
     {
         a       => {x => \{y => \$one}},

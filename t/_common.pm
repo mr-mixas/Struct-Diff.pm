@@ -76,6 +76,10 @@ sub run_batch_tests {
             )
         ) {
             my $st = clone($t);
+            # diff contain parts of original structures and will be mangled if
+            # it has refref,scalarrefs etc from a and a patched
+            $st->{a} = clone($t->{a}); # get rid of common refs with diff
+
             patch($st->{a}, $st->{diff});
 
             subtest "Patch " . $st->{name} => sub {

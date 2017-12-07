@@ -324,12 +324,7 @@ Apply diff.
 =cut
 
 sub patch($$) {
-    if (exists $_[1]->{N} and ref $_[0] ne 'SCALAR') {
-        ${\$_[0]} = $_[1]->{N};
-        return;
-    }
-
-    my @stack = @_;
+    my @stack = (\$_[0], $_[1]); # ref to alias - to be able to change passed scalar
 
     while (@stack) {
         my ($s, $d) = splice @stack, 0, 2; # struct, subdiff
@@ -342,12 +337,12 @@ sub patch($$) {
                     $i = $_->{I} - $r if (exists $_->{I});
 
                     if (exists $_->{D} or exists $_->{N}) {
-                        push @stack, (ref $s->[$i] ? $s->[$i] : \$s->[$i]), $_;
+                        push @stack, \${$s}->[$i], $_;
                     } elsif (exists $_->{A}) {
-                        splice @{$s}, $i, 1,
-                            (@{$s} > $i ? ($_->{A}, $s->[$i]) : $_->{A});
+                        splice @{${$s}}, $i, 1,
+                            (@{${$s}} > $i ? ($_->{A}, ${$s}->[$i]) : $_->{A});
                     } elsif (exists $_->{R}) {
-                        splice @{$s}, $i, 1;
+                        splice @{${$s}}, $i, 1;
                         $r++;
                         next; # don't increment $i
                     }
@@ -357,11 +352,11 @@ sub patch($$) {
             } else { # HASH
                 while (my ($k, $v) = each %{$d->{D}}) {
                     if (exists $v->{D} or exists $v->{N}) {
-                        push @stack, (ref $s->{$k} ? $s->{$k} : \$s->{$k}), $v;
+                        push @stack, \${$s}->{$k}, $v;
                     } elsif (exists $v->{A}) {
-                        $s->{$k} = $v->{A};
+                        ${$s}->{$k} = $v->{A};
                     } elsif (exists $v->{R}) {
-                        delete $s->{$k};
+                        delete ${$s}->{$k};
                     }
                 }
             }
