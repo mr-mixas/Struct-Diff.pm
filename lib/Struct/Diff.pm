@@ -138,7 +138,7 @@ sub diff($$;@) {
     } elsif (ref $a eq 'ARRAY' and $a != $b) {
         return $opts{noU} ? {} : { U => [] } unless (@{$a} or @{$b});
 
-        my $i = -1;
+        my ($i, $I) = (-1, -1);
         for (sdiff($a, $b, sub { freeze \$_[0] })) {
             $i++;
 
@@ -165,7 +165,8 @@ sub diff($$;@) {
                     unless ($opts{noR});
             }
 
-            $d->{D}->[-1]->{I} = $i if (exists $d->{D} and $#{$d->{D}} != $i);
+            $d->{D}->[-1]->{I} = $I = $i
+                if (exists $d->{D} and $#{$d->{D}} != $i and ++$I != $i);
         }
     } elsif (ref $a eq 'HASH' and $a != $b) {
         my @keys = keys %{{ %{$a}, %{$b} }}; # uniq keys for both hashes
