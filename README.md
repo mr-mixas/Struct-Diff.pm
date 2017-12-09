@@ -8,26 +8,26 @@ Struct::Diff - Recursive diff for nested perl structures
 
 # VERSION
 
-Version 0.92
+Version 0.93
 
 # SYNOPSIS
 
-    use Struct::Diff qw(diff list_diff patch split_diff valid_diff);
+    use Struct::Diff qw(diff list_diff split_diff patch valid_diff);
 
-    $a = {x => [7,{y => 4}]};
-    $b = {x => [7,{y => 9}],z => 33};
+    $x = {one => [1,{two => 2}]};
+    $y = {one => [1,{two => 9}],three => 3};
 
-    $diff = diff($a, $b, noO => 1, noU => 1); # omit unchanged items and old values
-    # $diff == {D => {x => {D => [{I => 1,N => {y => 9}}]},z => {A => 33}}}
+    $diff = diff($x, $y, noO => 1, noU => 1); # omit unchanged items and old values
+    # $diff == {D => {one => {D => [{D => {two => {N => 9}},I => 1}]},three => {A => 3}}}
 
     @list_diff = list_diff($diff); # list (path and ref pairs) all diff entries
-    # $list_diff == [[{keys => ['z']}],\{A => 33},[{keys => ['x']},[0]],\{I => 1,N => {y => 9}}]
+    # @list_diff == ({keys => ['one']},[1],{keys => ['two']}],\{N => 9},[{keys => ['three']}],\{A => 3})
 
     $splitted = split_diff($diff);
-    # $splitted->{a} # not exists
-    # $splitted->{b} == {x => [{y => 9}],z => 33}
+    # $splitted->{a} # does not exist
+    # $splitted->{b} == {one => [{two => 9}],three => 3}
 
-    patch($a, $diff); # $a now equal to $b by structure and data
+    patch($x, $diff); # $x now equal to $y by structure and data
 
     @errors = valid_diff($diff);
 
@@ -35,9 +35,12 @@ Version 0.92
 
 Nothing is exported by default.
 
-# DIFF METADATA FORMAT
+# DIFF FORMAT
 
-Diff is simply a HASH whose keys shows status for each item in passed structures.
+Diff is simply a HASH whose keys shows status for each item in passed
+structures. Every status type (except `D`) may be omitted during the diff
+calculation. Disabling some or other types produces different diffs: diff for
+unchanged types only also possible (if all other types disabled).
 
 - A
 
@@ -45,11 +48,12 @@ Diff is simply a HASH whose keys shows status for each item in passed structures
 
 - D
 
-    Means 'different' and contains subdiff.
+    Means 'different' and contains subdiff. The only status type which can't be
+    disabled.
 
 - I
 
-    Index for changed array item.
+    Index for array item, used only when prior item was omitted.
 
 - N
 
@@ -67,15 +71,44 @@ Diff is simply a HASH whose keys shows status for each item in passed structures
 
     Represent unchanged items.
 
+Diff format: metadata alternates with data therefore diff may represent any
+structure of any data types. Simple types specified as is, arrays and hashes,
+if changed, contains subdiffs with original for represented items addresses:
+indexes for arrays and keys for hashes.
+
+Sample:
+    a: {one => \[5,7\]}
+    b: {one => \[5\],two => 2}
+    opts: unchanged items (U) omitted
+
+    {D => {one => {D => [{I => 1,R => 7}]},two => {A => 2}}}
+    ||    | |     ||    |||    | |    |     |     ||    |
+    ||    | |     ||    |||    | |    |     |     ||    +- with value 2
+    ||    | |     ||    |||    | |    |     |     |+- it says key was added
+    ||    | |     ||    |||    | |    |     |     +- subdiff for it
+    ||    | |     ||    |||    | |    |     +- another key from top-level hash
+    ||    | |     ||    |||    | |    +- what it was (item value - 7)
+    ||    | |     ||    |||    | +- shows what happened to item (removed)
+    ||    | |     ||    |||    +- array item's actual index
+    ||    | |     ||    ||+- prior item was omitted
+    ||    | |     ||    |+- subdiff for array item
+    ||    | |     ||    +- it's value - ARRAY
+    ||    | |     |+- it is deeply changed
+    ||    | |     +- subdiff for key 'one'
+    ||    | +- it has key 'one'
+    ||    +- top-level thing is a HASH
+    |+- changes somewhere deeply inside
+    +- diff is always a HASH
+
 # SUBROUTINES
 
 ## diff
 
 Returns hashref to recursive diff between two passed things. Beware when
-changing diff: some of it's substructures are links to original structures.
+changing diff: it's parts are links to original structures.
 
-    $diff = diff($a, $b, %opts);
-    $patch = diff($a, $b, noU => 1, noO => 1, trimR => 1); # smallest possible diff
+    $diff  = diff($x, $y, %opts);
+    $patch = diff($x, $y, noU => 1, noO => 1, trimR => 1); # smallest possible diff
 
 ### Options
 
@@ -111,15 +144,15 @@ List pairs (path, ref\_to\_subdiff) for provided diff. See
 
 Divide diff to pseudo original structures.
 
-    $structs = split_diff(diff($a, $b));
-    # $structs->{a}: items originated from $a
-    # $structs->{b}: same for $b
+    $structs = split_diff(diff($x, $y));
+    # $structs->{a}: items from $x
+    # $structs->{b}: items from $y
 
 ## patch
 
 Apply diff.
 
-    patch($a, $diff);
+    patch($target, $diff);
 
 ## valid\_diff
 
@@ -138,10 +171,8 @@ or
 Struct::Diff fails on structures with loops in references. `has_circular_ref`
 from [Data::Structure::Util](https://metacpan.org/pod/Data::Structure::Util) can help to detect such structures.
 
-Only arrays and hashes traversed. All other data types compared by their
-references or content.
-
-No object oriented interface provided.
+Only arrays and hashes traversed. All other data types compared by reference
+addresses and content.
 
 # AUTHOR
 

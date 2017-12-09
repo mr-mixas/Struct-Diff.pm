@@ -31,30 +31,30 @@ Struct::Diff - Recursive diff for nested perl structures
 
 =head1 VERSION
 
-Version 0.92
+Version 0.93
 
 =cut
 
-our $VERSION = '0.92';
+our $VERSION = '0.93';
 
 =head1 SYNOPSIS
 
-    use Struct::Diff qw(diff list_diff patch split_diff valid_diff);
+    use Struct::Diff qw(diff list_diff split_diff patch valid_diff);
 
-    $a = {x => [7,{y => 4}]};
-    $b = {x => [7,{y => 9}],z => 33};
+    $x = {one => [1,{two => 2}]};
+    $y = {one => [1,{two => 9}],three => 3};
 
-    $diff = diff($a, $b, noO => 1, noU => 1); # omit unchanged items and old values
-    # $diff == {D => {x => {D => [{I => 1,N => {y => 9}}]},z => {A => 33}}}
+    $diff = diff($x, $y, noO => 1, noU => 1); # omit unchanged items and old values
+    # $diff == {D => {one => {D => [{D => {two => {N => 9}},I => 1}]},three => {A => 3}}}
 
     @list_diff = list_diff($diff); # list (path and ref pairs) all diff entries
-    # $list_diff == [[{keys => ['z']}],\{A => 33},[{keys => ['x']},[0]],\{I => 1,N => {y => 9}}]
+    # @list_diff == ({keys => ['one']},[1],{keys => ['two']}],\{N => 9},[{keys => ['three']}],\{A => 3})
 
     $splitted = split_diff($diff);
-    # $splitted->{a} # not exists
-    # $splitted->{b} == {x => [{y => 9}],z => 33}
+    # $splitted->{a} # does not exist
+    # $splitted->{b} == {one => [{two => 9}],three => 3}
 
-    patch($a, $diff); # $a now equal to $b by structure and data
+    patch($x, $diff); # $x now equal to $y by structure and data
 
     @errors = valid_diff($diff);
 
@@ -62,9 +62,12 @@ our $VERSION = '0.92';
 
 Nothing is exported by default.
 
-=head1 DIFF METADATA FORMAT
+=head1 DIFF FORMAT
 
-Diff is simply a HASH whose keys shows status for each item in passed structures.
+Diff is simply a HASH whose keys shows status for each item in passed
+structures. Every status type (except C<D>) may be omitted during the diff
+calculation. Disabling some or other types produces different diffs: diff for
+unchanged types only also possible (if all other types disabled).
 
 =over 4
 
@@ -74,11 +77,12 @@ Stands for 'added' (exists only in second structure), it's value - added item.
 
 =item D
 
-Means 'different' and contains subdiff.
+Means 'different' and contains subdiff. The only status type which can't be
+disabled.
 
 =item I
 
-Index for changed array item.
+Index for array item, used only when prior item was omitted.
 
 =item N
 
@@ -98,15 +102,44 @@ Represent unchanged items.
 
 =back
 
+Diff format: metadata alternates with data therefore diff may represent any
+structure of any data types. Simple types specified as is, arrays and hashes,
+if changed, contains subdiffs with original for represented items addresses:
+indexes for arrays and keys for hashes.
+
+Sample:
+    a: {one => [5,7]}
+    b: {one => [5],two => 2}
+    opts: unchanged items (U) omitted
+
+    {D => {one => {D => [{I => 1,R => 7}]},two => {A => 2}}}
+    ||    | |     ||    |||    | |    |     |     ||    |
+    ||    | |     ||    |||    | |    |     |     ||    +- with value 2
+    ||    | |     ||    |||    | |    |     |     |+- it says key was added
+    ||    | |     ||    |||    | |    |     |     +- subdiff for it
+    ||    | |     ||    |||    | |    |     +- another key from top-level hash
+    ||    | |     ||    |||    | |    +- what it was (item value - 7)
+    ||    | |     ||    |||    | +- shows what happened to item (removed)
+    ||    | |     ||    |||    +- array item's actual index
+    ||    | |     ||    ||+- prior item was omitted
+    ||    | |     ||    |+- subdiff for array item
+    ||    | |     ||    +- it's value - ARRAY
+    ||    | |     |+- it is deeply changed
+    ||    | |     +- subdiff for key 'one'
+    ||    | +- it has key 'one'
+    ||    +- top-level thing is a HASH
+    |+- changes somewhere deeply inside
+    +- diff is always a HASH
+
 =head1 SUBROUTINES
 
 =head2 diff
 
 Returns hashref to recursive diff between two passed things. Beware when
-changing diff: some of it's substructures are links to original structures.
+changing diff: it's parts are links to original structures.
 
-    $diff = diff($a, $b, %opts);
-    $patch = diff($a, $b, noU => 1, noO => 1, trimR => 1); # smallest possible diff
+    $diff  = diff($x, $y, %opts);
+    $patch = diff($x, $y, noU => 1, noO => 1, trimR => 1); # smallest possible diff
 
 =head3 Options
 
@@ -126,20 +159,20 @@ Drop removed item's data.
 
 sub diff($$;@);
 sub diff($$;@) {
-    my ($a, $b, %opts) = @_;
+    my ($x, $y, %opts) = @_;
 
     my $d = {};
     local $Storable::canonical = 1; # for equal snapshots for equal by data hashes
     local $Storable::Deparse = 1;
 
-    if (ref $a ne ref $b) {
-        $d->{O} = $a unless ($opts{noO});
-        $d->{N} = $b unless ($opts{noN});
-    } elsif (ref $a eq 'ARRAY' and $a != $b) {
-        return $opts{noU} ? {} : { U => [] } unless (@{$a} or @{$b});
+    if (ref $x ne ref $y) {
+        $d->{O} = $x unless ($opts{noO});
+        $d->{N} = $y unless ($opts{noN});
+    } elsif (ref $x eq 'ARRAY' and $x != $y) {
+        return $opts{noU} ? {} : { U => [] } unless (@{$x} or @{$y});
 
         my ($i, $I) = (-1, -1);
-        for (sdiff($a, $b, sub { freeze \$_[0] })) {
+        for (sdiff($x, $y, sub { freeze \$_[0] })) {
             $i++;
 
             if ($_->[0] eq 'u') {
@@ -168,26 +201,26 @@ sub diff($$;@) {
             $d->{D}->[-1]->{I} = $I = $i
                 if (exists $d->{D} and $#{$d->{D}} != $i and ++$I != $i);
         }
-    } elsif (ref $a eq 'HASH' and $a != $b) {
-        my @keys = keys %{{ %{$a}, %{$b} }}; # uniq keys for both hashes
+    } elsif (ref $x eq 'HASH' and $x != $y) {
+        my @keys = keys %{{ %{$x}, %{$y} }}; # uniq keys for both hashes
         return $opts{noU} ? {} : { U => {} } unless (@keys);
 
         for my $k (@keys) {
-            if (exists $a->{$k} and exists $b->{$k}) {
-                if (freeze(\$a->{$k}) eq freeze(\$b->{$k})) {
-                    $d->{U}->{$k} = $b->{$k} unless ($opts{noU});
+            if (exists $x->{$k} and exists $y->{$k}) {
+                if (freeze(\$x->{$k}) eq freeze(\$y->{$k})) {
+                    $d->{U}->{$k} = $y->{$k} unless ($opts{noU});
                 } else {
-                    my $sd = diff($a->{$k}, $b->{$k}, %opts);
+                    my $sd = diff($x->{$k}, $y->{$k}, %opts);
                     $d->{D}->{$k} = $sd if (keys %{$sd});
                 }
                 next;
             }
 
-            if (exists $a->{$k}) {
-                $d->{D}->{$k}->{R} = $opts{trimR} ? undef : $a->{$k}
+            if (exists $x->{$k}) {
+                $d->{D}->{$k}->{R} = $opts{trimR} ? undef : $x->{$k}
                     unless ($opts{noR});
             } else {
-                $d->{D}->{$k}->{A} = $b->{$k} unless ($opts{noA});
+                $d->{D}->{$k}->{A} = $y->{$k} unless ($opts{noA});
             }
         }
 
@@ -195,18 +228,18 @@ sub diff($$;@) {
             map { $d->{D}->{$_}->{U} = $d->{U}->{$_} } keys %{$d->{U}};
             delete $d->{U};
         }
-    } elsif (ref $a eq 'Regexp' and $a != $b) {
-        if ($a eq $b) {
-            $d->{U} = $a unless ($opts{noU});
+    } elsif (ref $x eq 'Regexp' and $x != $y) {
+        if ($x eq $y) {
+            $d->{U} = $x unless ($opts{noU});
         } else {
-            $d->{O} = $a unless ($opts{noO});
-            $d->{N} = $b unless ($opts{noN});
+            $d->{O} = $x unless ($opts{noO});
+            $d->{N} = $y unless ($opts{noN});
         }
-    } elsif (ref $a ? $a == $b || freeze($a) eq freeze($b) : freeze(\$a) eq freeze(\$b)) {
-        $d->{U} = $a unless ($opts{noU});
+    } elsif (ref $x ? $x == $y || freeze($x) eq freeze($y) : freeze(\$x) eq freeze(\$y)) {
+        $d->{U} = $x unless ($opts{noU});
     } else {
-        $d->{O} = $a unless ($opts{noO});
-        $d->{N} = $b unless ($opts{noN});
+        $d->{O} = $x unless ($opts{noO});
+        $d->{N} = $y unless ($opts{noN});
     }
 
     return $d;
@@ -277,9 +310,9 @@ sub list_diff($;@) {
 
 Divide diff to pseudo original structures.
 
-    $structs = split_diff(diff($a, $b));
-    # $structs->{a}: items originated from $a
-    # $structs->{b}: same for $b
+    $structs = split_diff(diff($x, $y));
+    # $structs->{a}: items from $x
+    # $structs->{b}: items from $y
 
 =cut
 
@@ -320,7 +353,7 @@ sub split_diff($) {
 
 Apply diff.
 
-    patch($a, $diff);
+    patch($target, $diff);
 
 =cut
 
@@ -430,10 +463,8 @@ sub valid_diff($) {
 Struct::Diff fails on structures with loops in references. C<has_circular_ref>
 from L<Data::Structure::Util> can help to detect such structures.
 
-Only arrays and hashes traversed. All other data types compared by their
-references or content.
-
-No object oriented interface provided.
+Only arrays and hashes traversed. All other data types compared by reference
+addresses and content.
 
 =head1 AUTHOR
 
