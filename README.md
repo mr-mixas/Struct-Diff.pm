@@ -77,10 +77,12 @@ if changed, contains subdiffs with original for represented items addresses:
 indexes for arrays and keys for hashes.
 
 Sample:
-    a: {one => \[5,7\]}
-    b: {one => \[5\],two => 2}
+
+    old:  {one => [5,7]}
+    new:  {one => [5],two => 2}
     opts: unchanged items (U) omitted
 
+    diff:
     {D => {one => {D => [{I => 1,R => 7}]},two => {A => 2}}}
     ||    | |     ||    |||    | |    |     |     ||    |
     ||    | |     ||    |||    | |    |     |     ||    +- with value 2
