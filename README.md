@@ -8,7 +8,7 @@ Struct::Diff - Recursive diff for nested perl structures
 
 # VERSION
 
-Version 0.93
+Version 0.94
 
 # SYNOPSIS
 
@@ -114,6 +114,11 @@ changing diff: it's parts are links to original structures.
 
 ### Options
 
+- freezer <sub>
+
+    Serializer callback (redefines default serializer). See
+    ["CONFIGURATION VARIABLES"](#configuration-variables) for details.
+
 - noX
 
     Where X is a status (`A`, `N`, `O`, `R`, `U`); such status will be omitted.
@@ -168,13 +173,38 @@ or
 
     $is_valid = valid_diff($diff); # scalar context
 
-# LIMITATIONS
+# CONFIGURATION VARIABLES
 
-Struct::Diff fails on structures with loops in references. `has_circular_ref`
-from [Data::Structure::Util](https://metacpan.org/pod/Data::Structure::Util) can help to detect such structures.
+- $Struct::Diff::Freezer
+
+    Contains reference to default serialization function (`diff()` rely on it
+    to determine data equivalency). ["freeze" in Storable](https://metacpan.org/pod/Storable#freeze) with enabled
+    `$Storable::canonical` and `$Storable::Deparse` opts used by default.
+
+    [Data::Dumper](https://metacpan.org/pod/Data::Dumper) is suitable for structures containing regular experrions:
+
+        $Struct::Diff::Freezer = sub {
+            local $Data::Dumper::Deparse    = 1;
+            local $Data::Dumper::Sortkeys   = 1;
+            local $Data::Dumper::Terse      = 1;
+
+            return Dumper @_;
+        }
+
+    But, comparing to `Storable` it has two another issues: speed and unability
+    to distinguish numbers from their string representations.
+
+# LIMITATIONS
 
 Only arrays and hashes traversed. All other data types compared by reference
 addresses and content.
+
+["freeze" in Storable](https://metacpan.org/pod/Storable#freeze) (serializer used by default) failes on compiled regexp
+serialization, so, consider to use other serializer if data contains regular
+expressions. See ["CONFIGURATION VARIABLES"](#configuration-variables) for details.
+
+Struct::Diff fails on structures with loops in references. `has_circular_ref`
+from [Data::Structure::Util](https://metacpan.org/pod/Data::Structure::Util) can help to detect such structures.
 
 # AUTHOR
 
