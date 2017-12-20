@@ -306,7 +306,7 @@ sub list_diff($;@) {
             } reverse 0 .. $#{${$diff}->{D}};
         } else { # HASH
             map {
-                unshift @stack, [@{$path}, {keys => [$_]}], \${$diff}->{D}->{$_}
+                unshift @stack, [@{$path}, {K => [$_]}], \${$diff}->{D}->{$_}
             } $opts{sort}
                 ? ref $opts{sort} eq 'CODE'
                     ? reverse $opts{sort}(keys %{${$diff}->{D}})
