@@ -66,8 +66,8 @@ Nothing is exported by default.
 
 Diff is simply a HASH whose keys shows status for each item in passed
 structures. Every status type (except C<D>) may be omitted during the diff
-calculation. Disabling some or other types produces different diffs: diff for
-unchanged types only also possible (if all other types disabled).
+calculation. Disabling some or other types produce different diffs: diff with
+only unchanged items is also possible (when all other types disabled).
 
 =over 4
 
@@ -102,16 +102,16 @@ Represent unchanged items.
 
 =back
 
-Diff format: metadata alternates with data therefore diff may represent any
-structure of any data types. Simple types specified as is, arrays and hashes,
-if changed, contains subdiffs with original for represented items addresses:
-indexes for arrays and keys for hashes.
+Diff format: metadata alternates with data and, as a result, diff may represent
+any structure of any data types. Simple types specified as is, arrays and hashes
+contain subdiffs for their items with native for such types addressing: indexes
+for arrays and keys for hashes.
 
 Sample:
 
     old:  {one => [5,7]}
     new:  {one => [5],two => 2}
-    opts: unchanged items (U) omitted
+    opts: {noU => 1} # omit unchanged items
 
     diff:
     {D => {one => {D => [{I => 1,R => 7}]},two => {A => 2}}}
@@ -120,7 +120,7 @@ Sample:
     ||    | |     ||    |||    | |    |     |     |+- it says key was added
     ||    | |     ||    |||    | |    |     |     +- subdiff for it
     ||    | |     ||    |||    | |    |     +- another key from top-level hash
-    ||    | |     ||    |||    | |    +- what it was (item value - 7)
+    ||    | |     ||    |||    | |    +- what it was (item's value: 7)
     ||    | |     ||    |||    | +- shows what happened to item (removed)
     ||    | |     ||    |||    +- array item's actual index
     ||    | |     ||    ||+- prior item was omitted
@@ -150,7 +150,7 @@ changing diff: it's parts are links to original structures.
 =item freezer E<lt>subE<gt>
 
 Serializer callback (redefines default serializer). See
-L</"CONFIGURATION VARIABLES"> for details.
+L</CONFIGURATION VARIABLES> for details.
 
 =item noX
 
@@ -259,7 +259,7 @@ sub _diff($$;@) {
 
 =head2 list_diff
 
-List pairs (path, ref_to_subdiff) for provided diff. See
+List pairs (path_to_subdiff, ref_to_subdiff)) for provided diff. See
 L<Struct::Path/ADDRESSING SCHEME> for path format specification.
 
     @list = list_diff($diff);
@@ -502,7 +502,7 @@ addresses and content.
 
 L<Storable/freeze> (serializer used by default) failes on compiled regexp
 serialization, so, consider to use other serializer if data contains regular
-expressions. See L<"CONFIGURATION VARIABLES"> for details.
+expressions. See L<CONFIGURATION VARIABLES> for details.
 
 Struct::Diff fails on structures with loops in references. C<has_circular_ref>
 from L<Data::Structure::Util> can help to detect such structures.

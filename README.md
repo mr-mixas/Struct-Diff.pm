@@ -39,8 +39,8 @@ Nothing is exported by default.
 
 Diff is simply a HASH whose keys shows status for each item in passed
 structures. Every status type (except `D`) may be omitted during the diff
-calculation. Disabling some or other types produces different diffs: diff for
-unchanged types only also possible (if all other types disabled).
+calculation. Disabling some or other types produce different diffs: diff with
+only unchanged items is also possible (when all other types disabled).
 
 - A
 
@@ -71,16 +71,16 @@ unchanged types only also possible (if all other types disabled).
 
     Represent unchanged items.
 
-Diff format: metadata alternates with data therefore diff may represent any
-structure of any data types. Simple types specified as is, arrays and hashes,
-if changed, contains subdiffs with original for represented items addresses:
-indexes for arrays and keys for hashes.
+Diff format: metadata alternates with data and, as a result, diff may represent
+any structure of any data types. Simple types specified as is, arrays and hashes
+contain subdiffs for their items with native for such types addressing: indexes
+for arrays and keys for hashes.
 
 Sample:
 
     old:  {one => [5,7]}
     new:  {one => [5],two => 2}
-    opts: unchanged items (U) omitted
+    opts: {noU => 1} # omit unchanged items
 
     diff:
     {D => {one => {D => [{I => 1,R => 7}]},two => {A => 2}}}
@@ -89,7 +89,7 @@ Sample:
     ||    | |     ||    |||    | |    |     |     |+- it says key was added
     ||    | |     ||    |||    | |    |     |     +- subdiff for it
     ||    | |     ||    |||    | |    |     +- another key from top-level hash
-    ||    | |     ||    |||    | |    +- what it was (item value - 7)
+    ||    | |     ||    |||    | |    +- what it was (item's value: 7)
     ||    | |     ||    |||    | +- shows what happened to item (removed)
     ||    | |     ||    |||    +- array item's actual index
     ||    | |     ||    ||+- prior item was omitted
@@ -129,7 +129,7 @@ changing diff: it's parts are links to original structures.
 
 ## list\_diff
 
-List pairs (path, ref\_to\_subdiff) for provided diff. See
+List pairs (path\_to\_subdiff, ref\_to\_subdiff)) for provided diff. See
 ["ADDRESSING SCHEME" in Struct::Path](https://metacpan.org/pod/Struct::Path#ADDRESSING-SCHEME) for path format specification.
 
     @list = list_diff($diff);
