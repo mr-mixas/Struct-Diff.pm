@@ -114,16 +114,16 @@ changing diff: it's parts are links to original structures.
 
 ### Options
 
-- freezer <sub>
+- freezer `<sub>`
 
-    Serializer callback (redefines default serializer). See
-    ["CONFIGURATION VARIABLES"](#configuration-variables) for details.
+    Serializer callback (redefines default serializer). ["freeze" in Storable](https://metacpan.org/pod/Storable#freeze) is used
+    by default, see ["CONFIGURATION VARIABLES"](#configuration-variables) for details.
 
-- noX
+- noX `<true|false>`
 
     Where X is a status (`A`, `N`, `O`, `R`, `U`); such status will be omitted.
 
-- trimR
+- trimR `<true|false>`
 
     Drop removed item's data.
 
@@ -136,12 +136,12 @@ List pairs (path\_to\_subdiff, ref\_to\_subdiff)) for provided diff. See
 
 ### Options
 
-- depth <int>
+- depth `<int>`
 
     Don't dive deeper than defined number of levels. `undef` used by default
     (unlimited).
 
-- sort <sub|true|false>
+- sort `<sub|true|false>`
 
     Defines how to handle hash subdiffs. Keys will be picked randomely (default
     `keys` behavior), sorted by provided subroutine (if value is a coderef) or

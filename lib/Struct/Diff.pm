@@ -147,16 +147,16 @@ changing diff: it's parts are links to original structures.
 
 =over 4
 
-=item freezer E<lt>subE<gt>
+=item freezer C<< <sub> >>
 
-Serializer callback (redefines default serializer). See
-L</CONFIGURATION VARIABLES> for details.
+Serializer callback (redefines default serializer). L<Storable/freeze> is used
+by default, see L</CONFIGURATION VARIABLES> for details.
 
-=item noX
+=item noX C<< <true|false> >>
 
 Where X is a status (C<A>, C<N>, C<O>, C<R>, C<U>); such status will be omitted.
 
-=item trimR
+=item trimR C<< <true|false> >>
 
 Drop removed item's data.
 
@@ -268,12 +268,12 @@ L<Struct::Path/ADDRESSING SCHEME> for path format specification.
 
 =over 4
 
-=item depth E<lt>intE<gt>
+=item depth C<< <int> >>
 
 Don't dive deeper than defined number of levels. C<undef> used by default
 (unlimited).
 
-=item sort E<lt>sub|true|falseE<gt>
+=item sort C<< <sub|true|false> >>
 
 Defines how to handle hash subdiffs. Keys will be picked randomely (default
 C<keys> behavior), sorted by provided subroutine (if value is a coderef) or
