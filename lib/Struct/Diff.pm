@@ -184,10 +184,12 @@ sub _diff($$;@) {
     my ($x, $y, %opts) = @_;
 
     my $d = {};
-    if (ref $x ne ref $y) {
+    my $type = ref $x;
+
+    if ($type ne ref $y) {
         $d->{O} = $x unless ($opts{noO});
         $d->{N} = $y unless ($opts{noN});
-    } elsif (ref $x eq 'ARRAY' and $x != $y) {
+    } elsif ($type eq 'ARRAY' and $x != $y) {
         return $opts{noU} ? {} : { U => [] } unless (@{$x} or @{$y});
 
         my ($i, $I) = (-1, -1);
@@ -220,7 +222,7 @@ sub _diff($$;@) {
             $d->{D}->[-1]->{I} = $I = $i
                 if (exists $d->{D} and $#{$d->{D}} != $i and ++$I != $i);
         }
-    } elsif (ref $x eq 'HASH' and $x != $y) {
+    } elsif ($type eq 'HASH' and $x != $y) {
         my @keys = keys %{{ %{$x}, %{$y} }}; # uniq keys for both hashes
         return $opts{noU} ? {} : { U => {} } unless (@keys);
 
@@ -247,7 +249,7 @@ sub _diff($$;@) {
             map { $d->{D}->{$_}->{U} = $d->{U}->{$_} } keys %{$d->{U}};
             delete $d->{U};
         }
-    } elsif (ref $x && $x == $y || $opts{freezer}($x) eq $opts{freezer}($y)) {
+    } elsif ($type && $x == $y || $opts{freezer}($x) eq $opts{freezer}($y)) {
         $d->{U} = $x unless ($opts{noU});
     } else {
         $d->{O} = $x unless ($opts{noO});
