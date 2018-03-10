@@ -448,7 +448,7 @@ sub valid_diff($) {
                 } 0 .. $#{$diff->{D}};
             } elsif (ref $diff->{D} eq 'HASH') {
                 map {
-                    unshift @stack, [@{$path}, {keys => [$_]}], $diff->{D}->{$_}
+                    unshift @stack, [@{$path}, {K => [$_]}], $diff->{D}->{$_}
                 } sort keys %{$diff->{D}};
             } else {
                 return undef unless wantarray;
