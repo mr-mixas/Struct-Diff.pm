@@ -8,7 +8,7 @@ Struct::Diff - Recursive diff for nested perl structures
 
 # VERSION
 
-Version 0.94
+Version 0.95
 
 # SYNOPSIS
 
@@ -21,7 +21,7 @@ Version 0.94
     # $diff == {D => {one => {D => [{D => {two => {N => 9}},I => 1}]},three => {A => 3}}}
 
     @list_diff = list_diff($diff); # list (path and ref pairs) all diff entries
-    # @list_diff == ({keys => ['one']},[1],{keys => ['two']}],\{N => 9},[{keys => ['three']}],\{A => 3})
+    # @list_diff == ({K => ['one']},[1],{K => ['two']}],\{N => 9},[{K => ['three']}],\{A => 3})
 
     $splitted = split_diff($diff);
     # $splitted->{a} # does not exist
@@ -199,12 +199,13 @@ or
 Only arrays and hashes traversed. All other data types compared by reference
 addresses and content.
 
-["freeze" in Storable](https://metacpan.org/pod/Storable#freeze) (serializer used by default) failes on compiled regexp
-serialization, so, consider to use other serializer if data contains regular
+["freeze" in Storable](https://metacpan.org/pod/Storable#freeze) (serializer used by default) will fail serializing compiled
+regexps, so, consider to use other serializer if data contains regular
 expressions. See ["CONFIGURATION VARIABLES"](#configuration-variables) for details.
 
-Struct::Diff fails on structures with loops in references. `has_circular_ref`
-from [Data::Structure::Util](https://metacpan.org/pod/Data::Structure::Util) can help to detect such structures.
+Struct::Diff will fail on structures with loops in references;
+`has_circular_ref` from [Data::Structure::Util](https://metacpan.org/pod/Data::Structure::Util) can help to detect such
+structures.
 
 # AUTHOR
 
@@ -251,7 +252,7 @@ You can also look for information at:
 
 # LICENSE AND COPYRIGHT
 
-Copyright 2015-2017 Michael Samoglyadov.
+Copyright 2015-2018 Michael Samoglyadov.
 
 This program is free software; you can redistribute it and/or modify it
 under the terms of either: the GNU General Public License as published
