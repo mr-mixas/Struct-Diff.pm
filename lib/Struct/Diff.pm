@@ -31,11 +31,11 @@ Struct::Diff - Recursive diff for nested perl structures
 
 =head1 VERSION
 
-Version 0.95
+Version 0.96
 
 =cut
 
-our $VERSION = '0.95';
+our $VERSION = '0.96';
 
 =head1 SYNOPSIS
 
@@ -261,7 +261,7 @@ sub _diff($$;@) {
 
 =head2 list_diff
 
-List pairs (path_to_subdiff, ref_to_subdiff)) for provided diff. See
+List all pairs (path_to_subdiff, ref_to_subdiff) for provided diff. See
 L<Struct::Path/ADDRESSING SCHEME> for path format specification.
 
     @list = list_diff($diff);
@@ -272,7 +272,7 @@ L<Struct::Path/ADDRESSING SCHEME> for path format specification.
 
 =item depth C<< <int> >>
 
-Don't dive deeper than defined number of levels. C<undef> used by default
+Don't dive deeper than defined number of levels; C<undef> used by default
 (unlimited).
 
 =item sort C<< <sub|true|false> >>
@@ -482,7 +482,9 @@ Contains reference to default serialization function (C<diff()> rely on it
 to determine data equivalency). L<Storable/freeze> with enabled
 C<$Storable::canonical> and C<$Storable::Deparse> opts used by default.
 
-L<Data::Dumper> is suitable for structures containing regular experrions:
+L<Data::Dumper> is suitable for structures with regular expressions:
+
+    use Data::Dumper;
 
     $Struct::Diff::Freezer = sub {
         local $Data::Dumper::Deparse    = 1;
@@ -492,15 +494,15 @@ L<Data::Dumper> is suitable for structures containing regular experrions:
         return Dumper @_;
     }
 
-But, comparing to C<Storable> it has two another issues: speed and unability
+But comparing to L<Storable> it has two other issues: speed and unability
 to distinguish numbers from their string representations.
 
 =back
 
 =head1 LIMITATIONS
 
-Only arrays and hashes traversed. All other data types compared by reference
-addresses and content.
+Only arrays and hashes traversed. All other types compared by reference address
+and serialized content.
 
 L<Storable/freeze> (serializer used by default) will fail serializing compiled
 regexps, so, consider to use other serializer if data contains regular

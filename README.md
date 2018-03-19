@@ -8,7 +8,7 @@ Struct::Diff - Recursive diff for nested perl structures
 
 # VERSION
 
-Version 0.95
+Version 0.96
 
 # SYNOPSIS
 
@@ -129,7 +129,7 @@ changing diff: it's parts are links to original structures.
 
 ## list\_diff
 
-List pairs (path\_to\_subdiff, ref\_to\_subdiff)) for provided diff. See
+List all pairs (path\_to\_subdiff, ref\_to\_subdiff) for provided diff. See
 ["ADDRESSING SCHEME" in Struct::Path](https://metacpan.org/pod/Struct::Path#ADDRESSING-SCHEME) for path format specification.
 
     @list = list_diff($diff);
@@ -138,7 +138,7 @@ List pairs (path\_to\_subdiff, ref\_to\_subdiff)) for provided diff. See
 
 - depth `<int>`
 
-    Don't dive deeper than defined number of levels. `undef` used by default
+    Don't dive deeper than defined number of levels; `undef` used by default
     (unlimited).
 
 - sort `<sub|true|false>`
@@ -181,7 +181,9 @@ or
     to determine data equivalency). ["freeze" in Storable](https://metacpan.org/pod/Storable#freeze) with enabled
     `$Storable::canonical` and `$Storable::Deparse` opts used by default.
 
-    [Data::Dumper](https://metacpan.org/pod/Data::Dumper) is suitable for structures containing regular experrions:
+    [Data::Dumper](https://metacpan.org/pod/Data::Dumper) is suitable for structures with regular expressions:
+
+        use Data::Dumper;
 
         $Struct::Diff::Freezer = sub {
             local $Data::Dumper::Deparse    = 1;
@@ -191,13 +193,13 @@ or
             return Dumper @_;
         }
 
-    But, comparing to `Storable` it has two another issues: speed and unability
+    But comparing to [Storable](https://metacpan.org/pod/Storable) it has two other issues: speed and unability
     to distinguish numbers from their string representations.
 
 # LIMITATIONS
 
-Only arrays and hashes traversed. All other data types compared by reference
-addresses and content.
+Only arrays and hashes traversed. All other types compared by reference address
+and serialized content.
 
 ["freeze" in Storable](https://metacpan.org/pod/Storable#freeze) (serializer used by default) will fail serializing compiled
 regexps, so, consider to use other serializer if data contains regular
