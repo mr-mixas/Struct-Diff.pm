@@ -5,9 +5,9 @@ use strict;
 use warnings FATAL => 'all';
 use parent qw(Exporter);
 
+use Algorithm::Diff qw(LCSidx);
 use Scalar::Util qw(looks_like_number);
 use Storable 2.05 qw(freeze);
-use Algorithm::Diff qw(sdiff);
 
 our @EXPORT_OK = qw(
     diff
@@ -190,37 +190,33 @@ sub _diff($$;@) {
         $d->{O} = $x unless ($opts{noO});
         $d->{N} = $y unless ($opts{noN});
     } elsif ($type eq 'ARRAY' and $x != $y) {
-        return $opts{noU} ? {} : { U => [] } unless (@{$x} or @{$y});
+        my ($lcs, $stat) = _lcs_diff($x, $y, $opts{freezer});
 
-        my ($i, $I) = (-1, -1);
-        for (sdiff($x, $y, $opts{freezer})) {
-            $i++;
+        if ($stat->{U} * 3 == @{$lcs}) {
+            $d->{U} = $y unless ($opts{noU});
+        } else {
+            my ($i, $I, $xi, $yi, $op, $sd) = (-1, -1);
 
-            if ($_->[0] eq 'u') {
-                unless ($opts{noU}) {
-                    if (exists $d->{D}) {
-                        push @{$d->{D}}, { U => $_->[1] };
-                    } else { # nobody else - fill U version
-                        push @{$d->{U}}, $_->[1];
-                    }
+            while (@{$lcs}) {
+                ($op, $xi, $yi) = splice @{$lcs}, 0, 3;
+                $i++;
+
+                if ($op eq 'U') {
+                    push @{$d->{D}}, { U => $y->[$yi] } unless ($opts{noU});
+                    next;
+                } elsif ($op eq 'D') {
+                    $sd = _diff($x->[$xi], $y->[$yi], %opts);
+                    push @{$d->{D}}, $sd if (keys %{$sd});
+                } elsif ($op eq 'A') {
+                    push @{$d->{D}}, { A => $y->[$yi] } unless ($opts{noA});
+                } else {
+                    push @{$d->{D}}, { R => $opts{trimR} ? undef : $x->[$xi] }
+                        unless ($opts{noR});
                 }
-                next;
-            } elsif (exists $d->{U}) { # diff should be converted to D type
-                map { push @{$d->{D}}, { U => $_ } } @{delete $d->{U}};
-            }
 
-            if ($_->[0] eq 'c') {
-                my $sd = _diff($_->[1], $_->[2], %opts);
-                push @{$d->{D}}, $sd if (keys %{$sd});
-            } elsif ($_->[0] eq '+') {
-                push @{$d->{D}}, { A => $_->[2] } unless ($opts{noA});
-            } else { # '-'
-                push @{$d->{D}}, { R => $opts{trimR} ? undef : $_->[1] }
-                    unless ($opts{noR});
+                $d->{D}->[-1]->{I} = $I = $i
+                    if (exists $d->{D} and $#{$d->{D}} != $i and ++$I != $i);
             }
-
-            $d->{D}->[-1]->{I} = $I = $i
-                if (exists $d->{D} and $#{$d->{D}} != $i and ++$I != $i);
         }
     } elsif ($type eq 'HASH' and $x != $y) {
         my @keys = keys %{{ %{$x}, %{$y} }}; # uniq keys for both hashes
@@ -257,6 +253,40 @@ sub _diff($$;@) {
     }
 
     return $d;
+}
+
+sub _lcs_diff {
+    my ($xm, $ym) = LCSidx(@_);
+    my ($xi, $yi, @diff, %stat) = (0, 0);
+
+    # additional unchanged items to collect trailing non-matched
+    push @{$xm}, scalar @{$_[0]};
+    push @{$ym}, scalar @{$_[1]};
+
+    while (@{$xm}) {
+        if ($xi == $xm->[0] and $yi == $ym->[0]) {
+            push @diff, 'U', shift @{$xm}, shift @{$ym};
+            $xi++; $yi++;
+            $stat{U}++;
+        } elsif ($xi < $xm->[0] and $yi < $ym->[0]) {
+            push @diff, 'D', $xi++, $yi++;
+            $stat{N}++;
+        } elsif ($xi < $xm->[0]) {
+            push @diff, 'R', $xi++, undef;
+            $stat{R}++;
+        } else {
+            push @diff, 'A', undef, $yi++;
+            $stat{A}++;
+        }
+    }
+
+    $stat{O} = $stat{N} if (exists $stat{N});
+
+    # remove added above trailing item
+    splice @diff, -3, 3;
+    $stat{U}--;
+
+    return \@diff, \%stat;
 }
 
 =head2 list_diff
