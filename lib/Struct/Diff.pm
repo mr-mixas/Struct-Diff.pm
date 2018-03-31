@@ -230,10 +230,7 @@ sub _diff($$;@) {
                     my $sd = _diff($x->{$k}, $y->{$k}, %opts);
                     $d->{D}->{$k} = $sd if (keys %{$sd});
                 }
-                next;
-            }
-
-            if (exists $x->{$k}) {
+            } elsif (exists $x->{$k}) {
                 $d->{D}->{$k}->{R} = $opts{trimR} ? undef : $x->{$k}
                     unless ($opts{noR});
             } else {
