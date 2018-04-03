@@ -315,31 +315,27 @@ lexically sorted if set to some other true value.
 sub list_diff($;@) {
     my @stack = ([], \shift); # init: (path, diff)
     my %opts = @_;
-    my ($diff, @list, $path);
+    my ($diff, @list, $path, $I);
 
     while (@stack) {
-        ($path, $diff) = splice @stack, 0, 2;
+        ($path, $diff) = splice @stack, -2, 2;
 
         if (!exists ${$diff}->{D} or $opts{depth} and @{$path} >= $opts{depth}) {
-            push @list, $path, $diff;
+            unshift @list, $path, $diff;
         } elsif (ref ${$diff}->{D} eq 'ARRAY') {
-            map {
-                unshift @stack,
-                    [@{$path},
-                        [exists ${$diff}->{D}->[$_]->{I}
-                            ? ${$diff}->{D}->[$_]->{I} # use provided index
-                            : $_
-                        ]
-                    ],
-                    \${$diff}->{D}->[$_]
-            } reverse 0 .. $#{${$diff}->{D}};
+            $I = 0;
+            for (@{${$diff}->{D}}) {
+                $I = $_->{I} if (exists $_->{I}); # use provided index
+                push @stack, [@{$path}, [$I]], \$_;
+                $I++;
+            }
         } else { # HASH
             map {
-                unshift @stack, [@{$path}, {K => [$_]}], \${$diff}->{D}->{$_}
+                push @stack, [@{$path}, {K => [$_]}], \${$diff}->{D}->{$_}
             } $opts{sort}
                 ? ref $opts{sort} eq 'CODE'
-                    ? reverse $opts{sort}(keys %{${$diff}->{D}})
-                    : reverse sort keys %{${$diff}->{D}}
+                    ? $opts{sort}(keys %{${$diff}->{D}})
+                    : sort keys %{${$diff}->{D}}
                 : keys %{${$diff}->{D}};
         }
     }
