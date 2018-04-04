@@ -1,28 +1,58 @@
 #!/usr/bin/env perl
 
 use strict;
-use warnings;
+use warnings FATAL => 'all';
 
-use lib '../lib';
+use lib ('../lib', '.');
 
-use Benchmark qw (:all);
-use Storable qw(dclone);
-use Struct::Diff qw(diff);
-use Structs;
+use Benchmark qw(cmpthese);
+use JSON;
 
-my $cloned = dclone($Structs::STRUCT1);
+require Struct::Diff;
+require _StructDiff095;
 
-my ($DD, $DC);
-eval "use Data::Diff qw(Diff)";
-$DD = 1 unless ($@);
+sub slurp {
+    my $file = shift;
 
-eval "use Data::Compare";
-$DC = 1 unless ($@);
+    open(my $fh, '<', $file) or die "Failed to open file '$file' ($!)", 2;
+    my $data = do { local $/; <$fh> };
+    close($fh);
 
-for my $type ('AoA', 'HoH', 'MIX') {
-    my $rivals = {};
-    $rivals->{"SD_${type}"} = sub { diff($Structs::STRUCT1->{"${type}"}, $cloned->{"${type}"}) };
-    $rivals->{"DD_${type}"} = sub { Diff($Structs::STRUCT1->{"${type}"}, $cloned->{"${type}"}) } if ($DD);
-    $rivals->{"DC_${type}"} = sub { Compare($Structs::STRUCT1->{"${type}"}, $cloned->{"${type}"}) } if ($DC);
-    cmpthese (50, $rivals);
+    return JSON->new->decode($data);
 }
+
+my $VER = $Struct::Diff::VERSION;
+
+eval { require Data::Diff };
+print STDERR "Unable to load Data::Diff, skip it\n" if ($@);
+
+eval { require Data::Difference };
+print STDERR "Unable to load Data::Difference, skip it\n" if ($@);
+
+for (qw(
+        widespread_deep_changes_hash_of_hashes
+        widespread_deep_changes_list_of_lists
+        single_deep_change_hash_of_hashes
+        single_deep_change_list_of_lists
+)) {
+    print "\n===== $_ =====\n";
+
+    my $A = slurp("$_.a.json");
+    my $B = slurp("$_.b.json");
+    my $rivals = {};
+
+    # control previous
+    $rivals->{"Struct::Diff 0.95"} = sub { _StructDiff095::diff($A, $B) };
+
+    # current
+    $rivals->{"Struct::Diff $VER"} = sub { Struct::Diff::diff($A, $B) };
+
+    # others if available
+    $rivals->{"Data::Diff"} = sub { Data::Diff::Diff($A, $B) }
+        if (defined &Data::Diff::Diff);
+    $rivals->{"Data::Difference"} = sub { Data::Difference::data_diff($A, $B) }
+        if (defined &Data::Difference::data_diff);
+
+    cmpthese (-3, $rivals);
+}
+
