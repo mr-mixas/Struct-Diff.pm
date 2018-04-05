@@ -175,7 +175,7 @@ or
 
 # CONFIGURATION VARIABLES
 
-- $Struct::Diff::Freezer
+- $Struct::Diff::FREEZER
 
     Contains reference to default serialization function (`diff()` rely on it
     to determine data equivalency). ["freeze" in Storable](https://metacpan.org/pod/Storable#freeze) with enabled
@@ -185,7 +185,7 @@ or
 
         use Data::Dumper;
 
-        $Struct::Diff::Freezer = sub {
+        $Struct::Diff::FREEZER = sub {
             local $Data::Dumper::Deparse    = 1;
             local $Data::Dumper::Sortkeys   = 1;
             local $Data::Dumper::Terse      = 1;

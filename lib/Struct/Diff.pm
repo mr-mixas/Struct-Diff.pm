@@ -164,7 +164,7 @@ Drop removed item's data.
 
 =cut
 
-our $Freezer = sub {
+our $FREEZER = sub {
     local $Storable::canonical = 1; # for equal snapshots for equal by data hashes
     local $Storable::Deparse = 1;   # for coderefs
 
@@ -174,7 +174,7 @@ our $Freezer = sub {
 sub diff($$;@) {
     my ($x, $y, %opts) = @_;
 
-    $opts{freezer} = $Freezer unless (exists $opts{freezer});
+    $opts{freezer} = $FREEZER unless (exists $opts{freezer});
 
     _diff($x, $y, %opts);
 }
@@ -501,7 +501,7 @@ sub valid_diff($) {
 
 =over 4
 
-=item $Struct::Diff::Freezer
+=item $Struct::Diff::FREEZER
 
 Contains reference to default serialization function (C<diff()> rely on it
 to determine data equivalency). L<Storable/freeze> with enabled
@@ -511,7 +511,7 @@ L<Data::Dumper> is suitable for structures with regular expressions:
 
     use Data::Dumper;
 
-    $Struct::Diff::Freezer = sub {
+    $Struct::Diff::FREEZER = sub {
         local $Data::Dumper::Deparse    = 1;
         local $Data::Dumper::Sortkeys   = 1;
         local $Data::Dumper::Terse      = 1;
