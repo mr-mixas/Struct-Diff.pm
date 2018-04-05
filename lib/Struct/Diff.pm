@@ -202,20 +202,22 @@ sub _diff($$;@) {
                 $i++;
 
                 if ($op eq 'U') {
-                    push @{$d->{D}}, { U => $y->[$yi] } unless ($opts{noU});
-                    next;
+                    next if ($opts{noU});
+                    push @{$d->{D}}, { U => $y->[$yi] };
                 } elsif ($op eq 'D') {
                     $sd = _diff($x->[$xi], $y->[$yi], %opts);
-                    push @{$d->{D}}, $sd if (keys %{$sd});
+                    next unless (keys %{$sd});
+                    push @{$d->{D}}, $sd;
                 } elsif ($op eq 'A') {
-                    push @{$d->{D}}, { A => $y->[$yi] } unless ($opts{noA});
+                    next if ($opts{noA});
+                    push @{$d->{D}}, { A => $y->[$yi] };
                 } else {
-                    push @{$d->{D}}, { R => $opts{trimR} ? undef : $x->[$xi] }
-                        unless ($opts{noR});
+                    next if ($opts{noR});
+                    push @{$d->{D}}, { R => $opts{trimR} ? undef : $x->[$xi] };
                 }
 
                 $d->{D}->[-1]->{I} = $I = $i
-                    if (exists $d->{D} and $#{$d->{D}} != $i and ++$I != $i);
+                    if ($#{$d->{D}} != $i and ++$I != $i);
             }
         }
     } elsif ($type eq 'HASH' and $x != $y) {
