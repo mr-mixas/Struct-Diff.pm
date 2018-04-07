@@ -195,29 +195,30 @@ sub _diff($$;@) {
         if ($stat->{U} * 3 == @{$lcs}) {
             $d->{U} = $y unless ($opts{noU});
         } else {
-            my ($i, $I, $xi, $yi, $op, $sd) = (-1, -1);
+            my ($I, $xi, $yi, $op, $sd) = 0;
 
             while (@{$lcs}) {
                 ($op, $xi, $yi) = splice @{$lcs}, 0, 3;
-                $i++;
 
                 if ($op eq 'U') {
-                    next if ($opts{noU});
+                    if ($opts{noU}) { $I++; next }
                     push @{$d->{D}}, { U => $y->[$yi] };
                 } elsif ($op eq 'D') {
                     $sd = _diff($x->[$xi], $y->[$yi], %opts);
-                    next unless (keys %{$sd});
+                    unless (keys %{$sd}) { $I++; next }
                     push @{$d->{D}}, $sd;
                 } elsif ($op eq 'A') {
-                    next if ($opts{noA});
+                    if ($opts{noA}) { $I++; next }
                     push @{$d->{D}}, { A => $y->[$yi] };
                 } else {
-                    next if ($opts{noR});
+                    if ($opts{noR}) { $I++; next }
                     push @{$d->{D}}, { R => $opts{trimR} ? undef : $x->[$xi] };
                 }
 
-                $d->{D}->[-1]->{I} = $I = $i
-                    if ($#{$d->{D}} != $i and ++$I != $i);
+                if ($I) {
+                    $d->{D}->[-1]->{I} = $xi;
+                    $I = 0;
+                }
             }
         }
     } elsif ($type eq 'HASH' and $x != $y) {
@@ -271,10 +272,10 @@ sub _lcs_diff {
             push @diff, 'D', $xi++, $yi++;
             $stat{N}++;
         } elsif ($xi < $xm->[0]) {
-            push @diff, 'R', $xi++, undef;
+            push @diff, 'R', $xi++, $yi;
             $stat{R}++;
         } else {
-            push @diff, 'A', undef, $yi++;
+            push @diff, 'A', $xi, $yi++;
             $stat{A}++;
         }
     }
@@ -404,19 +405,19 @@ sub patch($$) {
 
         if (exists $d->{D}) {
             if (ref $d->{D} eq 'ARRAY') {
-                my ($i, $r) = (0, 0); # struct array idx, removed items counter
+                my ($i, $j) = (0, 0); # target array idx, jitter
 
                 for (@{$d->{D}}) {
-                    $i = $_->{I} - $r if (exists $_->{I});
+                    $i = $_->{I} + $j if (exists $_->{I});
 
                     if (exists $_->{D} or exists $_->{N}) {
                         push @stack, \${$s}->[$i], $_;
                     } elsif (exists $_->{A}) {
-                        splice @{${$s}}, $i, 1,
-                            (@{${$s}} > $i ? ($_->{A}, ${$s}->[$i]) : $_->{A});
+                        splice @{${$s}}, $i, 0, $_->{A};
+                        $j++;
                     } elsif (exists $_->{R}) {
                         splice @{${$s}}, $i, 1;
-                        $r++;
+                        $j--;
                         next; # don't increment $i
                     }
 
