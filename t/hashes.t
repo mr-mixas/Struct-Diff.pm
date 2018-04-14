@@ -45,13 +45,13 @@ my @TESTS = (
     {
         a       => {one => 1},
         b       => {},
-        name    => 'hashes_with_one_key_vs_empty_hash',
+        name    => 'hash_with_one_key_vs_empty_hash',
         diff    => {D => {one => {R => 1}}},
     },
     {
         a       => {one => 1},
         b       => {},
-        name    => 'hashes_with_one_key_vs_empty_hash_noR',
+        name    => 'hash_with_one_key_vs_empty_hash_noR',
         diff    => {},
         opts    => {noR => 1},
     },
