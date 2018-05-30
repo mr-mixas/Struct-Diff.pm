@@ -73,7 +73,7 @@ only unchanged items is also possible (when all other types disabled).
 
 =item A
 
-Stands for 'added' (exists only in second structure), it's value - added item.
+Stands for 'added' (exist only in second structure), it's value - added item.
 
 =item D
 
@@ -102,10 +102,10 @@ Represent unchanged items.
 
 =back
 
-Diff format: metadata alternates with data and, as a result, diff may represent
-any structure of any data types. Simple types specified as is, arrays and hashes
-contain subdiffs for their items with native for such types addressing: indexes
-for arrays and keys for hashes.
+Diff format: metadata alternates with data and, as a result, diff may
+represent any structure of any data types. Simple types specified as is,
+arrays and hashes contain subdiffs for their items with native for such types
+addressing: indexes for arrays and keys for hashes.
 
 Sample:
 
@@ -117,11 +117,11 @@ Sample:
     {D => {one => {D => [{I => 1,R => 7}]},two => {A => 2}}}
     ||    | |     ||    |||    | |    |     |     ||    |
     ||    | |     ||    |||    | |    |     |     ||    +- with value 2
-    ||    | |     ||    |||    | |    |     |     |+- it says key was added
+    ||    | |     ||    |||    | |    |     |     |+- key 'two' was added (A)
     ||    | |     ||    |||    | |    |     |     +- subdiff for it
     ||    | |     ||    |||    | |    |     +- another key from top-level hash
     ||    | |     ||    |||    | |    +- what it was (item's value: 7)
-    ||    | |     ||    |||    | +- shows what happened to item (removed)
+    ||    | |     ||    |||    | +- what happened to item (R - removed)
     ||    | |     ||    |||    +- array item's actual index
     ||    | |     ||    ||+- prior item was omitted
     ||    | |     ||    |+- subdiff for array item
@@ -137,11 +137,13 @@ Sample:
 
 =head2 diff
 
-Returns hashref to recursive diff between two passed things. Beware when
-changing diff: it's parts are links to original structures.
+Returns recursive diff for two passed things.
 
     $diff  = diff($x, $y, %opts);
-    $patch = diff($x, $y, noU => 1, noO => 1, trimR => 1); # smallest possible diff
+    $patch = diff($x, $y, noU => 1, noO => 1, trimR => 1); # smallest diff
+
+Beware changing diff: it's parts are references to substructures of passed
+arguments.
 
 =head3 Options
 
@@ -154,7 +156,8 @@ by default, see L</CONFIGURATION VARIABLES> for details.
 
 =item noX C<< <true|false> >>
 
-Where X is a status (C<A>, C<N>, C<O>, C<R>, C<U>); such status will be omitted.
+Where X is a status (C<A>, C<N>, C<O>, C<R>, C<U>); such status will be
+omitted.
 
 =item trimR C<< <true|false> >>
 
@@ -291,7 +294,7 @@ sub _lcs_diff {
 
 =head2 list_diff
 
-List all pairs (path_to_subdiff, ref_to_subdiff) for provided diff. See
+List all pairs (path-to-subdiff, ref-to-subdiff) for provided diff. See
 L<Struct::Path/ADDRESSING SCHEME> for path format specification.
 
     @list = list_diff($diff);
@@ -307,7 +310,7 @@ Don't dive deeper than defined number of levels; C<undef> used by default
 
 =item sort C<< <sub|true|false> >>
 
-Defines how to handle hash subdiffs. Keys will be picked randomely (default
+Defines how to handle hash subdiffs. Keys will be picked randomly (default
 C<keys> behavior), sorted by provided subroutine (if value is a coderef) or
 lexically sorted if set to some other true value.
 
@@ -442,9 +445,10 @@ sub patch($$) {
 
 =head2 valid_diff
 
-Validate diff structure. In scalar context returns C<1> for valid diff, C<undef>
-otherwise. In list context returns list of pairs (path, type) for each error. See
-L<Struct::Path/ADDRESSING SCHEME> for path format specification.
+Validate diff structure. In scalar context returns C<1> for valid diff,
+C<undef> otherwise. In list context returns list of pairs (path, type) for
+each error. See L<Struct::Path/ADDRESSING SCHEME> for path format
+specification.
 
     @errors_list = valid_diff($diff); # list context
 
@@ -520,15 +524,15 @@ L<Data::Dumper> is suitable for structures with regular expressions:
         return Dumper @_;
     }
 
-But comparing to L<Storable> it has two other issues: speed and unability
+But comparing to L<Storable> it has two another issues: speed and unability
 to distinguish numbers from their string representations.
 
 =back
 
 =head1 LIMITATIONS
 
-Only arrays and hashes traversed. All other types compared by reference address
-and serialized content.
+Only arrays and hashes traversed. All other types compared by reference
+addresses and serialized content.
 
 L<Storable/freeze> (serializer used by default) will fail serializing compiled
 regexps, so, consider to use other serializer if data contains regular
@@ -544,11 +548,11 @@ Michael Samoglyadov, C<< <mixas at cpan.org> >>
 
 =head1 BUGS
 
-Please report any bugs or feature requests to C<bug-struct-diff at rt.cpan.org>,
-or through the web interface at
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Struct-Diff>. I will be notified,
-and then you'll automatically be notified of progress on your bug as I make
-changes.
+Please report any bugs or feature requests to
+C<bug-struct-diff at rt.cpan.org>, or through the web interface at
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Struct-Diff>. I will be
+notified, and then you'll automatically be notified of progress on your bug as
+I make changes.
 
 =head1 SUPPORT
 
