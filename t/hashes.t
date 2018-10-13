@@ -176,7 +176,7 @@ my @TESTS = (
     {
         a       => {one => 1, two => {nine => 9, ten => 10}, three => 3},
         b       => {one => 1, two => {nine => 8, ten => 10}, four => 4},
-        name    => 'complex_hash',
+        name    => 'nested_hashes',
         diff    => {
             D => {
                 one   => {U => 1},
@@ -189,7 +189,7 @@ my @TESTS = (
     {
         a       => {one => 1, two => {nine => 9, ten => 10}, three => 3},
         b       => {one => 1, two => {nine => 8, ten => 10}, four => 4},
-        name    => 'complex_hash_noU',
+        name    => 'nested_hashes_noU',
         diff    => {
             D => {
                 two => {D => {nine => {N => 8,O => 9}}},
