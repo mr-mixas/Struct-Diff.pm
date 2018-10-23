@@ -32,11 +32,11 @@ Struct::Diff - Recursive diff for nested perl structures
 
 =head1 VERSION
 
-Version 0.96
+Version 0.97
 
 =cut
 
-our $VERSION = '0.96';
+our $VERSION = '0.97';
 
 =head1 SYNOPSIS
 
@@ -588,7 +588,7 @@ L<http://search.cpan.org/dist/Struct-Diff/>
 =head1 SEE ALSO
 
 L<Algorithm::Diff>, L<Data::Deep>, L<Data::Diff>, L<Data::Difference>,
-L<JSON::MergePatch>
+L<JSON::Patch>, L<JSON::MergePatch>, L<Struct::Diff::MergePatch>
 
 L<Data::Structure::Util>, L<Struct::Path>, L<Struct::Path::PerlStyle>
 
