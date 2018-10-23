@@ -6,6 +6,7 @@ use warnings FATAL => 'all';
 use parent qw(Exporter);
 
 use Algorithm::Diff qw(LCSidx);
+use Carp qw(croak);
 use Scalar::Util qw(looks_like_number);
 use Storable 2.05 qw(freeze);
 
@@ -407,6 +408,8 @@ sub patch($$) {
         my ($s, $d) = splice @stack, 0, 2; # struct, subdiff
 
         if (exists $d->{D}) {
+            croak "Structure does not match" unless (ref ${$s} eq ref $d->{D});
+
             if (ref $d->{D} eq 'ARRAY') {
                 my ($i, $j) = (0, 0); # target array idx, jitter
 

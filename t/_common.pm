@@ -67,7 +67,12 @@ sub run_batch_test_patch {
 
     eval { patch($st->{a}, $st->{diff}) };
     if ($@) {
-        fail("Patch: $@");
+        if ($st->{error_patch}) {
+            pass("expected error")
+        } else {
+            fail("Patch: $@");
+        }
+
         return;
     }
 
