@@ -372,12 +372,18 @@ sub split_diff($) {
                 push @{$out{a}}, $sd->{a} if (exists $sd->{a});
                 push @{$out{b}}, $sd->{b} if (exists $sd->{b});
             }
+
+            $out{a} = [] unless (exists $out{a});
+            $out{b} = [] unless (exists $out{b});
         } else { # HASH
             for (keys %{$d->{D}}) {
                 $sd = split_diff($d->{D}->{$_});
                 $out{a}->{$_} = $sd->{a} if (exists $sd->{a});
                 $out{b}->{$_} = $sd->{b} if (exists $sd->{b});
             }
+
+            $out{a} = {} unless (exists $out{a});
+            $out{b} = {} unless (exists $out{b});
         }
     } elsif (exists $d->{U}) {
         $out{a} = $out{b} = $d->{U};
