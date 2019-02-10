@@ -7,7 +7,7 @@ use parent qw(Exporter);
 
 use Algorithm::Diff qw(LCSidx);
 use Carp qw(croak);
-use Scalar::Util qw(looks_like_number);
+use Scalar::Util 1.18 qw(looks_like_number);
 use Storable 2.05 qw(freeze);
 
 our @EXPORT_OK = qw(

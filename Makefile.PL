@@ -28,7 +28,7 @@ WriteMakefile(
         'Algorithm::Diff' => 1.19,
         'Carp'            => 0,
         'Exporter'        => 0,
-        'Scalar::Util'    => 0,
+        'Scalar::Util'    => 1.18,
         'Storable'        => 2.05,
         'parent'          => 0,
         'strict'          => 0,
