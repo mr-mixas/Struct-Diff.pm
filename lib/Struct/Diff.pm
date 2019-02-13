@@ -469,7 +469,7 @@ or
 
 sub valid_diff($) {
     my @stack = ([], shift); # (path, diff)
-    my ($diff, @errs, $path);
+    my ($diff, @errs, $path, @tags);
 
     while (@stack) {
         ($path, $diff) = splice @stack, 0, 2;
@@ -492,6 +492,22 @@ sub valid_diff($) {
             } else {
                 return undef unless wantarray;
                 unshift @errs, $path, 'BAD_D_TYPE';
+            }
+        } else {
+            @tags = grep {
+                $_ eq 'A' or
+                $_ eq 'N' or
+                $_ eq 'O' or
+                $_ eq 'R' or
+                $_ eq 'U'
+            } keys %{$diff};
+
+            if (
+                @tags > 1 and
+                not (@tags == 2 and exists $diff->{N} and exists $diff->{O})
+            ) {
+                return undef unless wantarray;
+                unshift @errs, $path, 'BAD_DIFF_TAGS';
             }
         }
 
