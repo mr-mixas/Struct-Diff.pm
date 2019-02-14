@@ -512,6 +512,11 @@ sub valid_diff($) {
         }
 
         if (exists $diff->{I}) {
+            if (ref $path->[-1] ne 'ARRAY') {
+                return undef unless wantarray;
+                unshift @errs, $path, 'INAPPROPRIATE_I';
+            }
+
             if (!looks_like_number($diff->{I}) or int($diff->{I}) != $diff->{I}) {
                 return undef unless wantarray;
                 unshift @errs, $path, 'BAD_I_TYPE';

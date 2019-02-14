@@ -4,7 +4,7 @@ use strict;
 use warnings FATAL => 'all';
 
 use Struct::Diff qw(valid_diff);
-use Test::More tests => 15;
+use Test::More tests => 18;
 
 use lib "t";
 use _common qw(scmp);
@@ -28,6 +28,12 @@ is(
     valid_diff({D => [{A => 0, N => 1}]}),
     undef,
     "Invalid mix of tags"
+);
+
+is(
+    valid_diff({D => {key => {I => 42, N => 1, O => 0}}}),
+    undef,
+    "I in nonarray diff"
 );
 
 ### list context
@@ -163,14 +169,26 @@ ok(not valid_diff({D => [{A => 0, I => undef}]}));
 is_deeply(\@got, \@exp, "Integers permitted only") || diag scmp(\@got, \@exp);
 
 is(
-    valid_diff({I => 2}),
+    valid_diff({D =>[{I => 2}]}),
     undef,
     "Lonesome I, scalar context"
 );
 
-@got = valid_diff({I => 9});
+@got = valid_diff({D =>[{I => 2}]});
 @exp = (
-    [],'LONESOME_I'
+    [[0]], 'LONESOME_I',
 );
-is_deeply(\@got, \@exp, "Integers permitted only") || diag scmp(\@got, \@exp);
+is_deeply(\@got, \@exp, "Lonesome I, list context") || diag scmp(\@got, \@exp);
+
+@got = valid_diff({I => 9, N => 1, O => 0});
+@exp = (
+    [],'INAPPROPRIATE_I'
+);
+is_deeply(\@got, \@exp, "I in diff root") || diag scmp(\@got, \@exp);
+
+@got = valid_diff({D => {key => {I => 42, N => 1, O => 0}}});
+@exp = (
+    [{K => ['key']}],'INAPPROPRIATE_I',
+);
+is_deeply(\@got, \@exp, "I in HASH diff") || diag scmp(\@got, \@exp);
 
