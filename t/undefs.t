@@ -51,6 +51,7 @@ my @TESTS = (
         name    => 'undef_vs_empty_hash_noNO',
         diff    => {},
         opts    => {noN => 1, noO => 1},
+        patched => undef,
     },
     {
         a       => undef,

@@ -82,7 +82,10 @@ my @TESTS = (
     },
 );
 
-map { $_->{to_json} = 0 } @TESTS;
+map {
+    $_->{to_json} = 0,
+    $_->{skip_patch} = 1,
+} @TESTS;
 
 run_batch_tests(@TESTS);
 

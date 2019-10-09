@@ -15,6 +15,7 @@ my @TESTS = (
         diff    => {D => [{A => 0}]},
         error_patch => 'structure does not match',
         skip_diff => 1,
+        to_json => 0,
     },
 );
 

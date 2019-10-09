@@ -41,6 +41,7 @@ my @TESTS = (
         name    => 'empty_hash_vs_hash_with_one_key_noA',
         diff    => {},
         opts    => {noA => 1},
+        patched => {},
     },
     {
         a       => {one => 1},
@@ -54,6 +55,7 @@ my @TESTS = (
         name    => 'hash_with_one_key_vs_empty_hash_noR',
         diff    => {},
         opts    => {noR => 1},
+        patched => {one => 1},
     },
     {
         a       => {one => {two => 2}},
@@ -67,6 +69,7 @@ my @TESTS = (
         name    => 'subhash_emptied_noR',
         diff    => {},
         opts    => {noR => 1},
+        patched => {one => {two => 2}},
     },
     {
         a       => {one => {}},
@@ -80,6 +83,7 @@ my @TESTS = (
         name    => 'subhash_filled_noA',
         diff    => {},
         opts    => {noA => 1},
+        patched => {one => {}},
     },
     {
         a       => {one =>{two => {three => 3}}},
@@ -158,6 +162,7 @@ my @TESTS = (
         name    => 'hashes_with_one_different_value_noN',
         diff    => {D => {one => {O => 1}}},
         opts    => {noN => 1},
+        patched => {one => 1},
     },
     {
         a       => {one => 1},

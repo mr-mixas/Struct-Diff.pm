@@ -41,6 +41,7 @@ my @TESTS = (
         name    => 'empty_list_vs_list_with_one_item_noA',
         diff    => {},
         opts    => {noA => 1},
+        patched => [],
     },
     {
         a       => [0],
@@ -54,6 +55,7 @@ my @TESTS = (
         name    => 'list_with_one_item_vs_empty_list_noR',
         diff    => {},
         opts    => {noR => 1},
+        patched => [0],
     },
     {
         a       => [0],
@@ -67,6 +69,7 @@ my @TESTS = (
         name    => 'lists_with_one_different_item_noN',
         diff    => {D => [{O => 0}]},
         opts    => {noN => 1},
+        patched => [0],
     },
     {
         a       => [0],
@@ -139,6 +142,7 @@ my @TESTS = (
         name    => 'one_item_changed_in_the_middle_of_list_noN',
         diff    => {D => [{U => 0},{O => 1},{U => 2}]},
         opts    => {noN => 1},
+        patched => [0, 1, 2],
     },
     {
         a       => [0, 1, 2],
@@ -153,6 +157,7 @@ my @TESTS = (
         name    => 'one_item_changed_in_the_middle_of_list_noNO',
         diff    => {D => [{U => 0},{I => 2,U => 2}]},
         opts    => {noN => 1,noO => 1},
+        patched => [0, 1, 2],
     },
     {
         a       => [0, 1, 2],
@@ -173,6 +178,7 @@ my @TESTS = (
         name    => 'one_item_inserted_in_the_middle_of_list_noA',
         diff    => {D => [{U => 0},{I => 1,U => 2}]},
         opts    => {noA => 1},
+        patched => [0, 2],
     },
     {
         a       => [0, 2],
@@ -193,6 +199,7 @@ my @TESTS = (
         name    => 'one_item_removed_from_the_middle_of_list_noR',
         diff    => {D => [{U => 0},{I => 2,U => 2}]},
         opts    => {noR => 1},
+        patched => [0, 1, 2],
     },
     {
         a       => [0, 1, 2],
@@ -264,6 +271,7 @@ my @TESTS = (
         name    => 'sublist_emptied_noR',
         diff    => {},
         opts    => {noR => 1},
+        patched => [[0]],
     },
     {
         a       => [[]],
@@ -277,6 +285,7 @@ my @TESTS = (
         name    => 'sublist_filled_noA',
         diff    => {},
         opts    => {noA => 1},
+        patched => [[]],
     },
     {
         a       => [    2,3,  5,   ],
@@ -294,7 +303,6 @@ my @TESTS = (
                 {A => 7}
             ]
         },
-        opts    => {},
     },
     {
         a       => [    2,3,  5,   ],
@@ -327,7 +335,6 @@ my @TESTS = (
                 {U => 7}
             ]
         },
-        opts    => {},
     },
     {
         a       => [0,1,2,3,4,5,6,7],
@@ -371,7 +378,6 @@ my @TESTS = (
                 {R => 7}
             ]
         },
-        opts    => {},
     },
     {
         a       => [0,1,2,3,4,5,6,7],
@@ -391,7 +397,7 @@ my @TESTS = (
     {
         a       => [ qw(a b c e h j l m n p) ],
         b       => [ qw(b c d e f j k l m r s t) ],
-        name    => 'nested_lists_LCS',
+        name    => 'lists_LCS_complex',
         diff    => {
             D => [
                 {R => 'a'},
@@ -413,7 +419,7 @@ my @TESTS = (
     {
         a       => [ qw(a b c e h j l m n p) ],
         b       => [ qw(b c d e f j k l m r s t) ],
-        name    => 'nested_lists_LCS_noU',
+        name    => 'lists_LCS_complex_noU',
         diff    => {
             D => [
                 {R => 'a'},
@@ -430,7 +436,39 @@ my @TESTS = (
     {
         a       => [ qw(a b c e h j l m n p) ],
         b       => [ qw(b c d e f j k l m r s t) ],
-        name    => 'nested_lists_LCS_onlyU',
+        name    => 'lists_LCS_complex_noAU',
+        diff    => {
+            D => [
+                {R => 'a'},
+                {I => 4,N => 'f',O => 'h'},
+                {I => 8,N => 'r',O => 'n'},
+                {N => 's',O => 'p'}
+            ]
+        },
+        opts    => {noA => 1, noU => 1},
+        patched => [ qw(b c e f j l m r s) ],
+    },
+    {
+        a       => [ qw(a b c e h j l m n p) ],
+        b       => [ qw(b c d e f j k l m r s t) ],
+        name    => 'lists_LCS_complex_noRU',
+        diff    => {
+            D => [
+                {A => 'd',I => 3},
+                {I => 4,N => 'f',O => 'h'},
+                {A => 'k',I => 6},
+                {I => 8,N => 'r',O => 'n'},
+                {N => 's',O => 'p'},
+                {A => 't'}
+            ]
+        },
+        opts    => {noR => 1, noU => 1},
+        patched => [ qw(a b c d e f j k l m r s t) ],
+    },
+    {
+        a       => [ qw(a b c e h j l m n p) ],
+        b       => [ qw(b c d e f j k l m r s t) ],
+        name    => 'lists_LCS_complex_onlyU',
         diff    => {
             D => [
                 {I => 1,U => 'b'},
@@ -442,6 +480,7 @@ my @TESTS = (
             ]
         },
         opts    => {noA => 1, noN => 1, noO => 1, noR => 1},
+        patched => ['a','b','c','e','h','j','l','m','n','p'],
     },
     {
         a       => $one = [ 0, 1, 2 ],

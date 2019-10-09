@@ -23,7 +23,7 @@ if ($ENV{EXPORT_TESTS_DIR}) {
     $ENV{EXPORT_TESTS_DIR} =~ /(.*)/;
     $ENV{EXPORT_TESTS_DIR} = $1; # untaint
 
-    $EXP_KEYS = { map { $_ => 1 } qw(a b diff opts) };
+    $EXP_KEYS = { map { $_ => 1 } qw(a b diff opts patched) };
 
     require JSON;
 }
@@ -56,18 +56,14 @@ sub run_batch_test_patch {
     my $t = shift;
 
     return if ($t->{skip_patch});
-    return if ($t->{opts}->{noA});
-    return if ($t->{opts}->{noR});
-    return if ($t->{opts}->{noN});
 
-    my $st = clone($t);
-    # diff contain parts of original structures and will be mangled if
-    # it has refref,scalarrefs etc from a and a patched
-    $st->{a} = clone($t->{a}); # get rid of common refs with diff
+    my $expected = exists $t->{patched} ? $t->{patched} : $t->{b};
+    my $patch = clone($t->{diff});
+    my $target = clone($t->{a});
 
-    eval { patch($st->{a}, $st->{diff}) };
+    eval { patch($target, $patch) };
     if ($@) {
-        if ($st->{error_patch}) {
+        if ($t->{error_patch}) {
             pass("expected error")
         } else {
             fail("Patch: $@");
@@ -76,12 +72,12 @@ sub run_batch_test_patch {
         return;
     }
 
-    subtest "Patch " . $st->{name} => sub {
-        is_deeply($st->{a}, $st->{b}, "Patch: $st->{name}") ||
-            diag scmp($st->{a}, $st->{b});
+    subtest "Patch " . $t->{name} => sub {
+        is_deeply($target, $expected, "Patch: $t->{name}") ||
+            diag scmp($target, $expected);
 
-        is_deeply($t->{diff}, $st->{diff}, "Patch: diff mangled: $st->{name}") ||
-            diag scmp($t->{diff}, $st->{diff});
+        is_deeply($t->{diff}, $patch, "Patch: diff mangled: $t->{name}") ||
+            diag scmp($t->{diff}, $patch);
     };
 }
 
