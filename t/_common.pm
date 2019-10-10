@@ -9,7 +9,7 @@ use parent qw(Exporter);
 use Clone qw(clone);
 use Data::Dumper qw();
 use Struct::Diff qw(diff patch valid_diff);
-use Test::More;
+use Test::More 0.94;
 
 our @EXPORT = qw(
     run_batch_tests
@@ -42,6 +42,8 @@ sub run_batch_test_diff {
     }
 
     subtest "Diff " . $t->{name} => sub {
+        plan tests => 3;
+
         is_deeply($diff, $st->{diff}, "Diff: $st->{name}") ||
             diag scmp($diff, $st->{diff});
 
@@ -77,6 +79,8 @@ sub run_batch_test_patch {
     }
 
     subtest "Patch " . $st->{name} => sub {
+        plan tests => 2;
+
         is_deeply($st->{a}, $st->{b}, "Patch: $st->{name}") ||
             diag scmp($st->{a}, $st->{b});
 
@@ -93,6 +97,8 @@ sub run_batch_test_valid {
     my $diff = clone($t->{diff});
 
     subtest "Valid " . $t->{name} => sub {
+        plan tests => 2;
+
         ok(valid_diff($diff));
 
         is_deeply($diff, $t->{diff}, "Valid: diff mangled: $t->{name}") ||
